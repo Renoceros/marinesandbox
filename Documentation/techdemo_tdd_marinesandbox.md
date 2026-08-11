@@ -75,7 +75,7 @@ These tasks must be completed in order to deliver the Tech Demonstrator by the D
 * **Validation:** Write unit tests verifying that adult corals attract grazers and wrasses that automate algae and predator control, whereas baby monocultures quickly succumb to weeds/pests.
 
 ### TASK-TD-102: 3-Layer Parallax Container View
-* **PIC:** Talin
+* **PIC:** y/n
 * **Description:** Build `marinesandbox/Views/Canvas/ParallaxScrollView.swift` with:
   * **Background Layer:** Light blue gradient (ratio 0.2).
   * **Midground Layer:** Renders floating particles and silhouettes of recruited fish groups (small reef fish, gobies, or large schools) depending on the active recruitment counts (ratio 0.5).

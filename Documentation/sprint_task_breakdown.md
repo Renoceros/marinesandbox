@@ -34,7 +34,7 @@ gantt
 * **TASK-TD-101 (Samantha):** Implement `marinesandbox/Services/EcoEngine.swift` core stateless math:
   * Shannon Index computation: $H = -\sum (p_i \ln p_i)$.
   * Time-step formulas for growth progress, algae accumulation, and bleaching triggers.
-* **TASK-TD-102 (Talin):** Implement the skeleton of `marinesandbox/Views/Canvas/ParallaxScrollView.swift` with three horizontal scroll layers (Background 0.2, Midground 0.5, Foreground 1.0).
+* **TASK-TD-102 (y/n):** Implement the skeleton of `marinesandbox/Views/Canvas/ParallaxScrollView.swift` with three horizontal scroll layers (Background 0.2, Midground 0.5, Foreground 1.0).
 
 ### Day 2: Interactive Controls & Canvas
 * **TASK-TD-103 (Reno):** Create `marinesandbox/Views/Canvas/MockCoralView.swift` to render shapes dynamically (Baby, Teenager, Adult states with color shifts for algae overgrowth and bleaching).
@@ -65,7 +65,7 @@ gantt
 * **TASK-MVP-203 (Zarina):** Setup local file loaders to seed the mock Bali NGO preset from static resources on launch.
 
 ### Day 6: Onboarding Selection View
-* **TASK-MVP-204 (Talin/Reno):** Build the **Location Selection Screen** (Bali/Living Seas default) and user routing system.
+* **TASK-MVP-204 (y/n/Reno):** Build the **Location Selection Screen** (Bali/Living Seas default) and user routing system.
   * New users see selector $\rightarrow$ Seabed canvas $\rightarrow$ guided to plant exactly **one Staghorn frag** to start.
   * Returning users bypass selector and load saved context directly.
 * **Deliverable:** Sandbox configurations successfully save and reload offline.
@@ -76,7 +76,7 @@ gantt
 **Objective:** Replace placeholder views with final visual assets, Lottie vector animations, and social exports.
 
 ### Day 7: Lottie Frame Scrubbing
-* **TASK-MVP-301 (Talin):** Implement `marinesandbox/Views/Canvas/LottieCoralView.swift` wrappers. Map playheads dynamically based on the state:
+* **TASK-MVP-301 (y/n):** Implement `marinesandbox/Views/Canvas/LottieCoralView.swift` wrappers. Map playheads dynamically based on the state:
   * Growth ($0.0 \rightarrow 0.6$)
   * Bleaching ($0.6 \rightarrow 0.8$)
   * Algae Overgrowth ($0.6 \rightarrow 1.0$)
@@ -100,7 +100,7 @@ gantt
 
 ### Days 11–12: Stress Testing & Optimization
 * **TASK-MVP-401 (Samantha/Bobo):** Verify EcoEngine calculations under long simulations: check for division-by-zero errors or out-of-bounds metrics.
-* **TASK-MVP-402 (Talin):** Optimize `ParallaxScrollView` render frames to ensure fluid 60fps scrolling when rendering multiple fish layers.
+* **TASK-MVP-402 (y/n):** Optimize `ParallaxScrollView` render frames to ensure fluid 60fps scrolling when rendering multiple fish layers.
 
 ### Days 13–14: Bug Fixes & Code Cleanup
 * **TASK-MVP-403 (All):** Code review cleanup. Ensure all async tasks (`Task`) utilize `[weak self]` memory safety rules.

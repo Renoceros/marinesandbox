@@ -39,6 +39,7 @@ Below is the master list of tasks required to build the MVP and subsequent featu
 | **TASK-MVP-403** | `All` | Code review cleanup and memory safety check (`[weak self]`). | All | **In Scope** |
 | **TASK-ROAD-501** | `marinesandbox/Services` | Enforce COPPA guidelines: encrypt saved data and isolate user profiles inside local container storage. | Bishal / Zarina | **Deferred** |
 | **TASK-ROAD-502** | `marinesandbox/Services` | Build Apple native iCloud / CloudKit syncing layer for profiles and settings. | Bishal | **Deferred** |
+| **TASK-ROAD-503** | `marinesandbox/Views` | Implement advanced parallax micro-animations (swaying seaweed/seagrass blades, custom spline swimming fish paths). | Bobo | **Deferred** |
 
 ---
 

@@ -111,3 +111,10 @@ gantt
 ### Days 13–14: Bug Fixes & Code Cleanup
 * **TASK-MVP-403 (All):** Code review cleanup. Ensure all async tasks (`Task`) utilize `[weak self]` memory safety rules.
 * **Deliverable:** Fully functional, compiler-error-free Marine Sandbox iOS application ready for deployment.
+
+---
+
+## Deferred Roadmap Items (Future Sprints)
+* **TASK-ROAD-501 (Bishal / Zarina):** Enforce COPPA guidelines: encrypt saved data and isolate user profiles inside local container storage.
+* **TASK-ROAD-502 (Bishal):** Build Apple native iCloud / CloudKit syncing layer for profiles and settings.
+* **TASK-ROAD-503 (Bobo):** Implement advanced parallax micro-animations (swaying seaweed/seagrass blades, custom spline swimming fish paths) inside horizontal scroll layers.

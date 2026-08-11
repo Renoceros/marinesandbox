@@ -75,3 +75,8 @@ env/
 .env/
 __pycache__/
 *.pyc
+
+# ==========================================
+# Audio Files in Transcription
+# ==========================================
+/Documentation/Transcription/*.m4a

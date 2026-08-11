@@ -177,7 +177,7 @@ struct BackgroundViewB: View {
                 path.addQuadCurve(to: CGPoint(x: 750, y: 580), control: CGPoint(x: 550, y: 420))
                 path.addLine(to: CGPoint(x: 750, y: 800))
                 path.addLine(to: CGPoint(x: 0, y: 800))
-                path.close()
+                path.closeSubpath()
             }
             .fill(Color(red: 0.01, green: 0.03, blue: 0.14).opacity(0.5))
         }
@@ -221,7 +221,7 @@ struct MidgroundViewA: View {
                               control2: CGPoint(x: 500, y: 720))
                 path.addLine(to: CGPoint(x: 750, y: 800))
                 path.addLine(to: CGPoint(x: 0, y: 800))
-                path.close()
+                path.closeSubpath()
             }
             .fill(Color(red: 0.02, green: 0.06, blue: 0.22).opacity(0.4))
             
@@ -285,7 +285,7 @@ struct MidgroundViewC: View {
                 path.addQuadCurve(to: CGPoint(x: 750, y: 690), control: CGPoint(x: 375, y: 620))
                 path.addLine(to: CGPoint(x: 750, y: 800))
                 path.addLine(to: CGPoint(x: 0, y: 800))
-                path.close()
+                path.closeSubpath()
             }
             .fill(Color(red: 0.02, green: 0.06, blue: 0.22).opacity(0.45))
             
@@ -324,7 +324,7 @@ struct ForegroundViewA: View {
                               control2: CGPoint(x: 500, y: 700))
                 path.addLine(to: CGPoint(x: 750, y: 800))
                 path.addLine(to: CGPoint(x: 0, y: 800))
-                path.close()
+                path.closeSubpath()
             }
             .fill(
                 LinearGradient(
@@ -344,7 +344,7 @@ struct ForegroundViewA: View {
                 path.addQuadCurve(to: CGPoint(x: 700, y: 660), control: CGPoint(x: 670, y: 610))
                 path.addLine(to: CGPoint(x: 700, y: 800))
                 path.addLine(to: CGPoint(x: 500, y: 800))
-                path.close()
+                path.closeSubpath()
             }
             .fill(Color(red: 0.03, green: 0.09, blue: 0.20))
         }
@@ -361,7 +361,7 @@ struct ForegroundViewB: View {
                               control2: CGPoint(x: 500, y: 550))
                 path.addLine(to: CGPoint(x: 750, y: 800))
                 path.addLine(to: CGPoint(x: 0, y: 800))
-                path.close()
+                path.closeSubpath()
             }
             .fill(
                 LinearGradient(
@@ -387,7 +387,7 @@ struct ForegroundViewC: View {
                               control2: CGPoint(x: 450, y: 680))
                 path.addLine(to: CGPoint(x: 750, y: 800))
                 path.addLine(to: CGPoint(x: 0, y: 800))
-                path.close()
+                path.closeSubpath()
             }
             .fill(
                 LinearGradient(
@@ -407,7 +407,7 @@ struct ForegroundViewC: View {
                 path.addQuadCurve(to: CGPoint(x: 200, y: 650), control: CGPoint(x: 170, y: 600))
                 path.addLine(to: CGPoint(x: 200, y: 800))
                 path.addLine(to: CGPoint(x: 0, y: 800))
-                path.close()
+                path.closeSubpath()
             }
             .fill(Color(red: 0.03, green: 0.08, blue: 0.18))
         }
@@ -423,7 +423,7 @@ struct LightRayShape: Shape {
         path.addLine(to: CGPoint(x: rect.width * 0.7, y: 0))
         path.addLine(to: CGPoint(x: rect.width, y: rect.height))
         path.addLine(to: CGPoint(x: 0, y: rect.height))
-        path.close()
+        path.closeSubpath()
         return path
     }
 }
@@ -440,7 +440,7 @@ struct FishSilhouette: Shape {
         path.addLine(to: CGPoint(x: rect.width, y: rect.height * 0.7))
         path.addQuadCurve(to: CGPoint(x: rect.width * 0.7, y: rect.height), control: CGPoint(x: rect.width * 0.85, y: rect.height * 0.85))
         path.addQuadCurve(to: CGPoint(x: 0, y: rect.height * 0.5), control: CGPoint(x: rect.width * 0.3, y: rect.height))
-        path.close()
+        path.closeSubpath()
         return path
     }
 }

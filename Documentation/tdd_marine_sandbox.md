@@ -1,7 +1,7 @@
 # Technical Design Document (TDD): Interactive Marine Sandbox (iOS)
 
-**Document Version:** v1.2  
-**Status:** Directory Architecture & Backlog Defined  
+**Document Version:** v1.3  
+**Status:** Directory Architecture & Backlog Defined (Updated for 2-Week MVP Scope)  
 
 ---
 
@@ -12,21 +12,21 @@
 *   **Role Allocation:** Roles are not finalized. Tasks from the MVP Chores backlog are grabbed dynamically by developers during sprint planning.
 
 ### 1.2 MVP Chores Backlog (Sprint Task Board)
-Below is the master list of tasks required to build the MVP. Developers claim these tasks by prefixing branches with their names (e.g., `feat/samantha/TASK-102-eco-engine`).
+Below is the master list of tasks required to build the MVP, annotated with their scoping for the 2-week deadline. Developers claim these tasks by prefixing branches with their names (e.g., `feat/samantha/TASK-102-eco-engine`).
 
-| Task ID | Component | Task Title / Description | Dependencies |
-| --- | --- | --- | --- |
-| **TASK-101** | Models | Implement SwiftData schemas (`UserProfile`, `ReefCanvas`, `PlacedStructure`, `CoralFrag`). | None |
-| **TASK-102** | Services | Implement `EcoEngine.swift` state math functions, Shannon index, and growth calculations. | TASK-101 |
-| **TASK-103** | UI | Build `LottieCoralView.swift` SwiftUI wrapper and logic to scrub playheads based on state. | None |
-| **TASK-104** | UI | Build `ParallaxScrollView.swift` horizontal container with 3-layer parallax translation. | None |
-| **TASK-105** | ViewModel| Implement `SandboxViewModel.swift` state coordination, Fast Forward, and Reset operations. | TASK-102 |
-| **TASK-106** | UI | Create main `SandboxView.swift` foreground seabed canvas with drag-and-drop structures. | TASK-104, TASK-105 |
-| **TASK-107** | UI | Design and implement the `DiagnosticCardView.swift` reflection modals and text parsing. | TASK-105 |
-| **TASK-108** | Services | Set up static JSON asset files for Bali, Jeju, and Caribbean NGO presets (`NGOConfig`). | None |
-| **TASK-109** | Security | Enforce COPPA guidelines: encrypt saved data and isolate user profiles inside local container storage. | TASK-101 |
-| **TASK-110** | Integration| Build Apple native iCloud / CloudKit syncing layer for profiles and settings. | TASK-101 |
-| **TASK-111** | UI | Construct the `ShareCardView.swift` custom 9:16 layout and export wrapper. | TASK-106 |
+| Task ID | Component | Task Title / Description | Dependencies | MVP Scope Status |
+| --- | --- | --- | --- | --- |
+| **TASK-101** | Models | Implement SwiftData schemas (`UserProfile`, `ReefCanvas`, `PlacedStructure`, `CoralFrag`). | None | **In Scope** (Basic local models, no complex security wrappers) |
+| **TASK-102** | Services | Implement `EcoEngine.swift` state math functions, Shannon index, and growth calculations. | TASK-101 | **In Scope** |
+| **TASK-103** | UI | Build `LottieCoralView.swift` SwiftUI wrapper and logic to scrub playheads based on state. | None | **In Scope** (Supports fallback default rendering if vector resources are mock) |
+| **TASK-104** | UI | Build `ParallaxScrollView.swift` horizontal container with 3-layer parallax translation. | None | **In Scope** |
+| **TASK-105** | ViewModel| Implement `SandboxViewModel.swift` state coordination, Fast Forward, and Reset operations. | TASK-102 | **In Scope** |
+| **TASK-106** | UI | Create main `SandboxView.swift` foreground seabed canvas with drag-and-drop structures. | TASK-104, TASK-105 | **In Scope** |
+| **TASK-107** | UI | Design and implement the `DiagnosticCardView.swift` reflection modals and text parsing. | TASK-105 | **In Scope** |
+| **TASK-108** | Services | Set up static JSON configurations for local presets (`NGOConfig`). | None | **In Scope** (Only Bali/Living Seas configuration is loaded) |
+| **TASK-109** | Security | Enforce COPPA guidelines: encrypt saved data and isolate user profiles inside local container storage. | TASK-101 | **Deferred** (Basic unencrypted offline sandbox storage for MVP) |
+| **TASK-110** | Integration| Build Apple native iCloud / CloudKit syncing layer for profiles and settings. | TASK-101 | **Deferred** (No cloud sync, local only for 2-week launch) |
+| **TASK-111** | UI | Construct the `ShareCardView.swift` custom 9:16 layout and export wrapper. | TASK-106 | **In Scope** |
 
 ---
 

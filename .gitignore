@@ -36,7 +36,7 @@ playground.xcworkspace
 # ==========================================
 # Supabase credentials (never commit)
 # ==========================================
-challenge-3-ADA/Supabase.plist
+marinesandbox/Supabase.plist
 
 # ==========================================
 # CI/CD Automation (Fastlane)
@@ -77,6 +77,8 @@ __pycache__/
 *.pyc
 
 # ==========================================
-# Audio Files in Transcription
+# Media Files in Transcription
 # ==========================================
 /Documentation/Transcription/*.m4a
+/Documentation/*.svg
+/Documentation/*.png

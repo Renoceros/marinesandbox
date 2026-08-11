@@ -1,7 +1,7 @@
 # Product Requirements Document (PRD): Interactive Marine Sandbox
 
-**Document Version:** v1.2  
-**Status:** Approved  
+**Document Version:** v1.3  
+**Status:** Approved (Updated for 2-Week MVP Scope)  
 
 ---
 
@@ -21,6 +21,23 @@ The app is strictly a **pedagogical sandbox**, not a predictive scientific model
 
 ### 1.4. Strategic Objective
 The core of this development is a generalizable **pedagogical-ecological sandbox equation**. This mathematical engine must be domain-agnostic, allowing the system to be adapted to other environmental subjects (e.g., forestry, kelp restoration, regenerative agriculture) by swapping out biological parameters.
+
+### 1.5. 2-Week MVP Scope Boundaries
+To meet the 2-week launch deadline, features have been strictly prioritized:
+* **IN SCOPE:**
+  * Core gameplay loop (Reef Star structure placement, fragging with *Acropora* and *Brain Coral*).
+  * Pure Swift `EcoEngine` (stateless calculations of growth, algae overgrowth, manual vs helper fish grazing, and heat stress).
+  * Manual care loop (brushing algae, picking snails) transitioning to automated care (attracting parrotfish and wrasses).
+  * 3-layer horizontal Parallax Scroll View for seabed visual depth.
+  * Thermal bleaching & ecological recovery window mechanics (Marine Heatwaves).
+  * Mock regional config (Bali/Living Seas presets).
+  * Visual Share Card generator (9:16 vertical postcard layout).
+  * Local sandbox saves using in-memory / basic local persistence.
+* **DEFERRED (Post-MVP / Future Roadmap):**
+  * Multi-region Configurations (Jeju Island and Caribbean modules).
+  * QR Code Amiibo-style scan rewards.
+  * iCloud / CloudKit syncing and complex profile settings.
+  * Global Social Map (peer visitation pins).
 
 ---
 

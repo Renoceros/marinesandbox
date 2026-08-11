@@ -215,17 +215,21 @@ Lottie Animation Playhead (0.0 to 1.0 Progress)
 
 ---
 
-## 4. Visual Parallax Architecture (Procedural Infinite Tiling)
+## 4. Visual Parallax Architecture (Procedural Tiling & Asymmetrical Generation)
 
-To support infinitely scrollable, randomized 2D layers, the sandbox implements a **Procedural Column Tiling** design pattern using a deterministic pseudo-random hash algorithm. 
+To support infinitely scrollable background elements alongside progress-locked foreground reef beds, the sandbox implements an **Asymmetrical Procedural Column Tiling** design pattern optimized for modern device dimensions.
 
 ### 4.1. Conceptual Specifications
-1. **The 9 View Variants:** Each layer consists of three unique visual variants:
-   * **Background Layer:** `BackgroundViewA`, `BackgroundViewB`, `BackgroundViewC` (Ratio 0.2, Seed 42)
-   * **Midground Layer:** `MidgroundViewA`, `MidgroundViewB`, `MidgroundViewC` (Ratio 0.5, Seed 101)
-   * **Foreground Layer:** `ForegroundViewA`, `ForegroundViewB`, `ForegroundViewC` (Ratio 1.0, Seed 2023)
-2. **On-The-Fly Viewport Intersection:** The system tracks the continuous scroll offset `scrollX`. Instead of rendering all columns, the view dynamically computes the horizontal column indices `col` currently intersecting the active viewport boundaries.
-3. **Deterministic Hashing:** For any integer column index `col`, a linear congruential hash maps it to `0, 1, or 2` using the layer's unique seed. This ensures that the sequence is randomized, stateless, infinitely scrollable, and deterministic in both directions.
+1. **Device Target:** Target device is the **iPhone 17 base model** (with a standard 19.5:9 display aspect ratio). 
+2. **Landscape Dimensions:** Each landscape block has a width of exactly **1.5x the iPhone viewport width** ($W = 1.5 \times \text{viewportWidth}$). This ensures high-definition details remain visible during horizontal scrolling and scales automatically across iOS devices.
+3. **Uniform Layer Sizing:** Background, Midground, and Foreground blocks utilize the **identical physical block width** ($W$). Parallax speed ratios are applied to the scroll translation:
+   * **Background Layer:** Speed Ratio $R = 0.20$
+   * **Midground Layer:** Speed Ratio $R = 0.50$
+   * **Foreground Layer:** Speed Ratio $R = 1.00$
+   * *Behavioral Impact:* Because the foreground scrolls at $1.0\times$ speed and the background at $0.2\times$ speed, the viewport moves through foreground blocks five times faster than background blocks, creating natural physical depth.
+4. **Asymmetrical Generation Flow:**
+   * **Deterministic Backgrounds:** Background and Midground columns are generated procedurally and deterministically using column index hashes. The app can pre-calculate and predict what the next 100 background blocks are at any scroll coordinate.
+   * **Progress-Locked Foregrounds:** The foreground (where gardening occurs) is not infinitely scrollable from the start. It is progress-locked and unlocks slowly as the user expands their reef. The app does not pre-calculate future foreground blocks; they are instantiated dynamically from user progress states.
 
 ### 4.2. Mathematical Formulations
 * For a given layer with speed ratio $R$, its scroll translation is:
@@ -234,7 +238,7 @@ To support infinitely scrollable, randomized 2D layers, the sandbox implements a
   $$\text{startCol} = \lfloor -\text{layerOffset} / W \rfloor$$
 * The number of columns rendering in the viewport is:
   $$\text{visibleCount} = \lceil \text{viewportWidth} / W \rceil + 1$$
-* The deterministic block mapping function:
+* The deterministic block mapping function for background/midground layers:
   $$f(\text{col}, \text{seed}) = |((\text{col} \oplus \text{seed}) \times 324159265) \oplus ((\text{col} \oplus \text{seed}) \gg 16)| \pmod 3$$
 
 ### 4.3. Swift Implementation Spec
@@ -248,9 +252,10 @@ public enum BlockVariant {
 
 struct ParallaxScrollView: View {
     @State private var scrollX: CGFloat = 0.0
-    @GestureState private var dragOffset: CGFloat = 0.0
+    @State private var dragOffset: CGFloat = 0.0 // State variable supporting momentum glide
     
-    let blockWidth: CGFloat = 600.0
+    // Width scales dynamically: 1.5x screen width
+    let blockWidth = UIScreen.main.bounds.width * 1.5
     let bgSeed = 42
     let midSeed = 101
     let fgSeed = 2023
@@ -274,11 +279,15 @@ struct ParallaxScrollView: View {
             .contentShape(Rectangle())
             .gesture(
                 DragGesture()
-                    .updating($dragOffset) { value, state, _ in
-                        state = value.translation.width
+                    .onChanged { value in
+                        dragOffset = value.translation.width
                     }
                     .onEnded { value in
-                        scrollX += value.translation.width
+                        let predicted = value.predictedEndTranslation.width
+                        withAnimation(.easeOut(duration: 1.2)) {
+                            scrollX += predicted
+                            dragOffset = 0.0
+                        }
                     }
             )
         }
@@ -315,6 +324,12 @@ struct ParallaxScrollView: View {
     }
 }
 ```
+
+### 4.4. Technical Debt & Architectural Trade-offs
+*   **Asymmetrical State Management (Tech Debt DEBT-001):** Decoupling background column rendering from foreground active structure arrays means the app maintains two separate coordination systems. Backgrounds are purely stateless (derived from coordinates), whereas foregrounds require full SwiftData CRUD updates.
+*   **Visual Drift Risk:** Since the layers scroll at different speeds, the visual alignment between a background landmark (e.g., a shipwreck) and a foreground coordinate will change. Playable reef boundaries must be constrained to foreground coordinates to prevent user interaction drift.
+*   **Non-Infinite Foreground Restriction:** Unlocking foreground columns slowly requires managing a hard limit bounds constraint in `SandboxViewModel.swift`, preventing the user from scrolling past the currently unlocked foreground column, while background elements scroll infinitely underneath.
+
 
 ---
 

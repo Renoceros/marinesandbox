@@ -7,26 +7,29 @@
 
 ## 1. Team & Backlog Ownership
 
-### 1.1 Team Members
-*   **Team:** Bishal, Reno, Zarina, Samantha, Bobo
-*   **Role Allocation:** Roles are not finalized. Tasks from the MVP Chores backlog are grabbed dynamically by developers during sprint planning.
+### 1.1 Team Members & Roles
+*   **Reno (PM-Coder Hybrid):** Coordinates development, interactive view flows, and onboarding view integrations.
+*   **Bishal (Backend Connoisseur):** Owns SwiftData schemas, mathematical `EcoEngine`, view models, and state coordination.
+*   **Zarina (Coder / UX Tester):** Handles app integration, Bali regional presets, and share card generation.
+*   **Bobo (Frontend / SwiftUI):** Develops custom layouts, parallax scrolling, Lottie integrations, and recruited fish layers.
+*   **Sam (Designer / UX):** Leads visual layouts, asset specifications, and share postcard design mocks.
 
 ### 1.2 MVP Chores Backlog (Sprint Task Board)
-Below is the master list of tasks required to build the MVP, annotated with their scoping for the 2-week deadline. Developers claim these tasks by prefixing branches with their names (e.g., `feat/samantha/TASK-102-eco-engine`).
+Below is the master list of tasks required to build the MVP, annotated with their scoping and assigned PICs.
 
-| Task ID | Component | Task Title / Description | Dependencies | MVP Scope Status |
+| Task ID | Component | Task Title / Description | PIC | MVP Scope Status |
 | --- | --- | --- | --- | --- |
-| **TASK-101** | `marinesandbox/Models` | Implement SwiftData schemas (`UserProfile`, `ReefCanvas`, `PlacedStructure`, `CoralFrag`). | None | **In Scope** (Basic local models, no complex security wrappers) |
-| **TASK-102** | `marinesandbox/Services` | Implement `EcoEngine.swift` state math functions, Shannon index, and growth calculations. | TASK-101 | **In Scope** |
-| **TASK-103** | `marinesandbox/Views` | Build `LottieCoralView.swift` SwiftUI wrapper and logic to scrub playheads based on state. | None | **In Scope** (Supports fallback default rendering if vector resources are mock) |
-| **TASK-104** | `marinesandbox/Views` | Build `ParallaxScrollView.swift` horizontal container with 3-layer parallax translation. | None | **In Scope** |
-| **TASK-105** | `marinesandbox/ViewModels`| Implement `SandboxViewModel.swift` state coordination, Fast Forward, and Reset operations. | TASK-102 | **In Scope** |
-| **TASK-106** | `marinesandbox/Views` | Create main `SandboxView.swift` foreground seabed canvas with drag-and-drop structures. | TASK-104, TASK-105 | **In Scope** |
-| **TASK-107** | `marinesandbox/Views` | Design and implement the `DiagnosticCardView.swift` reflection modals and text parsing. | TASK-105 | **In Scope** |
-| **TASK-108** | `marinesandbox/Services` | Set up static JSON configurations for local presets (`NGOConfig`). | None | **In Scope** (Only Bali/Living Seas configuration is loaded) |
-| **TASK-109** | `marinesandbox/Services` | Enforce COPPA guidelines: encrypt saved data and isolate user profiles inside local container storage. | TASK-101 | **Deferred** (Basic unencrypted offline sandbox storage for MVP) |
-| **TASK-110** | `marinesandbox/Services` | Build Apple native iCloud / CloudKit syncing layer for profiles and settings. | TASK-101 | **Deferred** (No cloud sync, local only for 2-week launch) |
-| **TASK-111** | `marinesandbox/Views` | Construct the `ShareCardView.swift` custom 9:16 layout and export wrapper. | TASK-106 | **In Scope** |
+| **TASK-101** | `marinesandbox/Models` | Implement SwiftData schemas (`UserProfile`, `ReefCanvas`, `PlacedStructure`, `CoralFrag`). | Bishal | **In Scope** (Basic local models, no complex security wrappers) |
+| **TASK-102** | `marinesandbox/Services` | Implement `EcoEngine.swift` state math functions, Shannon index, and growth calculations. | Bishal | **In Scope** |
+| **TASK-103** | `marinesandbox/Views` | Build `LottieCoralView.swift` SwiftUI wrapper and logic to scrub playheads based on state. | Bobo | **In Scope** (Supports fallback default rendering if vector resources are mock) |
+| **TASK-104** | `marinesandbox/Views` | Build `ParallaxScrollView.swift` horizontal container with 3-layer parallax translation. | Bobo | **In Scope** |
+| **TASK-105** | `marinesandbox/ViewModels`| Implement `SandboxViewModel.swift` state coordination, Fast Forward, and Reset operations. | Bishal | **In Scope** |
+| **TASK-106** | `marinesandbox/Views` | Create main `SandboxView.swift` foreground seabed canvas with drag-and-drop structures. | Reno / Bobo | **In Scope** |
+| **TASK-107** | `marinesandbox/Views` | Design and implement the `DiagnosticCardView.swift` reflection modals and text parsing. | Reno / Sam | **In Scope** |
+| **TASK-108** | `marinesandbox/Services` | Set up static JSON configurations for local presets (`NGOConfig`). | Zarina | **In Scope** (Only Bali/Living Seas configuration is loaded) |
+| **TASK-109** | `marinesandbox/Services` | Enforce COPPA guidelines: encrypt saved data and isolate user profiles inside local container storage. | Bishal / Zarina | **Deferred** (Basic unencrypted offline sandbox storage for MVP) |
+| **TASK-110** | `marinesandbox/Services` | Build Apple native iCloud / CloudKit syncing layer for profiles and settings. | Bishal | **Deferred** (No cloud sync, local only for 2-week launch) |
+| **TASK-111** | `marinesandbox/Views` | Construct the `ShareCardView.swift` custom 9:16 layout and export wrapper. | Zarina / Sam | **In Scope** |
 
 ---
 

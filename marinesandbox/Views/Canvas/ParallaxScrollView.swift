@@ -10,7 +10,7 @@ public enum BlockVariant: CaseIterable {
 
 public struct ParallaxScrollView: View {
     @State private var scrollX: CGFloat = 0.0
-    @State private var dragOffset: CGFloat = 0.0 // Changed to @State to support animated momentum release
+    @State private var dragOffset: CGFloat = 0.0 // Supports animated momentum release
     
     // Width of each horizontal section
     public let blockWidth: CGFloat = 750.0
@@ -159,7 +159,7 @@ struct BackgroundViewA: View {
                     )
                 )
                 .frame(width: 320, height: 600)
-                .rotationEffect(.degrees(-12))
+                .rotationEffect(Angle.degrees(-12))
                 .offset(x: -80, y: -120)
         }
     }
@@ -213,7 +213,7 @@ struct BackgroundViewC: View {
                     )
                 )
                 .frame(width: 250, height: 600)
-                .rotationEffect(.degrees(8))
+                .rotationEffect(Angle.degrees(8))
                 .offset(x: 180, y: -80)
         }
     }
@@ -424,6 +424,35 @@ struct ForegroundViewC: View {
             }
             .fill(Color(red: 0.60, green: 0.48, blue: 0.36))
         }
+    }
+}
+
+// MARK: - DRAWING SHAPE HELPERS
+
+struct LightRayShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.width * 0.3, y: 0))
+        path.addLine(to: CGPoint(x: rect.width * 0.7, y: 0))
+        path.addLine(to: CGPoint(x: rect.width, y: rect.height))
+        path.addLine(to: CGPoint(x: 0, y: rect.height))
+        path.closeSubpath()
+        return path
+    }
+}
+
+struct FishSilhouette: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: 0, y: rect.height * 0.5))
+        path.addQuadCurve(to: CGPoint(x: rect.width * 0.7, y: 0), control: CGPoint(x: rect.width * 0.3, y: 0))
+        path.addQuadCurve(to: CGPoint(x: rect.width, y: rect.height * 0.3), control: CGPoint(x: rect.width * 0.85, y: rect.height * 0.15))
+        path.addLine(to: CGPoint(x: rect.width * 0.9, y: rect.height * 0.5))
+        path.addLine(to: CGPoint(x: rect.width, y: rect.height * 0.7))
+        path.addQuadCurve(to: CGPoint(x: rect.width * 0.7, y: rect.height), control: CGPoint(x: rect.width * 0.85, y: rect.height * 0.85))
+        path.addQuadCurve(to: CGPoint(x: 0, y: rect.height * 0.5), control: CGPoint(x: rect.width * 0.3, y: rect.height))
+        path.closeSubpath()
+        return path
     }
 }
 

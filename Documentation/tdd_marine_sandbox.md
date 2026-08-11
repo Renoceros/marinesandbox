@@ -16,17 +16,17 @@ Below is the master list of tasks required to build the MVP, annotated with thei
 
 | Task ID | Component | Task Title / Description | Dependencies | MVP Scope Status |
 | --- | --- | --- | --- | --- |
-| **TASK-101** | Models | Implement SwiftData schemas (`UserProfile`, `ReefCanvas`, `PlacedStructure`, `CoralFrag`). | None | **In Scope** (Basic local models, no complex security wrappers) |
-| **TASK-102** | Services | Implement `EcoEngine.swift` state math functions, Shannon index, and growth calculations. | TASK-101 | **In Scope** |
-| **TASK-103** | UI | Build `LottieCoralView.swift` SwiftUI wrapper and logic to scrub playheads based on state. | None | **In Scope** (Supports fallback default rendering if vector resources are mock) |
-| **TASK-104** | UI | Build `ParallaxScrollView.swift` horizontal container with 3-layer parallax translation. | None | **In Scope** |
-| **TASK-105** | ViewModel| Implement `SandboxViewModel.swift` state coordination, Fast Forward, and Reset operations. | TASK-102 | **In Scope** |
-| **TASK-106** | UI | Create main `SandboxView.swift` foreground seabed canvas with drag-and-drop structures. | TASK-104, TASK-105 | **In Scope** |
-| **TASK-107** | UI | Design and implement the `DiagnosticCardView.swift` reflection modals and text parsing. | TASK-105 | **In Scope** |
-| **TASK-108** | Services | Set up static JSON configurations for local presets (`NGOConfig`). | None | **In Scope** (Only Bali/Living Seas configuration is loaded) |
-| **TASK-109** | Security | Enforce COPPA guidelines: encrypt saved data and isolate user profiles inside local container storage. | TASK-101 | **Deferred** (Basic unencrypted offline sandbox storage for MVP) |
-| **TASK-110** | Integration| Build Apple native iCloud / CloudKit syncing layer for profiles and settings. | TASK-101 | **Deferred** (No cloud sync, local only for 2-week launch) |
-| **TASK-111** | UI | Construct the `ShareCardView.swift` custom 9:16 layout and export wrapper. | TASK-106 | **In Scope** |
+| **TASK-101** | `marinesandbox/Models` | Implement SwiftData schemas (`UserProfile`, `ReefCanvas`, `PlacedStructure`, `CoralFrag`). | None | **In Scope** (Basic local models, no complex security wrappers) |
+| **TASK-102** | `marinesandbox/Services` | Implement `EcoEngine.swift` state math functions, Shannon index, and growth calculations. | TASK-101 | **In Scope** |
+| **TASK-103** | `marinesandbox/Views` | Build `LottieCoralView.swift` SwiftUI wrapper and logic to scrub playheads based on state. | None | **In Scope** (Supports fallback default rendering if vector resources are mock) |
+| **TASK-104** | `marinesandbox/Views` | Build `ParallaxScrollView.swift` horizontal container with 3-layer parallax translation. | None | **In Scope** |
+| **TASK-105** | `marinesandbox/ViewModels`| Implement `SandboxViewModel.swift` state coordination, Fast Forward, and Reset operations. | TASK-102 | **In Scope** |
+| **TASK-106** | `marinesandbox/Views` | Create main `SandboxView.swift` foreground seabed canvas with drag-and-drop structures. | TASK-104, TASK-105 | **In Scope** |
+| **TASK-107** | `marinesandbox/Views` | Design and implement the `DiagnosticCardView.swift` reflection modals and text parsing. | TASK-105 | **In Scope** |
+| **TASK-108** | `marinesandbox/Services` | Set up static JSON configurations for local presets (`NGOConfig`). | None | **In Scope** (Only Bali/Living Seas configuration is loaded) |
+| **TASK-109** | `marinesandbox/Services` | Enforce COPPA guidelines: encrypt saved data and isolate user profiles inside local container storage. | TASK-101 | **Deferred** (Basic unencrypted offline sandbox storage for MVP) |
+| **TASK-110** | `marinesandbox/Services` | Build Apple native iCloud / CloudKit syncing layer for profiles and settings. | TASK-101 | **Deferred** (No cloud sync, local only for 2-week launch) |
+| **TASK-111** | `marinesandbox/Views` | Construct the `ShareCardView.swift` custom 9:16 layout and export wrapper. | TASK-106 | **In Scope** |
 
 ---
 
@@ -64,7 +64,7 @@ The application adheres to a strict 4-layer MVVM pattern.
 Below is the layout of the project's source root, standardizing where all MVP implementation files live.
 
 ```
-MarineSandbox/
+marinesandbox/
 ├── App/
 │   └── MarineSandboxApp.swift          # App entry point, SwiftData container initialization
 ├── Models/
@@ -158,16 +158,25 @@ final class PlacedStructure {
 
 @Model
 final class CoralFrag {
-    var species: String // "Acropora", "BrainCoral", "Fimbria"
-    var growthProgress: Double // 0.0 (Baby) to 1.0 (Mature)
+    var species: String // "Acropora" (Staghorn), "BrainCoral" (Massive), etc.
+    var growthProgress: Double // 0.0 (Baby) to 1.0 (Mature Adult)
     var algaePercentage: Double // 0.0 (Clean) to 1.0 (Fully Smothered)
+    var predatorDamage: Double // 0.0 (None) to 1.0 (Fully Consumed)
+    var activePredators: [String] // ["CrownOfThorns", "DrupellaSnail", "Flatworm"]
     var isBleached: Bool
     var isDead: Bool
     
-    init(species: String, growthProgress: Double = 0.0, algaePercentage: Double = 0.0, isBleached: Bool = false, isDead: Bool = false) {
+    // Computed helper variables for growth stages
+    var isBaby: Bool { growthProgress < 0.3 && !isDead }
+    var isTeenager: Bool { growthProgress >= 0.3 && growthProgress < 0.7 && !isDead }
+    var isAdult: Bool { growthProgress >= 0.7 && !isDead }
+    
+    init(species: String, growthProgress: Double = 0.0, algaePercentage: Double = 0.0, predatorDamage: Double = 0.0, activePredators: [String] = [], isBleached: Bool = false, isDead: Bool = false) {
         self.species = species
         self.growthProgress = growthProgress
         self.algaePercentage = algaePercentage
+        self.predatorDamage = predatorDamage
+        self.activePredators = activePredators
         self.isBleached = isBleached
         self.isDead = isDead
     }
@@ -245,7 +254,7 @@ struct ParallaxScrollView<Content: View>: View {
 ## 5. Engineering Standards & Operations
 
 ### 5.1 Swift-Native Ecological Engine Implementation
-The simulation engine functions as a stateless math processor. 
+The simulation engine functions as a stateless math processor. It implements time-step updates calculating growth, algae competition, predator damage, and recruited fauna based on the growth stages defined in the user journey.
 
 ```swift
 struct EcoEngine {
@@ -261,26 +270,59 @@ struct EcoEngine {
             // 1. Calculate Shannon Diversity Index (H)
             let H = calculateShannonIndex(for: updatedCanvas)
             
-            // 2. Calculate Herbivore Recruitment modulated by H
-            let herbivoreRecruitment = baseHerbivoreRate * (1.0 + beta * H) * calculateTotalCoralCover(for: updatedCanvas)
+            // 2. Calculate Fauna Recruitment counts based on growth stages
+            var smallReefFishCount = 0
+            var gobiesAndDamselfishCount = 0
+            var largeSchoolsCount = 0
+            var herbivoreCount = 0
+            var predatorCount = 0
+            
+            for structure in updatedCanvas.placedStructures {
+                guard let coral = structure.coral, !coral.isDead else { continue }
+                if coral.isBaby {
+                    smallReefFishCount += 1
+                } else if coral.isTeenager {
+                    gobiesAndDamselfishCount += 1
+                } else if coral.isAdult {
+                    largeSchoolsCount += 1
+                    herbivoreCount += 1
+                    predatorCount += 1 // Wrasses / triggerfish attracted by adult corals
+                }
+            }
+            
+            // Modulate grazing rate and predator control based on fish counts and Shannon Index H
+            let herbivoreRecruitment = Double(herbivoreCount) * (1.0 + beta * H)
+            let predatorRecruitment = Double(predatorCount) * (1.0 + beta * H)
             
             // 3. Process placed structures
             for structure in updatedCanvas.placedStructures {
                 guard let coral = structure.coral else { continue }
+                if coral.isDead { continue }
                 
-                // Growth calculation adjusted by location and algae overgrowth
+                // Growth calculation adjusted by location, algae overgrowth, and predator damage
                 let lightFactor = location.lightFactor
                 let currentFactor = location.currentFactor
-                let algaeSmotherModifier = 1.0 - coral.algaePercentage
+                let algaeSmotherModifier = max(0.0, 1.0 - coral.algaePercentage)
+                let predatorModifier = max(0.0, 1.0 - coral.predatorDamage)
                 
-                let growthIncrement = baseGrowthRate * lightFactor * currentFactor * algaeSmotherModifier
+                let growthIncrement = baseGrowthRate * lightFactor * currentFactor * algaeSmotherModifier * predatorModifier
                 coral.growthProgress = min(1.0, coral.growthProgress + growthIncrement)
                 
-                // Process Algae growth vs Grazer control
+                // Process Algae growth vs Grazer control (Baby/Teenager phases are most vulnerable)
                 let nutrientInflow = threats.agriculturalRunoff ? 2.5 : 1.0
-                let algaeGrowth = baseAlgaeGrowthRate * nutrientInflow
+                let baseAlgaeRate = (coral.isBaby || coral.isTeenager) ? baseAlgaeGrowthRate * 1.5 : baseAlgaeGrowthRate
+                let algaeGrowth = baseAlgaeRate * nutrientInflow
                 let grazingRate = herbivoreRecruitment * baseGrazingRate
                 coral.algaePercentage = max(0.0, min(1.0, coral.algaePercentage + algaeGrowth - grazingRate))
+                
+                // Process Predator infestations (Crown-of-Thorns, Drupella snails, flatworms)
+                if !coral.activePredators.isEmpty {
+                    // Predation rate increases damage, offset by recruited predatory fish (e.g. wrasses)
+                    let basePredation = basePredatorDamageRate * Double(coral.activePredators.count)
+                    let predatorControl = predatorRecruitment * basePredatorControlRate
+                    let netPredatorDamage = max(0.0, basePredation - predatorControl)
+                    coral.predatorDamage = min(1.0, coral.predatorDamage + netPredatorDamage)
+                }
                 
                 // Process Heat stress (Bleaching)
                 if threats.waterTemperature > 30.0 {
@@ -289,8 +331,13 @@ struct EcoEngine {
                     coral.isBleached = false
                 }
                 
-                // Mortality check (If bleached coral is smothered by algae, it dies)
+                // Mortality checks
+                // 1. Smothered: If bleached coral is smothered by algae, it dies
                 if coral.isBleached && coral.algaePercentage > 0.8 {
+                    coral.isDead = true
+                }
+                // 2. Predator Overconsumption: If predators consume more than 100% of tissue
+                if coral.predatorDamage >= 1.0 {
                     coral.isDead = true
                 }
             }

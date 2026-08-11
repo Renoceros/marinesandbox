@@ -31,7 +31,7 @@ marinesandbox/
 ├── ViewModels/
 │   └── TechDemoViewModel.swift         # Manages in-memory ReefCanvas state, active timers, and controls
 ├── Views/
-│   ├── TechDemoView.swift              # Unified control center (Canvas + Sliders + Log console)
+│   ├── TechDemoView.swift              # Unified control center (Canvas + Action Controls + Log console)
 │   ├── ParallaxScrollView.swift        # Three-layer counter-scrolling implementation
 │   └── MockCoralView.swift             # Basic vector/shape shapes representing coral health and size
 ```
@@ -43,11 +43,17 @@ Instead of loading SwiftData contexts, `TechDemoViewModel` will instantiate a st
 struct PlacedStructureState: Identifiable {
     let id: UUID = UUID()
     var xPos: Double
-    var species: String? // "Acropora" (Branching), "BrainCoral" (Massive), or nil (Empty Star)
-    var growthProgress: Double // 0.0 to 1.0
+    var species: String? // "Acropora" (Staghorn), "BrainCoral" (Massive), or nil (Empty Star)
+    var growthProgress: Double // 0.0 (Baby) to 1.0 (Adult)
     var algaePercentage: Double // 0.0 to 1.0
+    var predatorDamage: Double // 0.0 to 1.0 ( COT / snail / flatworm damage)
+    var activePredators: [String] // ["CrownOfThorns", "DrupellaSnail", "Flatworm"]
     var isBleached: Bool
     var isDead: Bool
+    
+    var isBaby: Bool { growthProgress < 0.3 && !isDead && species != nil }
+    var isTeenager: Bool { growthProgress >= 0.3 && growthProgress < 0.7 && !isDead && species != nil }
+    var isAdult: Bool { growthProgress >= 0.7 && !isDead && species != nil }
 }
 ```
 
@@ -59,52 +65,53 @@ These tasks must be completed in order to deliver the Tech Demonstrator by the D
 
 ### TASK-TD-101: Core Stateless EcoEngine Math
 * **PIC:** Samantha
-* **Description:** Implement `EcoEngine.swift` according to the specification in the TDD. Make sure it calculates:
-  * Shannon Index: $H = -\sum (p_i \ln p_i)$ where $p_i$ is the ratio of species $i$ to total live corals.
-  * Growth increments modified by regional configs (Bali light/current) and algae smothering.
-  * Algae growth rates boosted by Agricultural Runoff, offset by Grazer Control (recruited herbivores).
-  * Bleaching triggers (temp > 30°C) and the 6-month recovery window.
-* **Validation:** Write unit tests verifying that high-diversity reefs recover from heat stress, while monocultures collapse to grey rubble.
+* **Description:** Implement `marinesandbox/Services/EcoEngine.swift` with growth stage thresholds and fauna recruitment counts:
+  * Baby stage ($g < 0.3$): recruits small reef fish and invertebrates; highly vulnerable to algae.
+  * Teenager stage ($0.3 \le g < 0.7$): recruits tiny gobies and damselfish.
+  * Adult stage ($g \ge 0.7$): recruits large schools, herbivores, and predators.
+  * Algae rate boosted for Baby/Teenager corals; grazing rate modulated by recruited herbivorous fish.
+  * Predator infestation damage rate modulated by recruited predatory fish (e.g. wrasses).
+  * Mortality triggers: bleached & algae overgrowth > 80%, or predator damage >= 100%.
+* **Validation:** Write unit tests verifying that adult corals attract grazers and wrasses that automate algae and predator control, whereas baby monocultures quickly succumb to weeds/pests.
 
 ### TASK-TD-102: 3-Layer Parallax Container View
 * **PIC:** Talin
-* **Description:** Build `ParallaxScrollView.swift` with:
-  * **Background Layer:** Light blue gradient with slow counter-scrolling (ratio 0.2).
-  * **Midground Layer:** Renders floating particle bubbles and silhouette fish moving at moderate speed (ratio 0.5).
-  * **Foreground Layer:** The active seabed where users interact with placed stars (ratio 1.0).
-* **Validation:** Verify horizontal swiping translates layers smoothly without stuttering.
+* **Description:** Build `marinesandbox/Views/Canvas/ParallaxScrollView.swift` with:
+  * **Background Layer:** Light blue gradient (ratio 0.2).
+  * **Midground Layer:** Renders floating particles and silhouettes of recruited fish groups (small reef fish, gobies, or large schools) depending on the active recruitment counts (ratio 0.5).
+  * **Foreground Layer:** The active seabed where users place stars and plant frags (ratio 1.0).
+* **Validation:** Verify horizontal swiping translates layers smoothly and updates active fish counts in the midground layer.
 
-### TASK-TD-103: Interactive Seabed Canvas & Fragment Placement
+### TASK-TD-103: Interactive Seabed Canvas & Onboarding Flow
 * **PIC:** Reno
-* **Description:** Build the layout where users can:
-  * Tap on the seabed to deploy a Reef Star structure at that `xPos`.
-  * Tap a structure to open a radial fragging menu: choose either **Acropora** (Branching) or **Brain Coral** (Massive).
-  * Render the corals using `MockCoralView.swift` which displays:
-    * Growth: scale factor of the shape.
-    * Algae: a brown/green outline overlay.
-    * Bleaching: shifts the shape's color to pure white.
-    * Dead: shifts the shape to a grey cracked stone pattern.
-* **Validation:** Manually verify that placing a branching fragment directly next to a massive brain coral results in competitive space shading (slowing the massive coral's growth).
+* **Description:** Build the interactive canvas containing:
+  * **Onboarding Selector:** A simple location selection screen (defaulting to Padangbai, Bali).
+  * **Guided Tutorial:** Force a new user to deploy a Reef Star structure and plant exactly **one Staghorn frag** (Acropora) to begin.
+  * **MockCoralView:** Render shapes dynamically based on growth stage (scale), algae overgrowth (brown overlay), bleaching (white), and predator damage (cracked overlays).
+* **Validation:** Verify the new user workflow successfully launches the guided tutorial and enforces a single initial Staghorn placement.
 
-### TASK-TD-104: Simulation Run Controls & Time Tick
+### TASK-TD-104: Time Tick & Simulation Run Controls
 * **PIC:** Bishal
-* **Description:** Implement the sidebar dashboard controls:
-  * **Time Step Button:** Triggers `EcoEngine.updateState` for 1 step (1 month).
-  * **Fast Forward Button:** Simulates 60 steps (5 years) in a quick visual loop.
-  * **Agricultural Runoff Toggle:** Increases baseline nutrient levels, causing rapid algae overgrowth.
-  * **Manual Cleaning Buttons:** "Brush Algae" and "Pick Snails" to manually reduce local threat levels.
-* **Validation:** Ensure that manually cleaning algae keeps corals alive even when herbivorous fish are absent.
+* **Description:** Implement time progression and sandbox buttons:
+  * **Time Step Button:** Simulates 1 step (1 month) of coral growth and threat increments.
+  * **Fast Forward Button:** Loops simulation steps to fast-forward growth (Baby $\rightarrow$ Teenager $\rightarrow$ Adult).
+  * **Active Alerts:** Display notification prompts when algae overruns baby/teen corals or when predator damage exceeds 75%.
+* **Validation:** Ensure that warning notifications fire in real-time when coral health is in jeopardy.
 
-### TASK-TD-105: Bleaching & Heatwave Runner
+### TASK-TD-105: Active Care Menu Tools (Brush, Kill & Trimming)
 * **PIC:** Bobo
-* **Description:** Implement a temperature slider (25°C to 33°C) and a "Trigger Heatwave" button:
-  * Adjusting temp above 30°C should immediately turn the canvas border red/orange and trigger bleaching across all coral structures.
-  * Returning the temp to 27°C starts the recovery window.
-* **Validation:** Verify that bleached corals recover their color if algae levels are low, but die (rubble) if algae overgrowth exceeds 80%.
+* **Description:** Implement the active care and shock events:
+  * **Brush Tool:** Selecting the brush from the menu and swiping a coral reduces its algae percentage to 0.0.
+  * **Kill Tool (Remove Pests):** Selecting the kill tool and tapping a coral clears its active predators and resets predator damage to 0.0.
+  * **Trimming Interaction:** Tapping and holding a coral lets the user manually trim back overgrowing Acropora to prevent competitive smothering.
+  * **Environmental Shock Buttons:** Add debug buttons to trigger a Marine Heatwave (increases water temp to 31°C), Agricultural Runoff (nutrient spike), or spawn active predators to test gardening stress.
+* **Validation:** Confirm that using the Brush and Kill tools works, and trimming overgrowing Acropora stops it from shading massive corals.
 
-### TASK-TD-106: Tech Demonstrator Integration
+### TASK-TD-106: Tech Demonstrator Integration & Registration Prompt
 * **PIC:** Zarina
-* **Description:** Integrate the completed modules into the main app target:
-  * Redirect `marinesandboxApp.swift` to launch `TechDemoView` as its root interface.
-  * Include a debug log console at the bottom of the screen showing live outputs of $H$, fish counts, and mortality states.
-* **Validation:** The application builds and runs successfully on the simulator without errors.
+* **Description:** Integrate modules into the app target:
+  * Redirect `marinesandbox/marinesandboxApp.swift` to launch `TechDemoView` as the root screen.
+  * Implement the account registration dialog prompt: triggers after the first successful adult coral maturation to "save progress" locally.
+  * Add a debug console at the bottom showing active Shannon Index ($H$), growth progress, fish recruitment status, and alert logs.
+* **Validation:** The application compiles, launches, and operates end-to-end on the iOS simulator.
+

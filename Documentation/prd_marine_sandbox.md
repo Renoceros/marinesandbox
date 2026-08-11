@@ -135,10 +135,12 @@ To support Maximia's goals of escaping stress and expressing creativity, the UI 
 *   **Audio Landscape:** A low-pressure, immersive auditory background featuring gentle ocean currents, soft water bubble sounds, and calming ambient melodies.
 *   **Bioluminescent night-Mode:** A toggle allowing users to view their reef in a glowing, bioluminescent aesthetic, highlighting healthy coral polyps.
 
-### 4.2. Onboarding Flow: Zero-Briefing Sandbox Entry
-To prevent Maximia's pain point of "classroom spaces," the app enforces a **zero-briefing entry**:
-*   *No Slides/Video Briefings:* On first launch, the user is dropped directly into the grid environment with a single empty Reef Star.
-*   *Implicit Prompts:* A soft pulsing visual ring surrounds the empty star structure, indicating that it accepts frags. Dragging a frag onto the star instantly initiates the simulation, teaching the user through direct, low-pressure exploration.
+### 4.2. Onboarding & Account Lifecycle Flow
+The application implements a streamlined entry path tailored to both new and returning students:
+*   **User Routing:**
+    *   *New Users:* Are routed through a **Location Selection Screen** (defaulting to Padangbai, Bali) $\rightarrow$ land on the active **Sea Bed Canvas** $\rightarrow$ guided to plant exactly **one Staghorn (Acropora) fragment** onto a pulsing Reef Star.
+    *   *Returning Users:* Bypass selection and are loaded directly into their last active **Sea Bed Canvas** from local cache.
+*   **Account Registration Prompt:** After successfully completing the initial planting and observing growth, the user is prompted with a modal to "Create a Login Account" to save progress (represented as a local profile registration for the MVP).
 
 ### 4.3. Parallax 2D Side-On Canvas (No Grid)
 The simulation canvas moves away from a grid-based coordinate system to a continuous, side-on scrollable seabed environment:
@@ -147,45 +149,46 @@ The simulation canvas moves away from a grid-based coordinate system to a contin
 *   **Background Layer:** Renders distant water gradients, deep ocean contours, and soft bioluminescent backdrops. Scrolls at a minimal speed to generate a three-dimensional parallax effect.
 
 ### 4.4. Core Gameplay Loop: Coral Restoration Mechanics
-The simulation models reef restoration progression through three primary phases: baseline setup, active care, and ecological automation.
+The simulation models reef restoration progression through three primary phases: baseline setup, active care, and ecological automation, structured around concrete growth stages.
 
 ```
-                  +----------------------------------+
-                  |       1. BASELINE SETUP          |
-                  |  - Place Reef Star on seabed     |
-                  |  - Attach coral frags to star    |
-                  +----------------+-----------------+
-                                   |
-                                   v
-                  +----------------------------------+
-                  |       2. ACTIVE CARE             |
-                  |  - Manually brush algae          |
-                  |  - Manually pick predatory snails|
-                  +----------------+-----------------+
-                                   |
-                Corals Grow &      | Attract Symbiotic
-                Reef Matures       | Helper Fish
-                                   v
-                  +----------------------------------+
-                  |     3. ECOLOGICAL AUTOMATION     |
-                  |  - Herbivores graze algae        |
-                  |  - Predators eat snails          |
-                  |  * MANUAL CHECKS ARE AUTOMATED   |
-                  +----------------------------------+
+                  +----------------------------------------------+
+                  |               1. ONBOARDING & SETUP          |
+                  |  - Select location (Bali)                    |
+                  |  - Deploy Reef Star & Frag (First Staghorn)   |
+                  +----------------------+-----------------------+
+                                         |
+                                         v
+                  +----------------------------------------------+
+                  |               2. ACTIVE CARE                 |
+                  |  - Baby/Teenager stage vulnerable to Algae    |
+                  |  - Snail/Starfish (>75% damage) threat       |
+                  |  - Manually Brush Algae & Kill/Remove Pests  |
+                  +----------------------+-----------------------+
+                                         |
+                       Corals Grow &     | Attract Symbiotic
+                       Reef Matures      | Helper Fish
+                                         v
+                  +----------------------------------------------+
+                  |           3. ECOLOGICAL AUTOMATION           |
+                  |  - Herbivores graze algae automatically      |
+                  |  - Predatory wrasses eat snails/starfish     |
+                  +----------------------------------------------+
 ```
 
-1.  **Baseline Setup:**
-    *   **Structure Deployment:** The user places a **Reef Star** structure onto the continuous foreground seabed line.
-    *   **Frag Attachment:** The user attaches coral fragments (frags) onto the Reef Star nodes, choosing which species to plant.
-2.  **Active Care (Manual Maintenance - The "Annoying Bit"):**
-    *   Before helper species arrive, the user must perform active gardening:
-        *   *Algae Overgrowth:* Every other time cycle, algae starts covering the coral frags. The user must manually brush the corals to keep them clear.
-        *   *Predatory Snails:* Coral-eating snails infest the grid and eat coral tissue. The user must manually inspect the frags and pick the snails off.
+1.  **Coral Growth & Fauna Recruitment Stages:**
+    *   **Baby Stage:** Small coral fragment. Attracts **small reef fish and invertebrates** immediately. Highly vulnerable to algae overgrowth.
+    *   **Teenager Stage:** Medium coral colony. Attracts **tiny gobies and damselfish** which hide inside branches for protection. Still susceptible to algae.
+    *   **Adult Stage:** Fully matured colony. Attracts **large schools of fish, grazing fish, and predators**. Free from juvenile algae vulnerability and unlocks bio-control automation.
+2.  **Active Care & Interaction Menu (Manual Maintenance):**
+    *   Before helper species arrive, the user must respond to automated notification alerts:
+        *   *Algae Overgrowth:* Moss covers baby/teenager corals. The user receives an alert, opens the active menu, selects the **Brush Tool**, and manually swipes the coral to clean it.
+        *   *Predator Infestations:* Crown-of-Thorns starfish, Drupella snails, or flatworms attack the frags. If damage exceeds **75%**, a warning notification triggers. The user must open the menu, select the **Kill Tool** (or tap-to-remove), and clear the pests.
 3.  **Ecological Automation (Bio-Control Loop):**
-    *   As the corals grow and the reef matures, they begin attracting specific symbiotic fish:
-        *   *Herbivorous Fish* (e.g., parrotfish, surgeonfish) arrive to consume the algae, automating the manual brushing mechanic.
-        *   *Predatory Fish* (e.g., wrasses, triggerfish) arrive to eat the snails, automating the manual snail-picking mechanic.
-    *   *System Reward:* Achieving this ecological balance frees the user from tedious manual cleaning tasks, shifting gameplay to high-level system observation and shock testing.
+    *   Once a coral reaches the **Adult Stage**, the attracted fish automate the care:
+        *   *Herbivorous Fish* (e.g., parrotfish) consume algae, automating the Brush Tool.
+        *   *Predatory Fish* (e.g., wrasses) consume snails/starfish, automating the Kill Tool.
+    *   *System Reward:* Achieving this balance relieves the user from manual chores, completing the procedural satisfaction cycle.
 
 ### 4.5. Coral Growth Competition & Space Management
 Different coral species exhibit distinct growth rates, attract different fish, and compete for space:

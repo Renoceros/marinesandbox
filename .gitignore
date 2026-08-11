@@ -50,3 +50,28 @@ fastlane/test_output
 # Codebase Documentation
 # ==========================================
 codebase_understanding.md
+
+# ==========================================
+# AI Coding Agents & Assistants
+# ==========================================
+.aider.chat.history.md
+.aider.input.history
+.aider.tags.cache.v*
+.cursor-history/
+.cursor/
+!.cursor/rules/
+.claude/
+.claude-history/
+.copilot/
+.gemini/
+.openai/
+
+# ==========================================
+# Python Virtual Environments & Cache
+# ==========================================
+venv/
+.venv/
+env/
+.env/
+__pycache__/
+*.pyc

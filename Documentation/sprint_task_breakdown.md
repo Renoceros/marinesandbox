@@ -44,7 +44,7 @@ gantt
 * **TASK-TD-101 (Bishal):** Implement `marinesandbox/Services/EcoEngine.swift` core stateless math:
   * Shannon Index computation: $H = -\sum (p_i \ln p_i)$.
   * Time-step formulas for growth progress (Baby $\rightarrow$ Teenager $\rightarrow$ Adult), algae accumulation, and bleaching triggers.
-* **TASK-TD-102 (Bobo):** Implement the skeleton of `marinesandbox/Views/Canvas/ParallaxScrollView.swift` with three horizontal scroll layers (Background 0.2, Midground 0.5, Foreground 1.0) using Sam's design layout templates.
+* **TASK-TD-102 (Bobo):** Implement the skeleton of `marinesandbox/Views/Canvas/ParallaxScrollView.swift` using deterministic column hashing to tile 9 block views (A/B/C for Background, Midground, and Foreground) infinitely with parallax ratios of 0.2, 0.5, and 1.0.
 
 ### Day 2: Interactive Controls & Canvas
 * **TASK-TD-103 (Reno):** Create `marinesandbox/Views/Canvas/MockCoralView.swift` to render shapes dynamically (Baby, Teenager, Adult states with color shifts for algae overgrowth and bleaching).

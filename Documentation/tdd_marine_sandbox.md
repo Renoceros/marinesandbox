@@ -214,49 +214,103 @@ Lottie Animation Playhead (0.0 to 1.0 Progress)
 
 ---
 
-## 4. Visual Parallax Architecture
+## 4. Visual Parallax Architecture (Procedural Infinite Tiling)
 
-To render the visual depth Maximia expects, the canvas uses a custom horizontal scroll container with three overlay layers translating at different ratios based on the scroll coordinate:
+To support infinitely scrollable, randomized 2D layers, the sandbox implements a **Procedural Column Tiling** design pattern using a deterministic pseudo-random hash algorithm. 
+
+### 4.1. Conceptual Specifications
+1. **The 9 View Variants:** Each layer consists of three unique visual variants:
+   * **Background Layer:** `BackgroundViewA`, `BackgroundViewB`, `BackgroundViewC` (Ratio 0.2, Seed 42)
+   * **Midground Layer:** `MidgroundViewA`, `MidgroundViewB`, `MidgroundViewC` (Ratio 0.5, Seed 101)
+   * **Foreground Layer:** `ForegroundViewA`, `ForegroundViewB`, `ForegroundViewC` (Ratio 1.0, Seed 2023)
+2. **On-The-Fly Viewport Intersection:** The system tracks the continuous scroll offset `scrollX`. Instead of rendering all columns, the view dynamically computes the horizontal column indices `col` currently intersecting the active viewport boundaries.
+3. **Deterministic Hashing:** For any integer column index `col`, a linear congruential hash maps it to `0, 1, or 2` using the layer's unique seed. This ensures that the sequence is randomized, stateless, infinitely scrollable, and deterministic in both directions.
+
+### 4.2. Mathematical Formulations
+* For a given layer with speed ratio $R$, its scroll translation is:
+  $$\text{layerOffset} = \text{scrollX} \times R$$
+* The left-most visible column index is:
+  $$\text{startCol} = \lfloor -\text{layerOffset} / W \rfloor$$
+* The number of columns rendering in the viewport is:
+  $$\text{visibleCount} = \lceil \text{viewportWidth} / W \rceil + 1$$
+* The deterministic block mapping function:
+  $$f(\text{col}, \text{seed}) = |((\text{col} \oplus \text{seed}) \times 324159265) \oplus ((\text{col} \oplus \text{seed}) \gg 16)| \pmod 3$$
+
+### 4.3. Swift Implementation Spec
 
 ```swift
 import SwiftUI
 
-struct ParallaxScrollView<Content: View>: View {
-    let canvasWidth: CGFloat
-    let foregroundContent: Content
+public enum BlockVariant {
+    case blockA, blockB, blockC
+}
+
+struct ParallaxScrollView: View {
+    @State private var scrollX: CGFloat = 0.0
+    @GestureState private var dragOffset: CGFloat = 0.0
     
-    @State private var scrollOffset: CGFloat = 0.0
+    let blockWidth: CGFloat = 600.0
+    let bgSeed = 42
+    let midSeed = 101
+    let fgSeed = 2023
     
     var body: some View {
         GeometryReader { geometry in
-            ScrollView(.horizontal, showsIndicators: false) {
-                ZReader {
-                    // Layer 1: Background Layer (Parallax Ratio: 0.2)
-                    BackgroundLayer()
-                        .offset(x: scrollOffset * 0.8) // Counter-scroll offset to slow down
-                        .frame(width: canvasWidth)
-                    
-                    // Layer 2: Midground Layer (Parallax Ratio: 0.5)
-                    MidgroundLayer()
-                        .offset(x: scrollOffset * 0.5)
-                        .frame(width: canvasWidth)
-                    
-                    // Layer 3: Foreground Layer (Active Interactive Bed) (Parallax Ratio: 1.0)
-                    foregroundContent
-                        .frame(width: canvasWidth)
-                }
-                .background(GeometryReader { proxy in
-                    Color.clear.preference(
-                        key: ScrollOffsetPreferenceKey.self,
-                        value: proxy.frame(in: .named("scroll")).minX
-                    )
-                })
+            let viewportWidth = geometry.size.width
+            let height = geometry.size.height
+            let currentOffset = scrollX + dragOffset
+            
+            ZStack(alignment: .leading) {
+                // Background Layer (Parallax Ratio: 0.2)
+                layerContainer(viewportWidth: viewportWidth, height: height, offset: currentOffset * 0.2, seed: bgSeed, layer: "Background")
+                
+                // Midground Layer (Parallax Ratio: 0.5)
+                layerContainer(viewportWidth: viewportWidth, height: height, offset: currentOffset * 0.5, seed: midSeed, layer: "Midground")
+                
+                // Foreground Layer (Parallax Ratio: 1.0)
+                layerContainer(viewportWidth: viewportWidth, height: height, offset: currentOffset * 1.0, seed: fgSeed, layer: "Foreground")
             }
-            .coordinateSpace(name: "scroll")
-            .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
-                self.scrollOffset = value
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture()
+                    .updating($dragOffset) { value, state, _ in
+                        state = value.translation.width
+                    }
+                    .onEnded { value in
+                        scrollX += value.translation.width
+                    }
+            )
+        }
+    }
+    
+    @ViewBuilder
+    private func layerContainer(viewportWidth: CGFloat, height: CGFloat, offset: CGFloat, seed: Int, layer: String) -> some View {
+        let startCol = Int(floor(-offset / blockWidth))
+        let visibleCount = Int(ceil(viewportWidth / blockWidth)) + 1
+        
+        ZStack(alignment: .leading) {
+            ForEach(startCol...(startCol + visibleCount), id: \.self) { col in
+                let xPosition = CGFloat(col) * blockWidth + offset
+                let themeIndex = getTheme(col: col, seed: seed)
+                let variant: BlockVariant = themeIndex == 0 ? .blockA : (themeIndex == 1 ? .blockB : .blockC)
+                
+                renderBlockView(layer: layer, variant: variant)
+                    .frame(width: blockWidth, height: height)
+                    .offset(x: xPosition)
             }
         }
+    }
+    
+    private func getTheme(col: Int, seed: Int) -> Int {
+        let x = col ^ seed
+        let hash = (x &* 324159265) ^ (x >> 16)
+        return abs(hash) % 3
+    }
+    
+    @ViewBuilder
+    private func renderBlockView(layer: String, variant: BlockVariant) -> some View {
+        // Renders unique Background/Midground/Foreground Subviews (A, B, C)
+        // ...
     }
 }
 ```

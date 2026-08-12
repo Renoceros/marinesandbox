@@ -12,9 +12,6 @@ public struct ParallaxScrollView: View {
     @State private var scrollX: CGFloat = 0.0
     @State private var dragOffset: CGFloat = 0.0 // Supports animated momentum release
     
-    // Width scales dynamically: 1.5x screen width for iPhone 17 (19.5:9 display) scaling
-    public let blockWidth = UIScreen.main.bounds.width * 1.5
-    
     // Deterministic random seeds per layer to generate unique block patterns
     private let bgSeed = 1001
     private let midSeed = 2002
@@ -26,6 +23,9 @@ public struct ParallaxScrollView: View {
         GeometryReader { geometry in
             let viewportWidth = geometry.size.width
             let height = geometry.size.height
+            
+            // Width scales dynamically: 1.5x screen width of the container (avoids deprecated UIScreen.main in iOS 26+)
+            let blockWidth = viewportWidth * 1.5
             
             // Total accumulated horizontal offset (incorporates active drag translation)
             let currentOffset = scrollX + dragOffset
@@ -39,6 +39,7 @@ public struct ParallaxScrollView: View {
                 layerContainer(
                     viewportWidth: viewportWidth,
                     height: height,
+                    blockWidth: blockWidth,
                     offset: currentOffset * 0.50,
                     seed: midSeed,
                     layerName: "Midground",
@@ -49,6 +50,7 @@ public struct ParallaxScrollView: View {
                 layerContainer(
                     viewportWidth: viewportWidth,
                     height: height,
+                    blockWidth: blockWidth,
                     offset: currentOffset * 0.20,
                     seed: bgSeed,
                     layerName: "Background",
@@ -59,6 +61,7 @@ public struct ParallaxScrollView: View {
                 layerContainer(
                     viewportWidth: viewportWidth,
                     height: height,
+                    blockWidth: blockWidth,
                     offset: currentOffset * 1.00,
                     seed: fgSeed,
                     layerName: "Foreground",
@@ -90,6 +93,7 @@ public struct ParallaxScrollView: View {
     private func layerContainer(
         viewportWidth: CGFloat,
         height: CGFloat,
+        blockWidth: CGFloat,
         offset: CGFloat,
         seed: Int,
         layerName: String,
@@ -128,6 +132,7 @@ public struct ParallaxScrollView: View {
         return abs(hash) % 3
     }
     
+    @ViewBuilder
     private func renderBlockView(layer: String, variant: BlockVariant) -> some View {
         let assetName: String
         switch layer {

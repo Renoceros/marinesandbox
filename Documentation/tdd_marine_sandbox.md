@@ -258,8 +258,6 @@ struct ParallaxScrollView: View {
     @State private var scrollX: CGFloat = 0.0
     @State private var dragOffset: CGFloat = 0.0 // State variable supporting momentum glide
     
-    // Width scales dynamically: 1.5x screen width
-    let blockWidth = UIScreen.main.bounds.width * 1.5
     let bgSeed = 42
     let midSeed = 101
     let fgSeed = 2023
@@ -268,6 +266,7 @@ struct ParallaxScrollView: View {
         GeometryReader { geometry in
             let viewportWidth = geometry.size.width
             let height = geometry.size.height
+            let blockWidth = viewportWidth * 1.5
             let currentOffset = scrollX + dragOffset
             
             ZStack(alignment: .leading) {
@@ -276,13 +275,13 @@ struct ParallaxScrollView: View {
                     .edgesIgnoringSafeArea(.all)
                 
                 // 2nd Layer: Midground Layer (Parallax Ratio: 0.50, Top-Aligned)
-                layerContainer(viewportWidth: viewportWidth, height: height, offset: currentOffset * 0.50, seed: midSeed, layer: "Midground", alignment: .top)
+                layerContainer(viewportWidth: viewportWidth, height: height, blockWidth: blockWidth, offset: currentOffset * 0.50, seed: midSeed, layer: "Midground", alignment: .top)
                 
                 // 3rd Layer: Background Layer (Parallax Ratio: 0.20, Top-Aligned)
-                layerContainer(viewportWidth: viewportWidth, height: height, offset: currentOffset * 0.20, seed: bgSeed, layer: "Background", alignment: .top)
+                layerContainer(viewportWidth: viewportWidth, height: height, blockWidth: blockWidth, offset: currentOffset * 0.20, seed: bgSeed, layer: "Background", alignment: .top)
                 
                 // 4th Layer: Foreground Layer (Parallax Ratio: 1.00, Bottom-Aligned)
-                layerContainer(viewportWidth: viewportWidth, height: height, offset: currentOffset * 1.00, seed: fgSeed, layer: "Foreground", alignment: .bottom)
+                layerContainer(viewportWidth: viewportWidth, height: height, blockWidth: blockWidth, offset: currentOffset * 1.00, seed: fgSeed, layer: "Foreground", alignment: .bottom)
             }
             .edgesIgnoringSafeArea(.all)
             .contentShape(Rectangle())
@@ -303,7 +302,7 @@ struct ParallaxScrollView: View {
     }
     
     @ViewBuilder
-    private func layerContainer(viewportWidth: CGFloat, height: CGFloat, offset: CGFloat, seed: Int, layer: String, alignment: Alignment) -> some View {
+    private func layerContainer(viewportWidth: CGFloat, height: CGFloat, blockWidth: CGFloat, offset: CGFloat, seed: Int, layer: String, alignment: Alignment) -> some View {
         let startCol = Int(floor(-offset / blockWidth))
         let visibleCount = Int(ceil(viewportWidth / blockWidth)) + 1
         

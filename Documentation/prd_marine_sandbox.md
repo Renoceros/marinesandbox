@@ -282,3 +282,9 @@ To increase ecological depth, the app roadmaps a pre-simulation step where users
     *   *Deep Wall Slope (e.g., Wall Bay Nusa Penida):* Decreased ambient light (slowing branching growth, favoring slow-growing massive corals like brain corals) but protected from thermal waves and physical turbulence.
     *   *Strong-Current Channel (e.g., Toyapakeh Strait):* Influx of high nutrients (boosting overall growth rates) but high current shear stress, requiring structural reinforcement (e.g., concrete anchor structures) to prevent fragments from dislodging.
 *   **Pedagogical Value:** Teaches students that marine restoration strategies must adapt to localized environmental stressors, demonstrating that a "one-size-fits-all" solution does not exist.
+
+### 8.3. Advanced Parallax Micro-Animations
+To further elevate visual engagement and polish, the application roadmaps advanced parallax micro-animations for the deep horizontal layers:
+*   **Swaying Seaweed & Seagrass:** Add vector-based sea-grass and seaweed blades that sway dynamically using continuous sine-wave time-offsets or spring physics in response to user scroll momentum.
+*   **Fauna Path Swimming:** Implement school fish silhouettes following complex, procedural spline paths (e.g., sine/cosine loops and vertical curves) instead of simple linear horizontal swim lanes.
+

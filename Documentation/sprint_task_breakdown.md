@@ -44,7 +44,7 @@ gantt
 * **TASK-TD-101 (Bishal):** Implement `marinesandbox/Services/EcoEngine.swift` core stateless math:
   * Shannon Index computation: $H = -\sum (p_i \ln p_i)$.
   * Time-step formulas for growth progress (Baby $\rightarrow$ Teenager $\rightarrow$ Adult), algae accumulation, and bleaching triggers.
-* **TASK-TD-102 (Bobo):** Implement the skeleton of `marinesandbox/Views/Canvas/ParallaxScrollView.swift` using deterministic column hashing to tile 9 block views (A/B/C for Background, Midground, and Foreground) infinitely with parallax ratios of 0.2, 0.5, and 1.0.
+* **TASK-TD-102 (Bobo):** Implement the skeleton of `marinesandbox/Views/Canvas/ParallaxScrollView.swift` using deterministic column hashing. Block width is scaled to exactly **1.5x screen width** for iPhone 17 (19.5:9 aspect ratio) across all 3 layers. Background/Midground columns generate infinitely, while the Foreground layer is progress-locked (not super infinite). Note and handle the asymmetrical state generation technical debt (`DEBT-001`). Loads mapped images directly from `Assets.xcassets/` namespaces (`FG/FG0-2`, `MG/MG0-2`, `BG/BG0-2`).
 
 ### Day 2: Interactive Controls & Canvas
 * **TASK-TD-103 (Reno):** Create `marinesandbox/Views/Canvas/MockCoralView.swift` to render shapes dynamically (Baby, Teenager, Adult states with color shifts for algae overgrowth and bleaching).
@@ -111,3 +111,10 @@ gantt
 ### Days 13–14: Bug Fixes & Code Cleanup
 * **TASK-MVP-403 (All):** Code review cleanup. Ensure all async tasks (`Task`) utilize `[weak self]` memory safety rules.
 * **Deliverable:** Fully functional, compiler-error-free Marine Sandbox iOS application ready for deployment.
+
+---
+
+## Deferred Roadmap Items (Future Sprints)
+* **TASK-ROAD-501 (Bishal / Zarina):** Enforce COPPA guidelines: encrypt saved data and isolate user profiles inside local container storage.
+* **TASK-ROAD-502 (Bishal):** Build Apple native iCloud / CloudKit syncing layer for profiles and settings.
+* **TASK-ROAD-503 (Bobo):** Implement advanced parallax micro-animations (swaying seaweed/seagrass blades, custom spline swimming fish paths) inside horizontal scroll layers.

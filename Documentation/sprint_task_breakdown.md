@@ -71,7 +71,7 @@ gantt
   * [`CoralFrag`](file:///Users/moreno_m5/Projects/CH5/marinesandbox/marinesandbox/Models/CoralFrag.swift): Active growth parameters, predator damage, and active predator array.
 
 ### Day 5: ViewModel Coordination
-* **TASK-MVP-202 (Bishal):** Implement `marinesandbox/ViewModels/SandboxViewModel.swift` to coordinate between SwiftData contexts and `marinesandbox/Services/EcoEngine.swift`. Translate canvas adjustments (fragging, cleaning) into database inserts/updates.
+* **TASK-MVP-202 (Bishal):** Implement `marinesandbox/ViewModels/SandboxViewModel.swift` to coordinate between SwiftData contexts and `marinesandbox/Services/EcoEngine.swift`. Translate canvas adjustments (fragging, cleaning) into database inserts/updates. (Note: Relegate Hard Reset operation to Settings panel).
 * **TASK-MVP-203 (Zarina):** Setup local file loaders to seed the mock Bali NGO preset from static resources on launch.
 
 ### Day 6: Onboarding Selection View

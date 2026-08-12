@@ -93,7 +93,7 @@ Kolb's Experiential Learning Theory posits that knowledge is created through the
     1.  *Concrete Experience:* User places structures (Reef Stars) and fragments, and performs active manual care (brushing algae, picking snails).
     2.  *Reflective Observation:* User triggers the **Fast Forward** and observes the multi-year visual timelapse of their reef's growth or collapse.
     3.  *Abstract Conceptualization:* User reads the diagnostic reflection card, linking their visual outcome to ecological principles (e.g., "Monocultures reduce grazer recruitment, leading to algae overgrowth").
-    4.  *Active Experimentation:* User triggers a **Hard Reset**, alters species spacing or diversity, and tests a new hypothesis.
+    4.  *Active Experimentation:* User adjusts species spacing/composition or triggers a sandbox reset (via Settings) to test a new hypothesis.
 *   **Validation:** The sandbox gameplay loop directly mirrors this natural cognitive sequence, converting visual feedback into theoretical understanding.
 
 ### 3.2. Dopaminergic Reinforcement & Procedural Satisfaction
@@ -228,7 +228,7 @@ When a Marine Heatwave terminates, water temperatures return to a baseline $27^\
 *   *Pedagogical Message:* We cannot stop global heating spikes locally, but by cultivating biodiverse reefs, we build the resilience needed for ecosystems to survive and recover from climate shocks.
 
 ### 4.7. Sandbox Controls & Timelapse Visuals
-*   **Hard Reset Action:** Instantly clears all structures and biological components, returning the grid to barren rubble.
+*   **Hard Reset Action (Deprecated from core UI):** Moved out of the primary gameplay canvas to prevent accidental data loss. It is now accessed exclusively through the Settings menu, allowing users to wipe all structures and biological components to return the grid to barren rubble.
 *   **Fast Forward Action:** Runs the simulation model forward for $N$ steps (simulating 5–10 years of growth) to calculate the steady-state result of the user's configuration.
     *   *Timelapse morphing:* Plays a short visual transition showing the reef's evolution (growth, competition, algae outbreaks, or bleaching).
     *   *Diagnostic reflection Card:* Explains the steady-state outcome based on ecological laws (e.g., "Your slow-growing brain coral was overgrown by Acropora because they were planted too close together").

@@ -26,7 +26,7 @@ Below is the master list of tasks required to build the MVP and subsequent featu
 | **TASK-TD-105** | `marinesandbox/Views` | Integrate notifications/alerts for active threats (algae overgrowth in baby/teen, or predator damage > 75%). | Reno / Bobo | **In Scope** (Tech Demo) |
 | **TASK-TD-106** | `marinesandbox/Views` | Redirect entry point to launch `TechDemoView` root view and implement bottom debug log console. | Zarina | **In Scope** (Tech Demo) |
 | **TASK-MVP-201** | `marinesandbox/Models` | Implement SwiftData schemas (`UserProfile`, `ReefCanvas`, `PlacedStructure`, `CoralFrag`) in `marinesandbox/Models/`. | Bishal | **In Scope** |
-| **TASK-MVP-202** | `marinesandbox/ViewModels`| Implement `marinesandbox/ViewModels/SandboxViewModel.swift` state coordination, Fast Forward, and Reset operations. | Bishal | **In Scope** |
+| **TASK-MVP-202** | `marinesandbox/ViewModels`| Implement `marinesandbox/ViewModels/SandboxViewModel.swift` state coordination and Fast Forward operations. (Hard Reset moved to settings). | Bishal | **In Scope** |
 | **TASK-MVP-203** | `marinesandbox/Services` | Set up static JSON configurations for local presets (`NGOConfig`) to seed mock Bali data on launch. | Zarina | **In Scope** |
 | **TASK-MVP-204** | `marinesandbox/Views` | Build Location Selection Screen and user routing system (new vs. returning users). | Reno / Bobo | **In Scope** |
 | **TASK-MVP-301** | `marinesandbox/Views` | Build `LottieCoralView.swift` SwiftUI wrapper and logic to scrub playheads based on state. | Bobo | **In Scope** |

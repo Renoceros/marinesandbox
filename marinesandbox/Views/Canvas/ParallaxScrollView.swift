@@ -96,11 +96,14 @@ public struct ParallaxScrollView: View {
         // Find the base column index currently aligned near the left edge of the screen
         let startCol = Int(floor(-offset / blockWidth))
         
-        // Stably loop over a fixed set of view indices (0 to 3) to prevent SwiftUI range identity reuse glitches.
-        // We render 4 columns (1 column off-screen left, 2 columns on-screen, 1 column off-screen right) for seamless coverage.
+        // Calculate the columns to render (including a safety margin on left and right)
+        let columns = Array(startCol - 1...startCol + 2)
+        
+        // Loop over the specific column numbers. Keying by their actual coordinate (id: \.self)
+        // ensures that views representing physical coordinates slide naturally without changing assets
+        // or triggering implicit crossfades when scroll offsets shift startCol.
         ZStack(alignment: .leading) {
-            ForEach(0..<4, id: \.self) { index in
-                let col = startCol + index - 1
+            ForEach(columns, id: \.self) { col in
                 let xPosition = CGFloat(col) * blockWidth + offset
                 let variantIndex = getDeterministicVariant(col: col, seed: seed)
                 
@@ -118,6 +121,7 @@ public struct ParallaxScrollView: View {
                 }
                 .frame(width: blockWidth, height: height)
                 .offset(x: xPosition)
+                .transition(.identity) // Disable implicit entry/exit animation fades inside withAnimation blocks
             }
         }
     }

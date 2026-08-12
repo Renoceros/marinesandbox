@@ -234,6 +234,9 @@ To support infinitely scrollable background elements alongside progress-locked f
 4. **Asymmetrical Generation Flow:**
    * **Deterministic Backgrounds:** Background and Midground columns are generated procedurally and deterministically using column index hashes. The app can pre-calculate and predict what the next 100 background blocks are at any scroll coordinate.
    * **Progress-Locked Foregrounds:** The foreground (where gardening occurs) is not infinitely scrollable from the start. It is progress-locked and unlocks slowly as the user expands their reef. The app does not pre-calculate future foreground blocks; they are instantiated dynamically from user progress states.
+5. **Unseamed Rendering (No Transitions):** To prevent SwiftUI from applying implicit crossfades or insertion/deletion entry/exit transitions when columns enter/exit the viewport bounds:
+   * The `ForEach` views are keyed directly by their continuous column coordinate `col` (using `id: \.self`). This ensures that active blocks retain their identity during panning and simply shift coordinates.
+   * We apply `.transition(.identity)` to the layout container cells to override default animations when new columns are dynamically instantiated or discarded.
 
 ### 4.2. Mathematical Formulations
 * For a given layer with speed ratio $R$, its scroll translation is:
@@ -304,10 +307,10 @@ struct ParallaxScrollView: View {
     @ViewBuilder
     private func layerContainer(viewportWidth: CGFloat, height: CGFloat, blockWidth: CGFloat, offset: CGFloat, seed: Int, layer: String, alignment: Alignment) -> some View {
         let startCol = Int(floor(-offset / blockWidth))
-        let visibleCount = Int(ceil(viewportWidth / blockWidth)) + 1
+        let columns = Array(startCol - 1...startCol + 2)
         
         ZStack(alignment: .leading) {
-            ForEach(startCol...(startCol + visibleCount), id: \.self) { col in
+            ForEach(columns, id: \.self) { col in
                 let xPosition = CGFloat(col) * blockWidth + offset
                 let themeIndex = getTheme(col: col, seed: seed)
                 let variant: BlockVariant = themeIndex == 0 ? .blockA : (themeIndex == 1 ? .blockB : .blockC)
@@ -324,6 +327,7 @@ struct ParallaxScrollView: View {
                 }
                 .frame(width: blockWidth, height: height)
                 .offset(x: xPosition)
+                .transition(.identity)
             }
         }
     }

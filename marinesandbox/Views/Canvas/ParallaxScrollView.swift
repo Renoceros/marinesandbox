@@ -1,21 +1,15 @@
 import SwiftUI
 
-// MARK: - Block Variants
-
-public enum BlockVariant: CaseIterable {
-    case blockA, blockB, blockC
-}
-
-// MARK: - Parallax Scroll View Container
+// MARK: - Parallax Scroll View
 
 public struct ParallaxScrollView: View {
     @State private var scrollX: CGFloat = 0.0
-    @State private var dragOffset: CGFloat = 0.0 // Supports animated momentum release
+    @State private var dragOffset: CGFloat = 0.0 // Follows active user finger drag
     
-    // Deterministic random seeds per layer to generate unique block patterns
-    private let bgSeed = 1001
-    private let midSeed = 2002
-    private let fgSeed = 3003
+    // Deterministic random seeds per layer as defined in TDD Section 4.1
+    private let bgSeed = 42
+    private let midSeed = 101
+    private let fgSeed = 2023
     
     public init() {}
     
@@ -31,7 +25,7 @@ public struct ParallaxScrollView: View {
             let currentOffset = scrollX + dragOffset
             
             ZStack(alignment: .leading) {
-                // 1st Layer: Solid backdrop color (#3BAFED), ignoring safe area
+                // 1st Layer (Backmost): Solid backdrop color (#3BAFED) ignoring safe area
                 Color(hex: "3BAFED")
                     .edgesIgnoringSafeArea(.all)
                 
@@ -57,7 +51,7 @@ public struct ParallaxScrollView: View {
                     alignment: .top
                 )
                 
-                // 4th Layer: Foreground Layer (Parallax Ratio: 1.00, Bottom-Aligned)
+                // 4th Layer (Frontmost): Foreground Layer (Parallax Ratio: 1.00, Bottom-Aligned)
                 layerContainer(
                     viewportWidth: viewportWidth,
                     height: height,
@@ -99,21 +93,23 @@ public struct ParallaxScrollView: View {
         layerName: String,
         alignment: Alignment
     ) -> some View {
+        // Find the base column index currently aligned near the left edge of the screen
         let startCol = Int(floor(-offset / blockWidth))
-        let visibleCount = Int(ceil(viewportWidth / blockWidth)) + 1
         
+        // Stably loop over a fixed set of view indices (0 to 3) to prevent SwiftUI range identity reuse glitches.
+        // We render 4 columns (1 column off-screen left, 2 columns on-screen, 1 column off-screen right) for seamless coverage.
         ZStack(alignment: .leading) {
-            ForEach(startCol...(startCol + visibleCount), id: \.self) { col in
+            ForEach(0..<4, id: \.self) { index in
+                let col = startCol + index - 1
                 let xPosition = CGFloat(col) * blockWidth + offset
                 let variantIndex = getDeterministicVariant(col: col, seed: seed)
-                let variant: BlockVariant = variantIndex == 0 ? .blockA : (variantIndex == 1 ? .blockB : .blockC)
                 
                 VStack(spacing: 0) {
                     if alignment == .bottom {
                         Spacer()
                     }
                     
-                    renderBlockView(layer: layerName, variant: variant)
+                    renderBlockView(layer: layerName, variantIndex: variantIndex)
                         .frame(width: blockWidth)
                     
                     if alignment == .top {
@@ -126,38 +122,18 @@ public struct ParallaxScrollView: View {
         }
     }
     
+    // Deterministic variant calculation matching TDD formula
     private func getDeterministicVariant(col: Int, seed: Int) -> Int {
         let x = col ^ seed
         let hash = (x &* 324159265) ^ (x >> 16)
         return abs(hash) % 3
     }
     
-    private func renderBlockView(layer: String, variant: BlockVariant) -> some View {
-        let assetName: String
-        switch layer {
-        case "Background":
-            switch variant {
-            case .blockA: assetName = "BG0"
-            case .blockB: assetName = "BG1"
-            case .blockC: assetName = "BG2"
-            }
-        case "Midground":
-            switch variant {
-            case .blockA: assetName = "MG0"
-            case .blockB: assetName = "MG1"
-            case .blockC: assetName = "MG2"
-            }
-        case "Foreground":
-            switch variant {
-            case .blockA: assetName = "FG0"
-            case .blockB: assetName = "FG1"
-            case .blockC: assetName = "FG2"
-            }
-        default:
-            assetName = ""
-        }
-        
-        return Image(assetName)
+    // Helper to render Image assets directly by name mapping
+    @ViewBuilder
+    private func renderBlockView(layer: String, variantIndex: Int) -> some View {
+        let prefix = layer == "Background" ? "BG" : (layer == "Midground" ? "MG" : "FG")
+        Image("\(prefix)\(variantIndex)")
             .resizable()
             .aspectRatio(contentMode: .fit)
     }

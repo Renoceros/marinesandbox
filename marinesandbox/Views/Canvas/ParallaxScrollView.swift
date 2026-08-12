@@ -134,21 +134,21 @@ public struct ParallaxScrollView: View {
         switch layer {
         case "Background":
             switch variant {
-            case .blockA: assetName = "BG/BG0"
-            case .blockB: assetName = "BG/BG1"
-            case .blockC: assetName = "BG/BG2"
+            case .blockA: assetName = "BG0"
+            case .blockB: assetName = "BG1"
+            case .blockC: assetName = "BG2"
             }
         case "Midground":
             switch variant {
-            case .blockA: assetName = "MG/MG0"
-            case .blockB: assetName = "MG/MG1"
-            case .blockC: assetName = "MG/MG2"
+            case .blockA: assetName = "MG0"
+            case .blockB: assetName = "MG1"
+            case .blockC: assetName = "MG2"
             }
         case "Foreground":
             switch variant {
-            case .blockA: assetName = "FG/FG0"
-            case .blockB: assetName = "FG/FG1"
-            case .blockC: assetName = "FG/FG2"
+            case .blockA: assetName = "FG0"
+            case .blockB: assetName = "FG1"
+            case .blockC: assetName = "FG2"
             }
         default:
             assetName = ""

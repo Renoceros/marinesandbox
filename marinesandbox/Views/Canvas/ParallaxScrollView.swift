@@ -128,7 +128,6 @@ public struct ParallaxScrollView: View {
         return abs(hash) % 3
     }
     
-    @ViewBuilder
     private func renderBlockView(layer: String, variant: BlockVariant) -> some View {
         let assetName: String
         switch layer {
@@ -154,7 +153,7 @@ public struct ParallaxScrollView: View {
             assetName = ""
         }
         
-        Image(assetName)
+        return Image(assetName)
             .resizable()
             .aspectRatio(contentMode: .fit)
     }

@@ -132,7 +132,6 @@ public struct ParallaxScrollView: View {
         return abs(hash) % 3
     }
     
-    @ViewBuilder
     private func renderBlockView(layer: String, variant: BlockVariant) -> some View {
         let assetName: String
         switch layer {

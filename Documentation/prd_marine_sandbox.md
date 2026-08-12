@@ -13,11 +13,12 @@ This document defines the product requirements for the **Interactive Marine Sand
 ### 1.2. Problem Statement
 Field-based marine conservation programs (e.g., Living Seas in Bali) generate strong emotional and physical connections to marine ecosystems while students are on-site. However, once students return home, this engagement drops off due to a lack of active, ongoing tools. Traditional educational follow-ups are passive (social media updates, email newsletters) and fail to capture the interactive, decision-based nature of real-world conservation.
 
-### 1.3. Product Vision
+### 1.3. Product Vision & Positioning
 To sustain student engagement, the application provides a digital sandbox where users can actively experiment with ecosystem variables. 
 
-**Core Product Shift (No Real-World Predictor/CCTV):**
-The app is strictly a **pedagogical sandbox**, not a predictive scientific model or virtual monitoring tool ("virtual CCTV") for their physical restoration plots. Trying to predict real-world outcomes sets false expectations. Instead, the app uses generalized ecological rules to illustrate cause-and-effect relationships and long-term systemic dynamics.
+*   **NOT a Traditional Educational App:** The primary mission is education, but the product must focus first and foremost on being a **highly entertaining, attractive, and visually premium game**. The interface, animations, and transitions should look so stunning and feel so satisfying to touch that students *want* to use it recreationally. If it feels like an encyclopedia, a flashcard tool, or a test/quiz app, it has failed.
+*   **Implicit (Subliminal) Education:** Learning occurs entirely through action-reaction gameplay mechanics and visual feedback, rather than text-heavy popups or multiple-choice questions. For instance, a user learns that biodiversity attracts grazers because they experience the physical frustration of brushing algae, observe that a monoculture fails to solve it, and naturally discover that planting multiple species automates the cleaning.
+*   **Pedagogical Sandbox (No Real-World Predictor/CCTV):** The app is strictly an interactive learning sandbox, not a predictive scientific model or virtual monitoring tool ("virtual CCTV") for their physical restoration plots. Trying to predict real-world outcomes sets false expectations. Instead, it uses generalized ecological rules to illustrate cause-and-effect relationships and long-term systemic dynamics.
 
 ### 1.4. Strategic Objective
 The core of this development is a generalizable **pedagogical-ecological sandbox equation**. This mathematical engine must be domain-agnostic, allowing the system to be adapted to other environmental subjects (e.g., forestry, kelp restoration, regenerative agriculture) by swapping out biological parameters.
@@ -124,6 +125,11 @@ Vygotsky's ZPD defines the space between what a learner can do unassisted and wh
 *   **Validation of Scaffolding vs. Onboardings:**
     *   Maximia's frustration with formal briefings/briefings means we must avoid structured tutorials. Instead, the interface utilizes **implicit scaffolding**: intuitive drag-and-drop actions, visually distinct glowing connection nodes, and immediate visual reactions.
     *   By bounding the simulation's success rate ($0.4 \le Ag \le 0.7$) and providing a diagnostic card (scaffolding) only upon failure, we keep the student within their ZPD without forcing structured classroom-like instruction.
+
+### 3.6. Subliminal Education & Entertainment-First Design Philosophy
+Traditional education applications fail because they prioritize educational formatting (textbooks, encyclopedias, quizzes) over player retention, resulting in a product that feels like homework. This application flips that dynamic:
+*   **The Entertainment-First Mandate:** The primary metric of success is player retention and enjoyment. The app is styled as a highly polished visual toy and creative sandbox. Visual beauty, smooth momentum-based animations, and pleasing tactical sfx are prioritized so that users choose to open the app voluntarily.
+*   **Action-Reaction Biology (No Rote Memorization):** Ecological knowledge is gained implicitly by playing the game. For example, rather than memorizing a text slide stating *"biodiversity increases ecological resilience"*, the player discovers this through direct cause-and-effect mechanics: planting a monoculture fails to recruit grazers and requires constant manual brushing effort, while planting a diverse reef automates the care via helper fish. The mechanics *are* the teacher.
 
 ---
 

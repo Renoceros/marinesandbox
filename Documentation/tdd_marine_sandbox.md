@@ -104,6 +104,9 @@ marinesandbox/
 │   └── QRScannerService.swift          # Handles NGO code scanning (roadmap item)
 └── Resources/
     ├── Assets.xcassets/                # Image catalogs, custom UI colors, app icons
+    │   ├── FG/                         # Foreground image assets (FG0, FG1, FG2)
+    │   ├── MG/                         # Midground image assets (MG0, MG1, MG2)
+    │   └── BG/                         # Background image assets (BG0, BG1, BG2)
     ├── Lottie/                         # Vector JSON animations (e.g. acropora_grow.json)
     └── Configs/                        # Static regional environmental JSON presets (e.g. BaliConfig.json)
 ```
@@ -319,8 +322,22 @@ struct ParallaxScrollView: View {
     
     @ViewBuilder
     private func renderBlockView(layer: String, variant: BlockVariant) -> some View {
-        // Renders unique Background/Midground/Foreground Subviews (A, B, C)
-        // ...
+        let assetName: String
+        switch (layer, variant) {
+        case ("Background", .blockA): assetName = "BG0"
+        case ("Background", .blockB): assetName = "BG1"
+        case ("Background", .blockC): assetName = "BG2"
+        case ("Midground", .blockA): assetName = "MG0"
+        case ("Midground", .blockB): assetName = "MG1"
+        case ("Midground", .blockC): assetName = "MG2"
+        case ("Foreground", .blockA): assetName = "FG0"
+        case ("Foreground", .blockB): assetName = "FG1"
+        case ("Foreground", .blockC): assetName = "FG2"
+        default: assetName = ""
+        }
+        
+        Image(assetName)
+            .resizable()
     }
 }
 ```

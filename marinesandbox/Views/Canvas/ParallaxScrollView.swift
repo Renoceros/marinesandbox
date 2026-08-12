@@ -6,11 +6,6 @@ public struct ParallaxScrollView: View {
     @State private var scrollX: CGFloat = 0.0
     @State private var dragOffset: CGFloat = 0.0 // Follows active user finger drag
     
-    // Deterministic random seeds per layer as defined in TDD Section 4.1
-    private let bgSeed = 42
-    private let midSeed = 101
-    private let fgSeed = 2023
-    
     public init() {}
     
     public var body: some View {
@@ -18,8 +13,12 @@ public struct ParallaxScrollView: View {
             let viewportWidth = geometry.size.width
             let height = geometry.size.height
             
-            // Width scales dynamically: 1.5x screen width of the container (avoids deprecated UIScreen.main in iOS 26+)
+            // Width of each segment: 1.5x of the iPhone screen width
             let blockWidth = viewportWidth * 1.5
+            
+            // Total content width is 3 * blockWidth (4.5 * viewportWidth)
+            // Left scroll boundary limits panning to exactly 3 stitched segments
+            let minScroll = viewportWidth - (blockWidth * 3)
             
             // Total accumulated horizontal offset (incorporates active drag translation)
             let currentOffset = scrollX + dragOffset
@@ -35,7 +34,6 @@ public struct ParallaxScrollView: View {
                     height: height,
                     blockWidth: blockWidth,
                     offset: currentOffset * 0.50,
-                    seed: midSeed,
                     layerName: "Midground",
                     alignment: .top
                 )
@@ -46,7 +44,6 @@ public struct ParallaxScrollView: View {
                     height: height,
                     blockWidth: blockWidth,
                     offset: currentOffset * 0.20,
-                    seed: bgSeed,
                     layerName: "Background",
                     alignment: .top
                 )
@@ -57,7 +54,6 @@ public struct ParallaxScrollView: View {
                     height: height,
                     blockWidth: blockWidth,
                     offset: currentOffset * 1.00,
-                    seed: fgSeed,
                     layerName: "Foreground",
                     alignment: .bottom
                 )
@@ -67,14 +63,19 @@ public struct ParallaxScrollView: View {
             .gesture(
                 DragGesture()
                     .onChanged { value in
-                        dragOffset = value.translation.width
+                        // Strictly clamp active drag offsets to prevent swiping past limits
+                        let activeOffset = scrollX + value.translation.width
+                        let clampedOffset = max(minScroll, min(0, activeOffset))
+                        dragOffset = clampedOffset - scrollX
                     }
                     .onEnded { value in
-                        // Calculate inertia using predictedEndTranslation to provide a fluid, gliding feel
+                        // Calculate inertia using predictedEndTranslation
                         let predicted = value.predictedEndTranslation.width
+                        let targetX = scrollX + predicted
+                        let clampedTarget = max(minScroll, min(0, targetX))
                         
                         withAnimation(.easeOut(duration: 1.2)) {
-                            scrollX += predicted
+                            scrollX = clampedTarget
                             dragOffset = 0.0
                         }
                     }
@@ -82,30 +83,24 @@ public struct ParallaxScrollView: View {
         }
     }
     
-    // Renders the horizontal window of visible columns for a layer on the fly
+    // Renders the horizontal window of exactly 3 stitched columns (no infinite scroll)
     @ViewBuilder
     private func layerContainer(
         viewportWidth: CGFloat,
         height: CGFloat,
         blockWidth: CGFloat,
         offset: CGFloat,
-        seed: Int,
         layerName: String,
         alignment: Alignment
     ) -> some View {
-        // Find the base column index currently aligned near the left edge of the screen
-        let startCol = Int(floor(-offset / blockWidth))
-        
-        // Calculate the columns to render (including a safety margin on left and right)
-        let columns = Array(startCol - 1...startCol + 2)
-        
-        // Loop over the specific column numbers. Keying by their actual coordinate (id: \.self)
-        // ensures that views representing physical coordinates slide naturally without changing assets
-        // or triggering implicit crossfades when scroll offsets shift startCol.
         ZStack(alignment: .leading) {
-            ForEach(columns, id: \.self) { col in
+            ForEach(0..<3, id: \.self) { col in
                 let xPosition = CGFloat(col) * blockWidth + offset
-                let variantIndex = getDeterministicVariant(col: col, seed: seed)
+                let perm = getPermutation(col: col)
+                
+                // Assign a unique variant index from the permutation list based on the layer
+                // Background -> perm[0], Midground -> perm[1], Foreground -> perm[2]
+                let variantIndex = layerName == "Background" ? perm[0] : (layerName == "Midground" ? perm[1] : perm[2])
                 
                 VStack(spacing: 0) {
                     if alignment == .bottom {
@@ -121,16 +116,24 @@ public struct ParallaxScrollView: View {
                 }
                 .frame(width: blockWidth, height: height)
                 .offset(x: xPosition)
-                .transition(.identity) // Disable implicit entry/exit animation fades inside withAnimation blocks
+                .transition(.identity) // Disable implicit SwiftUI transition fades
             }
         }
     }
     
-    // Deterministic variant calculation matching TDD formula
-    private func getDeterministicVariant(col: Int, seed: Int) -> Int {
-        let x = col ^ seed
-        let hash = (x &* 324159265) ^ (x >> 16)
-        return abs(hash) % 3
+    // Returns a unique permutation of variant indices [0, 1, 2] per column
+    private func getPermutation(col: Int) -> [Int] {
+        let permutations = [
+            [0, 1, 2], // Permutation 0
+            [0, 2, 1], // Permutation 1
+            [1, 0, 2], // Permutation 2
+            [1, 2, 0], // Permutation 3
+            [2, 0, 1], // Permutation 4
+            [2, 1, 0]  // Permutation 5
+        ]
+        
+        let hash = abs((col ^ 1001) &* 324159265) % 6
+        return permutations[hash]
     }
     
     // Helper to render Image assets directly by name mapping

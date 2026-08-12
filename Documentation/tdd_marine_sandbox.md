@@ -218,25 +218,22 @@ Lottie Animation Playhead (0.0 to 1.0 Progress)
 
 ---
 
-## 4. Visual Parallax Architecture (Procedural Tiling & Asymmetrical Generation)
+## 4. Visual Parallax Architecture (Permutation-Based 3-Segment Tiling)
 
-To support infinitely scrollable background elements alongside progress-locked foreground reef beds, the sandbox implements an **Asymmetrical Procedural Column Tiling** design pattern optimized for modern device dimensions.
+To provide spatial depth and variety without infinite scrolling, the sandbox implements a **Fixed 3-Segment Parallax** container optimized for modern device dimensions.
 
 ### 4.1. Conceptual Specifications
-1. **Device Target:** Target device is the **iPhone 17 base model** (with a standard 19.5:9 display aspect ratio). 
-2. **Landscape Dimensions:** Each landscape block has a width of exactly **1.5x the iPhone viewport width** ($W = 1.5 \times \text{viewportWidth}$). This ensures high-definition details remain visible during horizontal scrolling and scales automatically across iOS devices.
-3. **Uniform Layer Sizing & ZStack Draw Order:** Background, Midground, and Foreground blocks utilize the **identical physical block width** ($W$). To ensure exact rendering overlay, they are stacked in the following order (back to front):
+1. **Device Target:** Target device is the **iPhone 17 base model** (with a standard 19.5:9 display aspect ratio).
+2. **Landscape Dimensions (3-Segment Limit):** The landscape view is not infinite. It is stitched together from exactly **3 segments** (columns `0, 1, 2`). Each segment has a width of exactly **1.5x the viewport width** ($W = 1.5 \times \text{viewportWidth}$), resulting in a total content width of $4.5\times$ the viewport width (representing 4.5x whole screen swipes).
+3. **Clamped Scrolling Boundaries:** To prevent the user from scrolling past the boundaries of the 3-segment landscape, the active scroll offset `scrollX` is strictly clamped:
+   $$\text{scrollX} \in [-(3 \times W - \text{viewportWidth}), 0.0] \implies \text{scrollX} \in [-3.5 \times \text{viewportWidth}, 0.0]$$
+4. **ZStack Draw Order:** The layers are drawn back-to-front inside a single viewport container:
    * **1st (Backmost):** Solid backdrop color `#3BAFED` ignoring all safe areas.
-   * **2nd:** Midground Layer (MG0, MG1, MG2, Seed 101) aligned to the **top** of the screen (Parallax Ratio: 0.50).
-   * **3rd:** Background Layer (BG0, BG1, BG2, Seed 42) aligned to the **top** of the screen (Parallax Ratio: 0.20).
-   * **4th (Frontmost):** Foreground Layer (FG0, FG1, FG2, Seed 2023) aligned to the **bottom** of the screen (Parallax Ratio: 1.00).
-   * *Behavioral Impact:* Since the foreground scrolls faster ($1.00\times$) than background ($0.20\times$), the camera shifts foreground elements more quickly across the solid backdrop, simulating real parallax depth.
-4. **Asymmetrical Generation Flow:**
-   * **Deterministic Backgrounds:** Background and Midground columns are generated procedurally and deterministically using column index hashes. The app can pre-calculate and predict what the next 100 background blocks are at any scroll coordinate.
-   * **Progress-Locked Foregrounds:** The foreground (where gardening occurs) is not infinitely scrollable from the start. It is progress-locked and unlocks slowly as the user expands their reef. The app does not pre-calculate future foreground blocks; they are instantiated dynamically from user progress states.
-5. **Unseamed Rendering (No Transitions):** To prevent SwiftUI from applying implicit crossfades or insertion/deletion entry/exit transitions when columns enter/exit the viewport bounds:
-   * The `ForEach` views are keyed directly by their continuous column coordinate `col` (using `id: \.self`). This ensures that active blocks retain their identity during panning and simply shift coordinates.
-   * We apply `.transition(.identity)` to the layout container cells to override default animations when new columns are dynamically instantiated or discarded.
+   * **2nd:** Midground Layer (MG, Ratio: 0.50, Top-Pinned)
+   * **3rd:** Background Layer (BG, Ratio: 0.20, Top-Pinned)
+   * **4th (Frontmost):** Foreground Layer (FG, Ratio: 1.00, Bottom-Pinned)
+5. **Prevision Permutation Rule (No Duplicate Stacks):** To prevent duplicate assets from stacking vertically (e.g. avoiding matching `0-0-0` or `1-1-1` layers), each segment column `col` calculates a deterministic permutation of the three variant indices `[0, 1, 2]`. Each layer (BG, MG, FG) gets a unique index from the permutation, ensuring diverse visual combinations per column.
+6. **Unseamed Rendering (No Transitions):** Because the 3 columns are rendered statically inside a constant `0..<3` list, no views are added or removed during panning. This guarantees absolute zero transitions, zero fades, and a perfectly "unseamed" sliding camera pan.
 
 ### 4.2. Mathematical Formulations
 * For a given layer with speed ratio $R$, its scroll translation is:
@@ -261,15 +258,14 @@ struct ParallaxScrollView: View {
     @State private var scrollX: CGFloat = 0.0
     @State private var dragOffset: CGFloat = 0.0 // State variable supporting momentum glide
     
-    let bgSeed = 42
-    let midSeed = 101
-    let fgSeed = 2023
-    
     var body: some View {
         GeometryReader { geometry in
             let viewportWidth = geometry.size.width
             let height = geometry.size.height
             let blockWidth = viewportWidth * 1.5
+            
+            // Total content width is 3 * blockWidth (4.5 * viewportWidth)
+            let minScroll = viewportWidth - (blockWidth * 3) // Clamps view to exactly 3 segments
             let currentOffset = scrollX + dragOffset
             
             ZStack(alignment: .leading) {
@@ -278,25 +274,31 @@ struct ParallaxScrollView: View {
                     .edgesIgnoringSafeArea(.all)
                 
                 // 2nd Layer: Midground Layer (Parallax Ratio: 0.50, Top-Aligned)
-                layerContainer(viewportWidth: viewportWidth, height: height, blockWidth: blockWidth, offset: currentOffset * 0.50, seed: midSeed, layer: "Midground", alignment: .top)
+                layerContainer(viewportWidth: viewportWidth, height: height, blockWidth: blockWidth, offset: currentOffset * 0.50, layerName: "Midground", alignment: .top)
                 
                 // 3rd Layer: Background Layer (Parallax Ratio: 0.20, Top-Aligned)
-                layerContainer(viewportWidth: viewportWidth, height: height, blockWidth: blockWidth, offset: currentOffset * 0.20, seed: bgSeed, layer: "Background", alignment: .top)
+                layerContainer(viewportWidth: viewportWidth, height: height, blockWidth: blockWidth, offset: currentOffset * 0.20, layerName: "Background", alignment: .top)
                 
                 // 4th Layer: Foreground Layer (Parallax Ratio: 1.00, Bottom-Aligned)
-                layerContainer(viewportWidth: viewportWidth, height: height, blockWidth: blockWidth, offset: currentOffset * 1.00, seed: fgSeed, layer: "Foreground", alignment: .bottom)
+                layerContainer(viewportWidth: viewportWidth, height: height, blockWidth: blockWidth, offset: currentOffset * 1.00, layerName: "Foreground", alignment: .bottom)
             }
             .edgesIgnoringSafeArea(.all)
             .contentShape(Rectangle())
             .gesture(
                 DragGesture()
                     .onChanged { value in
-                        dragOffset = value.translation.width
+                        // Strict clamping during active drag to lock horizontal scrolling to exactly 3 segments
+                        let activeOffset = scrollX + value.translation.width
+                        let clampedOffset = max(minScroll, min(0, activeOffset))
+                        dragOffset = clampedOffset - scrollX
                     }
                     .onEnded { value in
                         let predicted = value.predictedEndTranslation.width
+                        let targetX = scrollX + predicted
+                        let clampedTarget = max(minScroll, min(0, targetX))
+                        
                         withAnimation(.easeOut(duration: 1.2)) {
-                            scrollX += predicted
+                            scrollX = clampedTarget
                             dragOffset = 0.0
                         }
                     }
@@ -305,21 +307,27 @@ struct ParallaxScrollView: View {
     }
     
     @ViewBuilder
-    private func layerContainer(viewportWidth: CGFloat, height: CGFloat, blockWidth: CGFloat, offset: CGFloat, seed: Int, layer: String, alignment: Alignment) -> some View {
-        let startCol = Int(floor(-offset / blockWidth))
-        let columns = Array(startCol - 1...startCol + 2)
-        
+    private func layerContainer(
+        viewportWidth: CGFloat,
+        height: CGFloat,
+        blockWidth: CGFloat,
+        offset: CGFloat,
+        layerName: String,
+        alignment: Alignment
+    ) -> some View {
         ZStack(alignment: .leading) {
-            ForEach(columns, id: \.self) { col in
+            ForEach(0..<3, id: \.self) { col in
                 let xPosition = CGFloat(col) * blockWidth + offset
-                let themeIndex = getTheme(col: col, seed: seed)
-                let variant: BlockVariant = themeIndex == 0 ? .blockA : (themeIndex == 1 ? .blockB : .blockC)
+                let perm = getPermutation(col: col)
+                
+                // Mutually exclusive variant index ensures no duplicate 0-0-0 or 1-1-1 stacks occur
+                let variantIndex = layerName == "Background" ? perm[0] : (layerName == "Midground" ? perm[1] : perm[2])
                 
                 VStack(spacing: 0) {
                     if alignment == .bottom {
                         Spacer()
                     }
-                    renderBlockView(layer: layer, variant: variant)
+                    renderBlockView(layer: layerName, variantIndex: variantIndex)
                         .frame(width: blockWidth)
                     if alignment == .top {
                         Spacer()
@@ -332,29 +340,20 @@ struct ParallaxScrollView: View {
         }
     }
     
-    private func getTheme(col: Int, seed: Int) -> Int {
-        let x = col ^ seed
-        let hash = (x &* 324159265) ^ (x >> 16)
-        return abs(hash) % 3
+    // Returns a unique permutation of variant indices [0, 1, 2] per column
+    private func getPermutation(col: Int) -> [Int] {
+        let permutations = [
+            [0, 1, 2], [0, 2, 1], [1, 0, 2],
+            [1, 2, 0], [2, 0, 1], [2, 1, 0]
+        ]
+        let hash = abs((col ^ 1001) &* 324159265) % 6
+        return permutations[hash]
     }
     
     @ViewBuilder
-    private func renderBlockView(layer: String, variant: BlockVariant) -> some View {
-        let assetName: String
-        switch (layer, variant) {
-        case ("Background", .blockA): assetName = "BG0"
-        case ("Background", .blockB): assetName = "BG1"
-        case ("Background", .blockC): assetName = "BG2"
-        case ("Midground", .blockA): assetName = "MG0"
-        case ("Midground", .blockB): assetName = "MG1"
-        case ("Midground", .blockC): assetName = "MG2"
-        case ("Foreground", .blockA): assetName = "FG0"
-        case ("Foreground", .blockB): assetName = "FG1"
-        case ("Foreground", .blockC): assetName = "FG2"
-        default: assetName = ""
-        }
-        
-        Image(assetName)
+    private func renderBlockView(layer: String, variantIndex: Int) -> some View {
+        let prefix = layer == "Background" ? "BG" : (layer == "Midground" ? "MG" : "FG")
+        Image("\(prefix)\(variantIndex)")
             .resizable()
     }
 }

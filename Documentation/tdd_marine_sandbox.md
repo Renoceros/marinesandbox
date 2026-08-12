@@ -225,11 +225,12 @@ To support infinitely scrollable background elements alongside progress-locked f
 ### 4.1. Conceptual Specifications
 1. **Device Target:** Target device is the **iPhone 17 base model** (with a standard 19.5:9 display aspect ratio). 
 2. **Landscape Dimensions:** Each landscape block has a width of exactly **1.5x the iPhone viewport width** ($W = 1.5 \times \text{viewportWidth}$). This ensures high-definition details remain visible during horizontal scrolling and scales automatically across iOS devices.
-3. **Uniform Layer Sizing:** Background, Midground, and Foreground blocks utilize the **identical physical block width** ($W$). Parallax speed ratios are applied to the scroll translation:
-   * **Background Layer:** Speed Ratio $R = 0.20$
-   * **Midground Layer:** Speed Ratio $R = 0.50$
-   * **Foreground Layer:** Speed Ratio $R = 1.00$
-   * *Behavioral Impact:* Because the foreground scrolls at $1.0\times$ speed and the background at $0.2\times$ speed, the viewport moves through foreground blocks five times faster than background blocks, creating natural physical depth.
+3. **Uniform Layer Sizing & ZStack Draw Order:** Background, Midground, and Foreground blocks utilize the **identical physical block width** ($W$). To ensure exact rendering overlay, they are stacked in the following order (back to front):
+   * **1st (Backmost):** Solid backdrop color `#3BAFED` ignoring all safe areas.
+   * **2nd:** Midground Layer (MG0, MG1, MG2, Seed 101) aligned to the **top** of the screen (Parallax Ratio: 0.50).
+   * **3rd:** Background Layer (BG0, BG1, BG2, Seed 42) aligned to the **top** of the screen (Parallax Ratio: 0.20).
+   * **4th (Frontmost):** Foreground Layer (FG0, FG1, FG2, Seed 2023) aligned to the **bottom** of the screen (Parallax Ratio: 1.00).
+   * *Behavioral Impact:* Since the foreground scrolls faster ($1.00\times$) than background ($0.20\times$), the camera shifts foreground elements more quickly across the solid backdrop, simulating real parallax depth.
 4. **Asymmetrical Generation Flow:**
    * **Deterministic Backgrounds:** Background and Midground columns are generated procedurally and deterministically using column index hashes. The app can pre-calculate and predict what the next 100 background blocks are at any scroll coordinate.
    * **Progress-Locked Foregrounds:** The foreground (where gardening occurs) is not infinitely scrollable from the start. It is progress-locked and unlocks slowly as the user expands their reef. The app does not pre-calculate future foreground blocks; they are instantiated dynamically from user progress states.
@@ -270,15 +271,20 @@ struct ParallaxScrollView: View {
             let currentOffset = scrollX + dragOffset
             
             ZStack(alignment: .leading) {
-                // Background Layer (Parallax Ratio: 0.2)
-                layerContainer(viewportWidth: viewportWidth, height: height, offset: currentOffset * 0.2, seed: bgSeed, layer: "Background")
+                // 1st Layer: Solid backdrop color (#3BAFED)
+                Color(hex: "3BAFED")
+                    .edgesIgnoringSafeArea(.all)
                 
-                // Midground Layer (Parallax Ratio: 0.5)
-                layerContainer(viewportWidth: viewportWidth, height: height, offset: currentOffset * 0.5, seed: midSeed, layer: "Midground")
+                // 2nd Layer: Midground Layer (Parallax Ratio: 0.50, Top-Aligned)
+                layerContainer(viewportWidth: viewportWidth, height: height, offset: currentOffset * 0.50, seed: midSeed, layer: "Midground", alignment: .top)
                 
-                // Foreground Layer (Parallax Ratio: 1.0)
-                layerContainer(viewportWidth: viewportWidth, height: height, offset: currentOffset * 1.0, seed: fgSeed, layer: "Foreground")
+                // 3rd Layer: Background Layer (Parallax Ratio: 0.20, Top-Aligned)
+                layerContainer(viewportWidth: viewportWidth, height: height, offset: currentOffset * 0.20, seed: bgSeed, layer: "Background", alignment: .top)
+                
+                // 4th Layer: Foreground Layer (Parallax Ratio: 1.00, Bottom-Aligned)
+                layerContainer(viewportWidth: viewportWidth, height: height, offset: currentOffset * 1.00, seed: fgSeed, layer: "Foreground", alignment: .bottom)
             }
+            .edgesIgnoringSafeArea(.all)
             .contentShape(Rectangle())
             .gesture(
                 DragGesture()
@@ -297,7 +303,7 @@ struct ParallaxScrollView: View {
     }
     
     @ViewBuilder
-    private func layerContainer(viewportWidth: CGFloat, height: CGFloat, offset: CGFloat, seed: Int, layer: String) -> some View {
+    private func layerContainer(viewportWidth: CGFloat, height: CGFloat, offset: CGFloat, seed: Int, layer: String, alignment: Alignment) -> some View {
         let startCol = Int(floor(-offset / blockWidth))
         let visibleCount = Int(ceil(viewportWidth / blockWidth)) + 1
         
@@ -307,9 +313,18 @@ struct ParallaxScrollView: View {
                 let themeIndex = getTheme(col: col, seed: seed)
                 let variant: BlockVariant = themeIndex == 0 ? .blockA : (themeIndex == 1 ? .blockB : .blockC)
                 
-                renderBlockView(layer: layer, variant: variant)
-                    .frame(width: blockWidth, height: height)
-                    .offset(x: xPosition)
+                VStack(spacing: 0) {
+                    if alignment == .bottom {
+                        Spacer()
+                    }
+                    renderBlockView(layer: layer, variant: variant)
+                        .frame(width: blockWidth)
+                    if alignment == .top {
+                        Spacer()
+                    }
+                }
+                .frame(width: blockWidth, height: height)
+                .offset(x: xPosition)
             }
         }
     }

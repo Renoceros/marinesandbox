@@ -3,6 +3,8 @@
 **Document Version:** v1.3  
 **Status:** Directory Architecture & Backlog Defined (Updated for 2-Week MVP Scope)  
 
+> **Decisions live in [`DECISIONS.md`](../DECISIONS.md).** Where this document and the decision register disagree, the register wins. Superseded sections here are flagged inline.
+
 ---
 
 ## 1. Team & Backlog Ownership
@@ -507,5 +509,6 @@ To enable interactive dragging of structures/fragments and momentum-based flicki
 ---
 
 ## 6. Development Workflow
+See [`CONTRIBUTING.md`](../CONTRIBUTING.md) for the full workflow. In short: never commit to `main`, always branch off the latest `main`, and merge back through a pull request (DEC-023).
 *   **Branching Convention:** `feat/{developer-name}/{TASK-ID-description}` (e.g., `feat/sam/TASK-102-eco-engine`).
 *   **Mock Seeding Configuration:** Reads static JSON files (such as `BaliConfig.json`) to seed standard NGO parameters during mock runs.

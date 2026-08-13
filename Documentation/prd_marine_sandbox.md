@@ -162,8 +162,7 @@ The simulation models reef restoration progression through three primary phases:
 ```
                   +----------------------------------------------+
                   |               1. ONBOARDING & SETUP          |
-                  |  - Select location (Bali)                    |
-                   |  - Plant Coral Frag (First Staghorn)          |
+                  |  - Plant Coral Frag (First Staghorn)         |
                   +----------------------+-----------------------+
                                          |
                                          v

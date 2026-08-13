@@ -71,10 +71,10 @@ gantt
 * **TASK-MVP-202 (Bishal):** Implement `marinesandbox/ViewModels/SandboxViewModel.swift` to coordinate between SwiftData contexts and `marinesandbox/Services/EcoEngine.swift`. Translate canvas adjustments (fragging, cleaning) into database inserts/updates. (Note: Relegate Hard Reset operation to Settings panel).
 * **TASK-MVP-203 (Zarina):** Setup local file loaders to seed the mock Bali NGO preset from static resources on launch.
 
-### Day 6: Onboarding Selection View
-* **TASK-MVP-204 (Reno / Bobo):** Build the Location / NGO Selection Screen and user routing system using Sam's UX specifications.
-  * New users see selector $\rightarrow$ Seabed canvas $\rightarrow$ guided to plant exactly **one Staghorn frag** to start.
-  * Returning users bypass selector and load saved context directly.
+### Day 6: Onboarding Page & Routing
+* **TASK-MVP-204 (Reno / Bobo):** Build the Onboarding Page and first-launch routing using Sam's UX specifications. **Rescoped — there is no Location / NGO Selection Screen (DEC-008).**
+  * New users see the Onboarding Page $\rightarrow$ Seabed canvas $\rightarrow$ guided to plant exactly **one Staghorn frag** to start.
+  * Returning users skip onboarding and load saved context directly.
 * **Deliverable:** Sandbox configurations successfully save and reload offline.
 
 ---

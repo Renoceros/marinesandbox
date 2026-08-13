@@ -9,30 +9,30 @@
 
 ### 1.1 Team Members & Roles
 *   **Reno (PM-Coder Hybrid):** Coordinates development, interactive view flows, and onboarding view integrations.
-*   **Bishal (Backend Connoisseur):** Owns SwiftData schemas, mathematical `EcoEngine`, view models, and state coordination.
-*   **Zarina (Coder / UX Tester):** Handles app integration, Bali regional presets, and share card generation.
-*   **Bobo (Frontend / SwiftUI):** Develops custom layouts, parallax scrolling, Lottie integrations, and recruited fish layers.
-*   **Sam (Designer / UX):** Leads visual layouts, asset specifications, and share postcard design mocks.
+*   **Bishal (Backend & Physics):** Owns SwiftData schemas, mathematical `EcoEngine`, simplified 2D physics simulation (dragging and flicking mechanics), and sandbox view model state coordination.
+*   **Zarina (Parallax View Coder):** Implements the multi-layer parallax scroll view (`ParallaxScrollView.swift`), regional preset configurations, and share card generation.
+*   **Bobo (Mid-Fi Layout Coder):** Builds the mid-fidelity canvas UI layouts, layout components (using placeholder assets), Lottie integrations, and recruited fish layers.
+*   **Sam (Asset Designer):** Leads visual layouts, asset creation (producing final SVG/PNG graphics), and visual postcard mocks.
 
 ### 1.2 MVP Chores Backlog (Sprint Task Board)
-Below is the master list of tasks required to build the MVP and subsequent features, matching the task breakdown.
+Below is the master list of tasks required to build the MVP and subsequent features, matching the streamlined sprint plan.
 
 | Task ID | Component | Task Title / Description | PIC | MVP Scope Status |
 | --- | --- | --- | --- | --- |
-| **TASK-TD-101** | `marinesandbox/Services` | Implement `marinesandbox/Services/EcoEngine.swift` core stateless math: Shannon Index, time-step growth progress, algae, and bleaching. | Bishal | **In Scope** (Tech Demo) |
-| **TASK-TD-102** | `marinesandbox/Views` | Implement the skeleton of `marinesandbox/Views/Canvas/ParallaxScrollView.swift` with three horizontal scroll layers. | Bobo | **In Scope** (Tech Demo) |
-| **TASK-TD-103** | `marinesandbox/Views` | Create `marinesandbox/Views/Canvas/MockCoralView.swift` to render growth stages, algae shifts, and bleaching states. | Reno | **In Scope** (Tech Demo) |
-| **TASK-TD-104** | `marinesandbox/Views` | Build mid-fidelity canvas UI overlays for care tool selection (Brush/Hand) and status messages. | Bobo | **In Scope** (Tech Demo) |
-| **TASK-TD-105** | `marinesandbox/Views` | Integrate notifications/alerts for active threats (algae overgrowth in baby/teen, or predator damage > 75%). | Reno / Bobo | **In Scope** (Tech Demo) |
-| **TASK-TD-106** | `marinesandbox/Views` | Redirect entry point to launch `TechDemoView` root view and implement bottom debug log console. | Zarina | **In Scope** (Tech Demo) |
+| **TASK-MVP-101** | `marinesandbox/Services` | Implement `marinesandbox/Services/EcoEngine.swift` core stateless math: Shannon Index, growth stage cycles, and algae overgrowth rates. | Bishal | **In Scope** |
+| **TASK-MVP-102** | `marinesandbox/Views` | Implement the `marinesandbox/Views/Canvas/ParallaxScrollView.swift` with three horizontal scroll layers (unseamed rendering, clamped 3-segment bounds). | Zarina | **In Scope** |
+| **TASK-MVP-103** | `marinesandbox/Views` | Create mid-fidelity canvas layouts (`MockCoralView.swift` and `SandboxView.swift`) using placeholder assets, integrating tool overlays. | Bobo | **In Scope** |
+| **TASK-MVP-104** | `marinesandbox/ViewModels`| Implement the simplified 2D physics simulation (dragging and flicking dynamics) inside `marinesandbox/ViewModels/SandboxViewModel.swift`. | Bishal | **In Scope** |
+| **TASK-MVP-105** | `marinesandbox/Views` | Produce initial visual drafts and placeholder assets for Background, Midground, and Foreground layers. | Sam | **In Scope** |
+| **TASK-MVP-106** | `marinesandbox/Views` | Integrate basic notifications/alerts for active threats (algae overgrowth or snail pests) onto the mid-fidelity canvas views. | Reno | **In Scope** |
 | **TASK-MVP-201** | `marinesandbox/Models` | Implement SwiftData schemas (`UserProfile`, `ReefCanvas`, `PlacedStructure`, `CoralFrag`) in `marinesandbox/Models/`. | Bishal | **In Scope** |
 | **TASK-MVP-202** | `marinesandbox/ViewModels`| Implement `marinesandbox/ViewModels/SandboxViewModel.swift` state coordination and Fast Forward operations. (Hard Reset moved to settings). | Bishal | **In Scope** |
 | **TASK-MVP-203** | `marinesandbox/Services` | Set up static JSON configurations for local presets (`NGOConfig`) to seed mock Bali data on launch. | Zarina | **In Scope** |
 | **TASK-MVP-204** | `marinesandbox/Views` | Build Location Selection Screen and user routing system (new vs. returning users). | Reno / Bobo | **In Scope** |
 | **TASK-MVP-301** | `marinesandbox/Views` | Build `LottieCoralView.swift` SwiftUI wrapper and logic to scrub playheads based on state. | Bobo | **In Scope** |
-| **TASK-MVP-302** | `marinesandbox/Views` | Add custom animations and touch feedback for Brush Tool and Snail Kill Tool. | Reno | **In Scope** |
+| **TASK-MVP-302** | `marinesandbox/Views` | Add custom animations and touch feedback for Brush Tool and Snail Kill Hand Tool. | Reno | **In Scope** |
 | **TASK-MVP-303** | `marinesandbox/Views` | Connect the midground layer to render custom recruited fauna silhouettes. | Bobo | **In Scope** |
-| **TASK-MVP-304** | `marinesandbox/Views` | Construct the `ShareCardView.swift` custom 9:16 layout and export wrapper. | Zarina / Sam | **In Scope** |
+| **TASK-MVP-304** | `marinesandbox/Views` | Construct the `ShareCardView.swift` custom 9:16 layout and export wrapper. | Zarina | **In Scope** |
 | **TASK-MVP-305** | `marinesandbox/Views` | Implement local registration prompt dialog to save progress after adult coral matures. | Bishal | **In Scope** |
 | **TASK-MVP-401** | `marinesandbox/Services` | Verify EcoEngine calculations under long simulations (math stress tests). | Bishal / Zarina | **In Scope** |
 | **TASK-MVP-402** | `marinesandbox/Views` | Optimize `ParallaxScrollView` render frames to ensure fluid 60fps scrolling. | Bobo / Zarina | **In Scope** |
@@ -462,6 +462,26 @@ struct EcoEngine {
 ### 5.2 Security & Compliance
 *   **GDPR / COPPA Safety:** No textual database entry for user profiles. All shared configurations are represented by a randomly generated structural code and an anonymous pseudonym.
 *   **App Store Submissions:** Provide a clear "Reset Profile" button in settings that deletes the `UserProfile` data to fulfill iOS guidelines.
+
+### 5.3 Simplified 2D Canvas Physics Engine Design Specifications
+To enable interactive dragging of structures/fragments and momentum-based flicking of pests (snails/rubble) off-screen, the application employs a simplified 2D physics simulation inside `SandboxViewModel.swift`:
+*   **Entity State Vector:**
+    Each interactive object (e.g., a snail or debris) maintains a status vector:
+    $$\mathbf{P} = (x, y), \quad \mathbf{V} = (v_x, v_y)$$
+    where coordinates are continuous values relative to the active horizontal segment viewport bounds.
+*   **Interaction Modes:**
+    1.  *Idle:* Object rests at static coordinates or performs micro-wandering animation.
+    2.  *Dragged:* Object $(x, y)$ coordinate directly tracks user drag gestures (translating screen space coordinates to canvas space coordinates).
+    3.  *Flicked (Momentum Throw):* Upon drag release, if the gesture release velocity exceeds a magnitude threshold ($v_{\text{threshold}} > 100 \text{ pt/sec}$), the object transitions to a `Flicked` state.
+*   **Physics Step Update Loop:**
+    A lightweight timer (e.g. `CADisplayLink` or a `Task.sleep` animation loop in the view model) updates coordinates using Euler integration:
+    $$x_{t+1} = x_t + v_x \cdot \Delta t$$
+    $$y_{t+1} = y_t + v_y \cdot \Delta t$$
+    $$v_{x, t+1} = v_{x, t} \cdot (1.0 - \mu \cdot \Delta t) \quad \text{(Friction damping)}$$
+    $$v_{y, t+1} = v_{y, t} - g \cdot \Delta t \quad \text{(Gravity pull)}$$
+    *Note:* For flicking pests off-screen, gravity $g$ is set to a minimal value or zero to allow a straight line throw. Damping coefficient $\mu$ is set to a low value (e.g., $0.15$) to ensure the object slides far.
+*   **Despawn Boundaries:**
+    At each physics step, if the object's coordinates fall outside the active viewport boundaries ($y > \text{viewportHeight}$ or $x < \text{scrollX}$ or $x > \text{scrollX} + \text{viewportWidth}$), it is removed from the active data structure and database, triggering a successful removal event (e.g., reducing pest counts or spawning clean sparkles).
 
 ---
 

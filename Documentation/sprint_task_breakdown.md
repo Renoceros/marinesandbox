@@ -1,16 +1,16 @@
 # 2-Week Sprint Plan & Task Breakdown
 
-This document provides a highly detailed, day-by-day task breakdown for the 2-week sprint to deliver the **Interactive Marine Sandbox MVP**, aligned with the PRD, TDD, and User Journey specifications. All directory paths start at the repository target directory root (`marinesandbox/`).
+This document provides a detailed, day-by-day task breakdown for the 2-week sprint to deliver the **Interactive Marine Sandbox MVP**, aligned with the PRD, TDD, and User Journey specifications. All directory paths start at the repository target directory root (`marinesandbox/`).
 
 ---
 
 ## Team Roles & Specializations
 
 * **Reno (PM-Coder Hybrid):** Focuses on product development, project coordination, and core interactive views.
-* **Bishal (Backend Connoisseur):** Focuses on the math engine, SwiftData models, view models, and system logic.
-* **Zarina (Coder / UX Tester):** Focuses on system integration, preset loaders, exporter views, and automated testing.
-* **Bobo (Frontend / SwiftUI / Strategy):** Focuses on SwiftUI UI layouts, parallax scrolling components, Lottie playheads, and fish rendering.
-* **Sam (Designer / UX):** Focuses on visual design, UX guidelines, mockups, and share card layout design (collaborating with developers).
+* **Bishal (Backend & Physics):** Focuses on the math engine, SwiftData models, view models, and simplified 2D physics simulation (dragging and flicking mechanics).
+* **Zarina (Parallax View Coder):** Focuses on the multi-layer parallax scroll view (`ParallaxScrollView.swift`), regional preset configurations, and share card generation.
+* **Bobo (Mid-Fi Layout Coder):** Focuses on SwiftUI UI layouts (using placeholder assets), Lottie integrations, and recruited fish layers.
+* **Sam (Asset Designer):** Focuses on visual design, UX guidelines, mockups, final asset production (SVG/PNG), and share card layouts.
 
 ---
 
@@ -22,38 +22,38 @@ gantt
     dateFormat  D
     axisFormat Day %d
     
-    section Milestone 1
-    Tech Demonstrator (In-Memory Prototype) :active, 1, 3
+    section Phase 1
+    Core Architecture & Mid-Fi Setup :active, 1, 3
     
-    section Milestone 2
+    section Phase 2
     SwiftData & Persistence Layer : 4, 6
     
-    section Milestone 3
+    section Phase 3
     UI Polish, Lottie & Share Cards : 7, 10
     
-    section Milestone 4
+    section Phase 4
     Integration & Testing : 11, 14
 ```
 
 ---
 
-## Phase 1: Tech Demonstrator Prototype (Days 1–3)
-**Objective:** Build a single-screen working prototype (`TechDemoView`) using in-memory state models to validate core logic, 3-layer parallax scrolling, and active care menu tools.
+## Phase 1: Core Architecture & Mid-Fi Setup (Days 1–3)
+**Objective:** Set up the main sandbox view architecture, parallax scrolling, and mid-fidelity layout using placeholder assets. (TechDemo is skipped to start work directly on the main MVP views).
 
 ### Day 1: Setup & Core Math
-* **TASK-TD-101 (Bishal):** Implement `marinesandbox/Services/EcoEngine.swift` core stateless math:
+* **TASK-MVP-101 (Bishal):** Implement `marinesandbox/Services/EcoEngine.swift` core stateless math:
   * Shannon Index computation: $H = -\sum (p_i \ln p_i)$.
   * Time-step formulas for growth progress (Baby $\rightarrow$ Teenager $\rightarrow$ Adult), algae accumulation, and bleaching triggers.
-* **TASK-TD-102 (Bobo):** Implement the skeleton of `marinesandbox/Views/Canvas/ParallaxScrollView.swift` as a single view stitched from exactly **3 segments** (columns `0, 1, 2`), resulting in a total content width of $4.5\times$ viewport width (1.5x screen width per segment). Viewport offset `scrollX` is strictly clamped in the range `[-3.5 * viewportWidth, 0.0]`. The layers are drawn over a solid color backdrop (#3BAFED) in the order: backdrop -> MG (ratio 0.50, top-pinned) -> BG (ratio 0.20, top-pinned) -> FG (ratio 1.00, bottom-pinned). Inside each segment, layer image variant indices `{0, 1, 2}` are mutually exclusive (permutated per column index) to prevent identical vertical layers (e.g. no `0-0-0` or `1-1-1` stacks). Note and handle asymmetrical state technical debt (`DEBT-001`).
+* **TASK-MVP-102 (Zarina):** Implement the skeleton of `marinesandbox/Views/Canvas/ParallaxScrollView.swift` as a single view stitched from exactly **3 segments** (columns `0, 1, 2`), resulting in a total content width of $4.5\times$ viewport width (1.5x screen width per segment). Viewport offset `scrollX` is strictly clamped in the range `[-3.5 * viewportWidth, 0.0]`. The layers are drawn over a solid color backdrop (#3BAFED) in the order: backdrop -> MG (ratio 0.50, top-pinned) -> BG (ratio 0.20, top-pinned) -> FG (ratio 1.00, bottom-pinned). Inside each segment, layer image variant indices `{0, 1, 2}` are mutually exclusive (permutated per column index) to prevent identical vertical layers (e.g. no `0-0-0` or `1-1-1` stacks). Note and handle asymmetrical state technical debt (`DEBT-001`).
 
-### Day 2: Interactive Controls & Canvas
-* **TASK-TD-103 (Reno):** Create `marinesandbox/Views/Canvas/MockCoralView.swift` to render shapes dynamically (Baby, Teenager, Adult states with color shifts for algae overgrowth and bleaching).
-* **TASK-TD-104 (Bobo):** Implement mid-fidelity UI canvas overlays (no side dashboards or sliders). Create clean UI components for active care tool selection (e.g. Brush Tool, Snail Kill/Hand Tool) and basic status overlays, allowing the user to select tools and interact directly with the seabed.
+### Day 2: Interactive Canvas & Physics
+* **TASK-MVP-103 (Bobo):** Create mid-fidelity canvas layouts (`marinesandbox/Views/Canvas/MockCoralView.swift` and `marinesandbox/Views/Canvas/SandboxView.swift`) using placeholder assets, integrating tool selection overlays.
+* **TASK-MVP-104 (Bishal):** Implement the simplified 2D physics simulation (dragging and flicking dynamics) inside `marinesandbox/ViewModels/SandboxViewModel.swift` to support dragging structures/fragments and flicking pests (snails/rubble) off-screen.
 
-### Day 3: Integration & Demonstration Milestone
-* **TASK-TD-105 (Reno / Bobo):** Integrate notifications for active threats (algae overgrowth in baby/teen phase, or predator damage > 75%).
-* **TASK-TD-106 (Zarina):** Redirect `marinesandbox/marinesandboxApp.swift` root view to launch `TechDemoView` and add the live debug statistics console to the bottom of the screen.
-* **Deliverable:** Prototyping sandbox builds and runs successfully. Team confirms the math and scroll feel.
+### Day 3: Assets Integration & Mid-Fi Milestone
+* **TASK-MVP-105 (Sam):** Produce initial placeholder assets and layout visual drafts for the Background, Midground, and Foreground layers.
+* **TASK-MVP-106 (Reno):** Integrate basic notifications/alerts for active threats (algae overgrowth or snail pests) onto the mid-fidelity canvas views.
+* **Deliverable:** Main sandbox view compiles and runs with 3-layer parallax scrolling, placeholder assets, and basic active care tool selections.
 
 ---
 
@@ -72,7 +72,7 @@ gantt
 * **TASK-MVP-203 (Zarina):** Setup local file loaders to seed the mock Bali NGO preset from static resources on launch.
 
 ### Day 6: Onboarding Selection View
-* **TASK-MVP-204 (Reno / Bobo):** Build the **Location Selection Screen** (Bali/Living Seas default) and user routing system using Sam's UX specifications.
+* **TASK-MVP-204 (Reno / Bobo):** Build the Location / NGO Selection Screen and user routing system using Sam's UX specifications.
   * New users see selector $\rightarrow$ Seabed canvas $\rightarrow$ guided to plant exactly **one Staghorn frag** to start.
   * Returning users bypass selector and load saved context directly.
 * **Deliverable:** Sandbox configurations successfully save and reload offline.
@@ -86,7 +86,7 @@ gantt
 * **TASK-MVP-301 (Bobo):** Implement `marinesandbox/Views/Canvas/LottieCoralView.swift` wrappers. Map playheads dynamically based on the state (Growth $0.0 \rightarrow 0.6$, Bleaching $0.6 \rightarrow 0.8$, Algae $0.6 \rightarrow 1.0$, Dead $1.0$).
 
 ### Day 8: Active Care Tools Polish
-* **TASK-MVP-302 (Reno):** Add custom animations and touch feedback for the **Brush Tool** (wiping away green algae moss) and **Kill Tool** (tapping to smash snails/starfish).
+* **TASK-MVP-302 (Reno):** Add custom animations and touch feedback for the **Brush Tool** (wiping away green algae moss) and **Hand Tool** (tapping to smash or flicking snails/starfish).
 * **TASK-MVP-303 (Bobo):** Connect the midground layer to render custom recruited fauna silhouettes (small reef fish, tiny gobies, or schools) matching the active growth stages.
 
 ### Day 9: Share Card Generator

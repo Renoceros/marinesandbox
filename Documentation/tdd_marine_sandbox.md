@@ -82,7 +82,7 @@ marinesandbox/
 │   └── MarineSandboxApp.swift          # App entry point, SwiftData container initialization
 ├── Models/
 │   ├── UserProfile.swift               # SwiftData profile schema (unlocked cosmetics, saves)
-│   ├── ReefCanvas.swift                # SwiftData canvas schema (NGO region, location type, width)
+│   ├── ReefCanvas.swift                # SwiftData canvas schema (NGO region, width)
 │   ├── PlacedStructure.swift           # SwiftData structural entity (xPos coordinate, structure type)
 │   ├── CoralFrag.swift                 # SwiftData biological fragment state (species, growth, bleaching)
 │   └── NGOConfig.swift                 # Environmental static data configurations (Bali, Jeju, Caribbean)
@@ -144,14 +144,12 @@ final class UserProfile {
 final class ReefCanvas {
     @Attribute(.unique) var id: UUID
     var ngoRegion: String // "Bali", "Jeju", "Caribbean"
-    var locationType: String // "ShallowFlat", "DeepWall", "CurrentChannel"
     var canvasWidth: Double // Total horizontal scroll width
     @Relationship(deleteRule: .cascade) var placedStructures: [PlacedStructure]
     
-    init(id: UUID = UUID(), ngoRegion: String, locationType: String, canvasWidth: Double = 2000.0, placedStructures: [PlacedStructure] = []) {
+    init(id: UUID = UUID(), ngoRegion: String, canvasWidth: Double = 2000.0, placedStructures: [PlacedStructure] = []) {
         self.id = id
         self.ngoRegion = ngoRegion
-        self.locationType = locationType
         self.canvasWidth = canvasWidth
         self.placedStructures = placedStructures
     }
@@ -376,7 +374,6 @@ The simulation engine functions as a stateless math processor. It implements tim
 struct EcoEngine {
     static func updateState(
         canvas: ReefCanvas,
-        location: LocationConfig,
         threats: ThreatVector,
         steps: Int
     ) -> ReefCanvas {
@@ -415,13 +412,11 @@ struct EcoEngine {
                 guard let coral = structure.coral else { continue }
                 if coral.isDead { continue }
                 
-                // Growth calculation adjusted by location, algae overgrowth, and predator damage
-                let lightFactor = location.lightFactor
-                let currentFactor = location.currentFactor
+                // Growth calculation adjusted by algae overgrowth and predator damage
                 let algaeSmotherModifier = max(0.0, 1.0 - coral.algaePercentage)
                 let predatorModifier = max(0.0, 1.0 - coral.predatorDamage)
                 
-                let growthIncrement = baseGrowthRate * lightFactor * currentFactor * algaeSmotherModifier * predatorModifier
+                let growthIncrement = baseGrowthRate * algaeSmotherModifier * predatorModifier
                 coral.growthProgress = min(1.0, coral.growthProgress + growthIncrement)
                 
                 // Process Algae growth vs Grazer control (Baby/Teenager phases are most vulnerable)

@@ -280,16 +280,7 @@ To encourage engagement with local conservation efforts, the application roadmap
     *   *Profile Badges:* Verifiable credentials showing they visited the physical partner office.
 *   **Impact:** Bridges physical visits to digital cosmetics without violating the "no predictive CCTV tracker" policy.
 
-### 8.2. Plantation Location Selection
-To increase ecological depth, the app roadmaps a pre-simulation step where users choose the exact environmental zone for their plantation:
-*   **Mechanism:** Before configuring their reef grid, users select an environmental location within the loaded NGO region.
-*   **Location Impact on the Ecological Equation:** Choosing a location dynamically modifies the baseline constants of the **Ecosystem State Vector** ($\mathbf{S}_0$) and the **Growth & Stress variables** ($\mathbf{G}, \mathbf{T}$):
-    *   *Shallow Reef Flat (e.g., Padangbai Bay):* High ambient light (accelerating *Acropora* growth) but high susceptibility to thermal bleaching spikes and boat physical collisions.
-    *   *Deep Wall Slope (e.g., Wall Bay Nusa Penida):* Decreased ambient light (slowing branching growth, favoring slow-growing massive corals like brain corals) but protected from thermal waves and physical turbulence.
-    *   *Strong-Current Channel (e.g., Toyapakeh Strait):* Influx of high nutrients (boosting overall growth rates) but high current shear stress, requiring structural reinforcement (e.g., concrete anchor structures) to prevent fragments from dislodging.
-*   **Pedagogical Value:** Teaches students that marine restoration strategies must adapt to localized environmental stressors, demonstrating that a "one-size-fits-all" solution does not exist.
-
-### 8.3. Advanced Parallax Micro-Animations
+### 8.2. Advanced Parallax Micro-Animations
 To further elevate visual engagement and polish, the application roadmaps advanced parallax micro-animations for the deep horizontal layers:
 *   **Swaying Seaweed & Seagrass:** Add vector-based sea-grass and seaweed blades that sway dynamically using continuous sine-wave time-offsets or spring physics in response to user scroll momentum.
 *   **Fauna Path Swimming:** Implement school fish silhouettes following complex, procedural spline paths (e.g., sine/cosine loops and vertical curves) instead of simple linear horizontal swim lanes.

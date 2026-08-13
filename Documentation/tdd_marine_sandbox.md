@@ -77,45 +77,45 @@ The application adheres to a strict 4-layer MVVM pattern.
 Below is the physical layout of the project's source root and documentation folder, standardizing where all MVP implementation files live.
 
 #### 1. Documentation & Assets Structure
-*   `Documentation/` - Project specifications, sprint tasks, user journey files, and user research materials.
-    *   [`prd_marine_sandbox.md`](file:///Users/moreno_m5/Projects/CH5/marinesandbox/Documentation/prd_marine_sandbox.md) - Product Requirements Document defining user personas, cognitive theories, and the 2-week MVP scope boundaries.
-    *   [`tdd_marine_sandbox.md`](file:///Users/moreno_m5/Projects/CH5/marinesandbox/Documentation/tdd_marine_sandbox.md) - Technical Design Document mapping database schema, visual parallax mathematics, and API stubs.
-    *   [`sprint_task_breakdown.md`](file:///Users/moreno_m5/Projects/CH5/marinesandbox/Documentation/sprint_task_breakdown.md) - Active sprint board tracking developer responsibilities and daily calendar progress.
-    *   `Transcription/` - Audio recordings, raw JSON results, and markdown summaries from expert interviews and team syncs.
-        *   [`Team-Discussion-12Aug.md`](file:///Users/moreno_m5/Projects/CH5/marinesandbox/Documentation/Transcription/Team-Discussion-12Aug.md) - Key decisions regarding Rubble Onboarding, Apple Sign-In, and Algae Brush interactions.
-        *   [`Alex-Interview-9Aug.md`](file:///Users/moreno_m5/Projects/CH5/marinesandbox/Documentation/Transcription/Alex-Interview-9Aug.md) - Expert coral taxonomy, spawning behavior, and monoculture warning specifications.
-        *   [`Leon-Interview-1Aug.md`](file:///Users/moreno_m5/Projects/CH5/marinesandbox/Documentation/Transcription/Leon-Interview-1Aug.md) - Physical restoration techniques (Reef Stars, concrete anchors) and regional presets.
+*   `Documentation` - Project specifications, sprint tasks, user journey files, and user research materials.
+    *   [`prd_marine_sandbox.md`](file:///marinesandbox/Documentation/prd_marine_sandbox.md) - Product Requirements Document defining user personas, cognitive theories, and the 2-week MVP scope boundaries.
+    *   [`tdd_marine_sandbox.md`](file:///marinesandbox/Documentation/tdd_marine_sandbox.md) - Technical Design Document mapping database schema, visual parallax mathematics, and API stubs.
+    *   [`sprint_task_breakdown.md`](file:///marinesandbox/Documentation/sprint_task_breakdown.md) - Active sprint board tracking developer responsibilities and daily calendar progress.
+    *   `Transcription` - Audio recordings, raw JSON results, and markdown summaries from expert interviews and team syncs.
+        *   [`Team-Discussion-12Aug.md`](file:///marinesandbox/Documentation/Transcription/Team-Discussion-12Aug.md) - Key decisions regarding Rubble Onboarding, Apple Sign-In, and Algae Brush interactions.
+        *   [`Alex-Interview-9Aug.md`](file:///marinesandbox/Documentation/Transcription/Alex-Interview-9Aug.md) - Expert coral taxonomy, spawning behavior, and monoculture warning specifications.
+        *   [`Leon-Interview-1Aug.md`](file:///marinesandbox/Documentation/Transcription/Leon-Interview-1Aug.md) - Physical restoration techniques (Reef Stars, concrete anchors) and regional presets.
 
 #### 2. Source Code Directory Breakdown
-*   `marinesandbox/` - Primary source package folder containing the Swift targets.
-    *   [`marinesandboxApp.swift`](file:///Users/moreno_m5/Projects/CH5/marinesandbox/marinesandbox/marinesandboxApp.swift) - Entry point of the iOS app; initializes the core SwiftData container.
-    *   [`ContentView.swift`](file:///Users/moreno_m5/Projects/CH5/marinesandbox/marinesandbox/ContentView.swift) - Root SwiftUI view, nesting the interactive canvas inside the app layout.
-    *   `Models/` - SwiftData local persistent storage schemas and NGO configuration structs.
-        *   [`UserProfile.swift`](file:///Users/moreno_m5/Projects/CH5/marinesandbox/marinesandbox/Models/UserProfile.swift) - Schema storing user registration state, offline profile info, and unlocked cosmetics.
-        *   [`ReefCanvas.swift`](file:///Users/moreno_m5/Projects/CH5/marinesandbox/marinesandbox/Models/ReefCanvas.swift) - Schema storing the horizontal scroll canvas boundaries and selected NGO preset values.
-        *   [`PlacedStructure.swift`](file:///Users/moreno_m5/Projects/CH5/marinesandbox/marinesandbox/Models/PlacedStructure.swift) - Schema mapping deployed physical structures (e.g. Reef Stars) to horizontal canvas offsets.
-        *   [`CoralFrag.swift`](file:///Users/moreno_m5/Projects/CH5/marinesandbox/marinesandbox/Models/CoralFrag.swift) - Schema capturing growth percentage, algae coverage, bleaching flags, and active pest counts.
-        *   [`NGOConfig.swift`](file:///Users/moreno_m5/Projects/CH5/marinesandbox/marinesandbox/Models/NGOConfig.swift) - Static Preset struct seeding initial regional environments (Bali, Jeju, Caribbean).
-    *   `ViewModels/` - Coordinator and business logic layer.
-        *   [`SandboxViewModel.swift`](file:///Users/moreno_m5/Projects/CH5/marinesandbox/marinesandbox/ViewModels/SandboxViewModel.swift) - Bishal's main controller. Coordinates the time-step increments, SwiftData transaction bindings, and runs the simplified 2D physics integration loop (dragging coordinates, velocity throws, boundary checking).
-    *   `Views/` - UI elements and visual layers.
-        *   `Canvas/` - Main interactive garden screen elements.
-            *   [`ParallaxScrollView.swift`](file:///Users/moreno_m5/Projects/CH5/marinesandbox/marinesandbox/Views/Canvas/ParallaxScrollView.swift) - Zarina's horizontal scrolling container. Stitches 3 parallax segments with strict boundary clamps, drawing the background assets top-pinned and foreground bottom-pinned.
-            *   [`SandboxView.swift`](file:///Users/moreno_m5/Projects/CH5/marinesandbox/marinesandbox/Views/Canvas/SandboxView.swift) - Bobo's mid-fidelity layout. Hosts the scrolling background canvas, overlays tool selectors (Brush/Hand), and draws active components.
-            *   [`LottieCoralView.swift`](file:///Users/moreno_m5/Projects/CH5/marinesandbox/marinesandbox/Views/Canvas/LottieCoralView.swift) - Wrapper translating coral model stages into Lottie playhead frames.
-        *   `Modals/` - Popups and export cards.
-            *   [`DiagnosticCardView.swift`](file:///Users/moreno_m5/Projects/CH5/marinesandbox/marinesandbox/Views/Modals/DiagnosticCardView.swift) - Displays post-simulation feedback, teaching students why a monoculture or hot current failed.
-            *   [`ShareCardView.swift`](file:///Users/moreno_m5/Projects/CH5/marinesandbox/marinesandbox/Views/Modals/ShareCardView.swift) - Exporters capturing 9:16 snapshots of healthy reefs for social media sharing.
-        *   `GlobalMap/` - Social comparison overlays.
-            *   [`GlobalMapView.swift`](file:///Users/moreno_m5/Projects/CH5/marinesandbox/marinesandbox/Views/GlobalMap/GlobalMapView.swift) - Pins virtual map coordinates of other restoration efforts (roadmap target).
-    *   `Services/` - Specialized stateless utility layer.
-        *   [`EcoEngine.swift`](file:///Users/moreno_m5/Projects/CH5/marinesandbox/marinesandbox/Services/EcoEngine.swift) - Pure Swift math engine updating biodiversity indices ($H = -\sum p_i \ln p_i$), grazing balances, and thermal bleaching.
-        *   [`CloudKitSync.swift`](file:///Users/moreno_m5/Projects/CH5/marinesandbox/marinesandbox/Services/CloudKitSync.swift) - Handles background iCloud sync.
-        *   [`QRScannerService.swift`](file:///Users/moreno_m5/Projects/CH5/marinesandbox/marinesandbox/Services/QRScannerService.swift) - Camera scan wrapper to unlock regional settings from physical visits.
-    *   `Resources/` - Media files, catalogs, and configurations.
-        *   `Assets.xcassets/` - Image directories. Contains `/BG/`, `/MG/`, and `/FG/` catalogs.
-        *   `Lottie/` - Folder containing vector JSON files for animated species.
-        *   `Configs/` - JSON configurations seeding default parameters.
+*   `marinesandbox` - Primary source package folder containing the Swift targets.
+    *   [`marinesandboxApp.swift`](file:///marinesandbox/marinesandbox/marinesandboxApp.swift) - Entry point of the iOS app; initializes the core SwiftData container.
+    *   [`ContentView.swift`](file:///marinesandbox/marinesandbox/ContentView.swift) - Root SwiftUI view, nesting the interactive canvas inside the app layout.
+    *   `Models` - SwiftData local persistent storage schemas and NGO configuration structs.
+        *   [`UserProfile.swift`](file:///marinesandbox/marinesandbox/Models/UserProfile.swift) - Schema storing user registration state, offline profile info, and unlocked cosmetics.
+        *   [`ReefCanvas.swift`](file:///marinesandbox/marinesandbox/Models/ReefCanvas.swift) - Schema storing the horizontal scroll canvas boundaries and selected NGO preset values.
+        *   [`PlacedStructure.swift`](file:///marinesandbox/marinesandbox/Models/PlacedStructure.swift) - Schema mapping deployed physical structures (e.g. Reef Stars) to horizontal canvas offsets.
+        *   [`CoralFrag.swift`](file:///marinesandbox/marinesandbox/Models/CoralFrag.swift) - Schema capturing growth percentage, algae coverage, bleaching flags, and active pest counts.
+        *   [`NGOConfig.swift`](file:///marinesandbox/marinesandbox/Models/NGOConfig.swift) - Static Preset struct seeding initial regional environments (Bali, Jeju, Caribbean).
+    *   `ViewModels` - Coordinator and business logic layer.
+        *   [`SandboxViewModel.swift`](file:///marinesandbox/marinesandbox/ViewModels/SandboxViewModel.swift) - Bishal's main controller. Coordinates the time-step increments, SwiftData transaction bindings, and runs the simplified 2D physics integration loop (dragging coordinates, velocity throws, boundary checking).
+    *   `Views` - UI elements and visual layers.
+        *   `Canvas` - Main interactive garden screen elements.
+            *   [`ParallaxScrollView.swift`](file:///marinesandbox/marinesandbox/Views/Canvas/ParallaxScrollView.swift) - Zarina's horizontal scrolling container. Stitches 3 parallax segments with strict boundary clamps, drawing the background assets top-pinned and foreground bottom-pinned.
+            *   [`SandboxView.swift`](file:///marinesandbox/marinesandbox/Views/Canvas/SandboxView.swift) - Bobo's mid-fidelity layout. Hosts the scrolling background canvas, overlays tool selectors (Brush/Hand), and draws active components.
+            *   [`LottieCoralView.swift`](file:///marinesandbox/marinesandbox/Views/Canvas/LottieCoralView.swift) - Wrapper translating coral model stages into Lottie playhead frames.
+        *   `Modals` - Popups and export cards.
+            *   [`DiagnosticCardView.swift`](file:///marinesandbox/marinesandbox/Views/Modals/DiagnosticCardView.swift) - Displays post-simulation feedback, teaching students why a monoculture or hot current failed.
+            *   [`ShareCardView.swift`](file:///marinesandbox/marinesandbox/Views/Modals/ShareCardView.swift) - Exporters capturing 9:16 snapshots of healthy reefs for social media sharing.
+        *   `GlobalMap` - Social comparison overlays.
+            *   [`GlobalMapView.swift`](file:///marinesandbox/marinesandbox/Views/GlobalMap/GlobalMapView.swift) - Pins virtual map coordinates of other restoration efforts (roadmap target).
+    *   `Services` - Specialized stateless utility layer.
+        *   [`EcoEngine.swift`](file:///marinesandbox/marinesandbox/Services/EcoEngine.swift) - Pure Swift math engine updating biodiversity indices ($H = -\sum p_i \ln p_i$), grazing balances, and thermal bleaching.
+        *   [`CloudKitSync.swift`](file:///marinesandbox/marinesandbox/Services/CloudKitSync.swift) - Handles background iCloud sync.
+        *   [`QRScannerService.swift`](file:///marinesandbox/marinesandbox/Services/QRScannerService.swift) - Camera scan wrapper to unlock regional settings from physical visits.
+    *   `Resources` - Media files, catalogs, and configurations.
+        *   `Assets.xcassets` - Image directories. Contains `/BG/`, `/MG/`, and `/FG/` catalogs.
+        *   `Lottie` - Folder containing vector JSON files for animated species.
+        *   `Configs` - JSON configurations seeding default parameters.
 
 ### 2.3 Code Contracts
 To guarantee smooth parallel development across the team (Bishal, Zarina, Bobo, Reno), all critical components must adhere to the following strict coding contracts:

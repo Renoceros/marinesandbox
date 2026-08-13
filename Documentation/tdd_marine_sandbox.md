@@ -117,7 +117,85 @@ Below is the physical layout of the project's source root and documentation fold
         *   `Lottie/` - Folder containing vector JSON files for animated species.
         *   `Configs/` - JSON configurations seeding default parameters.
 
-### 2.3 Core Architectural Mandates
+### 2.3 Core System Code Contracts
+To guarantee smooth parallel development across the team (Bishal, Zarina, Bobo, Reno), all critical components must adhere to the following strict coding contracts:
+
+#### 1. Stateless Ecosystem Engine (`EcoEngine.swift`)
+*   **Contract Interface:**
+    ```swift
+    static func updateState(
+        canvas: ReefCanvas,
+        threats: ThreatVector,
+        steps: Int
+    ) -> ReefCanvas
+    ```
+*   **Parameters & Data Types:**
+    *   `canvas`: `ReefCanvas` (SwiftData Model) – The current state of the seabed, including all placed structures and coral fragments.
+    *   `threats`: `ThreatVector` (Struct) – Boolean flags for active stressors:
+        *   `agriculturalRunoff`: `Bool` (Toggles nutrient inflow multiplier $\times 2.5$).
+        *   `isHeatwaveActive`: `Bool` (Triggers temperature spikes $> 30^\circ\text{C}$).
+    *   `steps`: `Int` – Number of simulation months to advance (typically `1` for standard ticks, `60` for Fast Forward).
+*   **Returns:** `ReefCanvas` – A copy of the canvas containing mutated state values.
+*   **Post-Conditions:**
+    *   Shannon Index $H \in [0.0, \ln(\text{number of species})]$.
+    *   For each fragment: `growthProgress` clamped in `[0.0, 1.0]`, `algaePercentage` clamped in `[0.0, 1.0]`, `predatorDamage` clamped in `[0.0, 1.0]`.
+
+#### 2. Visual Parallax Container (`ParallaxScrollView.swift`)
+*   **Contract Interface:**
+    ```swift
+    struct ParallaxScrollView<Content: View>: View {
+        let content: () -> Content
+    }
+    ```
+*   **Exposed Custom Bindings:**
+    *   Updates parent coordinate systems via an optional callback binding: `onScrollOffsetChanged: ((CGFloat) -> Void)?` passing the current horizontal `scrollX` offset.
+*   **Internal Methods:**
+    *   `getPermutation(col: Int) -> [Int]`: Input: Column index `Int`. Output: Permutated array `[Int]` containing indices `0, 1, 2` exactly once.
+    *   `renderBlockView(layer: String, variantIndex: Int) -> some View`: Inputs: `layerName` (`Background` | `Midground` | `Foreground`), `variantIndex` (`0` | `1` | `2`). Returns: `some View` containing the styled image.
+
+#### 3. State Coordinator & Physics Simulator (`SandboxViewModel.swift`)
+*   **Published State Variables:**
+    *   `@Published var canvas: ReefCanvas` – The active SwiftData persistent model representation.
+    *   `@Published var activePests: [PhysicsEntity]` – Array of entities undergoing 2D physics updates.
+    *   `@Published var selectedTool: CareTool` – Selected active pointer mode (`.none`, `.brush`, `.hand`).
+*   **Interactive Input Functions:**
+    *   `deployStructure(type: StructureType, xPos: CGFloat)` – Deploys structures on the canvas.
+    *   `updateDrag(id: UUID, translation: CGSize)` – Sets coordinates for entity being dragged:
+        $$\mathbf{P}_{\text{drag}} = (x_{\text{start}} + dx, y_{\text{start}} + dy)$$
+    *   `applyFlick(id: UUID, velocity: CGVector)` – Sets velocity vectors for entity throws:
+        $$\mathbf{V}_{\text{flick}} = (v_x, v_y)$$
+        If magnitude $\|\mathbf{V}\| > 100 \text{ pt/sec}$, initiates the Euler update timer.
+*   **Returns:** `Void` (performs local SwiftData model context modifications).
+
+#### 4. Lottie Visual scrubbing (`LottieCoralView.swift`)
+*   **Contract Interface:**
+    ```swift
+    struct LottieCoralView: View {
+        let growth: Double
+        let algae: Double
+        let isBleached: Bool
+        let isDead: Bool
+    }
+    ```
+*   **Behavioral Constraints:**
+    *   Maps state to frame bounds:
+        *   `growth` $\in [0.0, 1.0]$ $\rightarrow$ Scrubs frames `0` to `60` of the Lottie animation.
+        *   `isBleached == true` $\rightarrow$ Transition playhead to frames `61` to `80`.
+        *   `algae` $\ge 0.5$ $\rightarrow$ Transition playhead to frames `81` to `100`.
+        *   `isDead == true` $\rightarrow$ Fixes playhead at frame `100` (barren gray rubble).
+
+#### 5. Social Snapshot Exporter (`ShareCardView.swift`)
+*   **Contract Interface:**
+    ```swift
+    struct ShareCardView: View {
+        let canvas: ReefCanvas
+        let profileName: String
+        let onExportCompleted: (UIImage) -> Void
+    }
+    ```
+*   **Layout Constraints:** Aspect ratio locked to `9:16` vertical layout (suitable for mobile stories).
+
+### 2.4 Core Architectural Mandates
 *   **Continuous Coordinates:** Positions along the seabed are represented as continuous floating-point horizontal offsets (`xPos`), rather than discrete grid cells.
 *   **Frame-Bound Lottie Playbacks:** Coral growth and decay animations must be driven dynamically by binding the `CoralFrag.growthProgress` and `CoralFrag.algaePercentage` to the progress bounds of a Lottie vector animation file.
 *   **Local-First Sync:** SwiftData handles local state and profile storage offline. Syncing occurs in the background via native CloudKit container integration.

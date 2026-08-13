@@ -50,7 +50,7 @@ Single source of truth for **why** the Marine Sandbox is built the way it is. If
 | DEC-021 | Ownership of parallax `scrollX` | Open | this session |
 | DEC-022 | Domain-layer test strategy | Open | this session |
 | DEC-023 | Feature-branch workflow, always based off latest `main` | Accepted | `CONTRIBUTING.md` |
-| DEC-024 | Direct seabed planting, PlacedStructure and ReefStar removal | Accepted | this session |
+| DEC-024 | Direct seabed planting, PlacedStructure and ReefStar removal | Accepted | `6623751` |
 
 ---
 
@@ -113,7 +113,7 @@ The flow is Onboarding Page → Coral Screen. Nothing else. Bali/Living Seas is 
 ### DEC-009 — Dead-rubble cold open with one surviving fragment
 **Status:** Accepted · **Source:** Team-Discussion-12Aug, refined this session
 
-The user opens on a dead white-rubble seabed holding one living Staghorn fragment. They tap it, the Reef Star base highlights, they drag the fragment onto it.
+The user opens on a dead white-rubble seabed holding one living Staghorn fragment. They tap it, the Reef Star base highlights, they drag the fragment onto it. *(Amended by DEC-024: the ground highlights instead of a Reef Star base.)*
 
 *Why:* it mirrors what Living Seas actually does — real practitioners recover living fragments from rubble and tie them to structures — so the mechanic teaches a true fact with no text. Highlighting the base after the tap is implicit scaffolding (PRD §3.5) instead of a tutorial.
 
@@ -148,7 +148,7 @@ Four layers: View → ViewModel → Services → Storage. SwiftData holds local 
 ### DEC-014 — Continuous `xPos` coordinates, no grid
 **Status:** Accepted · **Source:** TDD §2.3
 
-Seabed positions are floating-point horizontal offsets.
+Seabed positions are floating-point horizontal offsets. *(Amended by DEC-024: coordinates are now 2D — `xPos` and `yPos` — stored on `CoralFrag`.)*
 
 ### DEC-015 — Fixed 3-segment parallax, not infinite tiling
 **Status:** Accepted · **Source:** `dc631c5`
@@ -246,7 +246,7 @@ Nobody commits to `main`. All work happens on a feature branch cut from the **la
 - Contributors without write access use the fork flow (documented in CONTRIBUTING.md).
 
 ### DEC-024 — Direct seabed planting, PlacedStructure and ReefStar removal
-**Status:** Accepted · **Source:** this session
+**Status:** Accepted · **Source:** `6623751`, `63ea0c4`
 
 We completely removed the `PlacedStructure` database schema and Reef Star structural frames from the database models, user onboarding, and core gameplay interactions. Corals are planted directly on the seabed ground/rubble, with continuous coordinates `xPos` and `yPos` stored directly in the `CoralFrag` model.
 
@@ -256,6 +256,8 @@ We completely removed the `PlacedStructure` database schema and Reef Star struct
 - The `PlacedStructure.swift` model file is deleted.
 - `ReefCanvas` maintains a direct cascade relationship to `coralFrags: [CoralFrag]`.
 - The onboarding tutorial flow is simplified: *tap surviving frag -> highlighted ground pulses -> drag frag onto ground to confirm planting*.
+- **Amends DEC-014:** seabed coordinates are now 2D (`xPos`, `yPos`) rather than horizontal-only.
+- **Amends DEC-009:** the cold-open interaction highlights the ground, not a Reef Star base.
 
 ---
 

@@ -22,7 +22,7 @@ Below is the master list of tasks required to build the MVP and subsequent featu
 | **TASK-TD-101** | `marinesandbox/Services` | Implement `marinesandbox/Services/EcoEngine.swift` core stateless math: Shannon Index, time-step growth progress, algae, and bleaching. | Bishal | **In Scope** (Tech Demo) |
 | **TASK-TD-102** | `marinesandbox/Views` | Implement the skeleton of `marinesandbox/Views/Canvas/ParallaxScrollView.swift` with three horizontal scroll layers. | Bobo | **In Scope** (Tech Demo) |
 | **TASK-TD-103** | `marinesandbox/Views` | Create `marinesandbox/Views/Canvas/MockCoralView.swift` to render growth stages, algae shifts, and bleaching states. | Reno | **In Scope** (Tech Demo) |
-| **TASK-TD-104** | `marinesandbox/Views` | Build side dashboard controller for simulation time tick, shock event triggers, and care tools selection. | Bobo | **In Scope** (Tech Demo) |
+| **TASK-TD-104** | `marinesandbox/Views` | Build mid-fidelity canvas UI overlays for care tool selection (Brush/Hand) and status messages. | Bobo | **In Scope** (Tech Demo) |
 | **TASK-TD-105** | `marinesandbox/Views` | Integrate notifications/alerts for active threats (algae overgrowth in baby/teen, or predator damage > 75%). | Reno / Bobo | **In Scope** (Tech Demo) |
 | **TASK-TD-106** | `marinesandbox/Views` | Redirect entry point to launch `TechDemoView` root view and implement bottom debug log console. | Zarina | **In Scope** (Tech Demo) |
 | **TASK-MVP-201** | `marinesandbox/Models` | Implement SwiftData schemas (`UserProfile`, `ReefCanvas`, `PlacedStructure`, `CoralFrag`) in `marinesandbox/Models/`. | Bishal | **In Scope** |

@@ -48,10 +48,7 @@ gantt
 
 ### Day 2: Interactive Controls & Canvas
 * **TASK-TD-103 (Reno):** Create `marinesandbox/Views/Canvas/MockCoralView.swift` to render shapes dynamically (Baby, Teenager, Adult states with color shifts for algae overgrowth and bleaching).
-* **TASK-TD-104 (Bobo):** Build the side dashboard controller containing:
-  * "Time Step" (+1 month) and "Fast Forward" (+5 years) execution triggers.
-  * Environmental shock event triggers (Marine Heatwave and Agricultural Runoff debug buttons).
-  * Active Care Menu (Brush Tool, Snail Kill Tool, and Trimming Interaction).
+* **TASK-TD-104 (Bobo):** Implement mid-fidelity UI canvas overlays (no side dashboards or sliders). Create clean UI components for active care tool selection (e.g. Brush Tool, Snail Kill/Hand Tool) and basic status overlays, allowing the user to select tools and interact directly with the seabed.
 
 ### Day 3: Integration & Demonstration Milestone
 * **TASK-TD-105 (Reno / Bobo):** Integrate notifications for active threats (algae overgrowth in baby/teen phase, or predator damage > 75%).

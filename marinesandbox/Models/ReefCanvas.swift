@@ -25,9 +25,9 @@ public final class ReefCanvas {
     /// This supports the parallax scrolling range limit.
     public var canvasWidth: Double
     
-    /// Array of physical structures (like Reef Stars or concrete anchors) placed along the canvas.
+    /// Array of coral fragments planted along the canvas.
     /// Cascades deletions when the canvas is cleared.
-    @Relationship(deleteRule: .cascade) public var placedStructures: [PlacedStructure]
+    @Relationship(deleteRule: .cascade) public var coralFrags: [CoralFrag]
     
     /// Initializes a new ReefCanvas instance.
     ///
@@ -35,17 +35,17 @@ public final class ReefCanvas {
     ///   - id: Unique identifier.
     ///   - ngoRegion: Standard region name selector.
     ///   - canvasWidth: Horizontal boundary length (points).
-    ///   - placedStructures: Pre-placed structures list.
+    ///   - coralFrags: Living coral fragments list.
     ///
     public init(
         id: UUID = UUID(),
         ngoRegion: String,
         canvasWidth: Double = 2000.0,
-        placedStructures: [PlacedStructure] = []
+        coralFrags: [CoralFrag] = []
     ) {
         self.id = id
         self.ngoRegion = ngoRegion
         self.canvasWidth = canvasWidth
-        self.placedStructures = placedStructures
+        self.coralFrags = coralFrags
     }
 }

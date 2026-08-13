@@ -1,6 +1,6 @@
 # 2-Week Sprint Plan & Task Breakdown
 
-This document provides a detailed, day-by-day task breakdown for the 2-week sprint to deliver the **Interactive Marine Sandbox MVP**, aligned with the PRD, TDD, and User Journey specifications. All directory paths start at the repository target directory root (`marinesandbox/`).
+This document provides a detailed, day-by-day task breakdown for the 2-week sprint to deliver the **Interactive Marine Sandbox MVP**, aligned with the PRD, TDD, and [User Workflow](user_workflow_marinesandbox.md) specification. All directory paths start at the repository target directory root (`marinesandbox/`).
 
 ---
 

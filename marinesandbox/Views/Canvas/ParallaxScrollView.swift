@@ -12,48 +12,48 @@ public struct ParallaxScrollView: View {
         GeometryReader { geometry in
             let viewportWidth = geometry.size.width
             let height = geometry.size.height
-            
-            // Width of each segment: 1.5x of the iPhone screen width
-            let blockWidth = viewportWidth * 1.5
-            
-            // Total content width is 3 * blockWidth (4.5 * viewportWidth)
-            // Left scroll boundary limits panning to exactly 3 stitched segments
-            let minScroll = viewportWidth - (blockWidth * 3)
-            
+
+            // Shared drag range every layer's offset is scaled from (spec: scrollX in [-3.5*viewportWidth, 0])
+            let panRange = viewportWidth * 3.5
+            let minScroll = -panRange
+
             // Total accumulated horizontal offset (incorporates active drag translation)
             let currentOffset = scrollX + dragOffset
-            
+
             ZStack(alignment: .leading) {
                 // 1st Layer (Backmost): Solid backdrop color (#3BAFED) ignoring safe area
                 Color(hex: "3BAFED")
                     .edgesIgnoringSafeArea(.all)
-                
+
                 // 2nd Layer: Midground Layer (Parallax Ratio: 0.50, Top-Aligned)
                 layerContainer(
                     viewportWidth: viewportWidth,
                     height: height,
-                    blockWidth: blockWidth,
-                    offset: currentOffset * 0.50,
+                    ratio: 0.50,
+                    panRange: panRange,
+                    currentOffset: currentOffset,
                     layerName: "Midground",
                     alignment: .top
                 )
-                
+
                 // 3rd Layer: Background Layer (Parallax Ratio: 0.20, Top-Aligned)
                 layerContainer(
                     viewportWidth: viewportWidth,
                     height: height,
-                    blockWidth: blockWidth,
-                    offset: currentOffset * 0.20,
+                    ratio: 0.20,
+                    panRange: panRange,
+                    currentOffset: currentOffset,
                     layerName: "Background",
                     alignment: .top
                 )
-                
+
                 // 4th Layer (Frontmost): Foreground Layer (Parallax Ratio: 1.00, Bottom-Aligned)
                 layerContainer(
                     viewportWidth: viewportWidth,
                     height: height,
-                    blockWidth: blockWidth,
-                    offset: currentOffset * 1.00,
+                    ratio: 1.00,
+                    panRange: panRange,
+                    currentOffset: currentOffset,
                     layerName: "Foreground",
                     alignment: .bottom
                 )
@@ -63,18 +63,26 @@ public struct ParallaxScrollView: View {
             .gesture(
                 DragGesture()
                     .onChanged { value in
-                        // Strictly clamp active drag offsets to prevent swiping past limits
-                        let activeOffset = scrollX + value.translation.width
-                        let clampedOffset = max(minScroll, min(0, activeOffset))
-                        dragOffset = clampedOffset - scrollX
+                        // Past either edge, resist with rubber-banding instead of a hard stop
+                        let rawOffset = scrollX + value.translation.width
+                        let maxStretch = viewportWidth * 0.28
+                        let resolvedOffset: CGFloat
+                        if rawOffset > 0 {
+                            resolvedOffset = rubberBand(rawOffset, dimension: maxStretch)
+                        } else if rawOffset < minScroll {
+                            resolvedOffset = minScroll - rubberBand(minScroll - rawOffset, dimension: maxStretch)
+                        } else {
+                            resolvedOffset = rawOffset
+                        }
+                        dragOffset = resolvedOffset - scrollX
                     }
                     .onEnded { value in
                         // Calculate inertia using predictedEndTranslation
                         let predicted = value.predictedEndTranslation.width
                         let targetX = scrollX + predicted
                         let clampedTarget = max(minScroll, min(0, targetX))
-                        
-                        withAnimation(.easeOut(duration: 1.2)) {
+
+                        withAnimation(.spring(response: 0.45, dampingFraction: 0.55)) {
                             scrollX = clampedTarget
                             dragOffset = 0.0
                         }
@@ -83,21 +91,47 @@ public struct ParallaxScrollView: View {
         }
     }
     
-    // Renders the horizontal window of exactly 3 stitched columns (no infinite scroll)
+    // Classic iOS overscroll resistance curve: asymptotically approaches `dimension`
+    // as `overscroll` grows, so the drag never stretches past the cap.
+    private func rubberBand(_ overscroll: CGFloat, dimension: CGFloat, coefficient: CGFloat = 0.55) -> CGFloat {
+        (1 - 1 / (overscroll * coefficient / dimension + 1)) * dimension
+    }
+
+    // Renders the horizontal window of exactly 3 stitched columns (no infinite scroll).
+    //
+    // Every layer shares the same drag range (`currentOffset` clamped to
+    // [-panRange, 0]), but slower layers (ratio < 1) only ever move through
+    // `panRange * ratio` px of that range. Sizing every layer's segments at a
+    // fixed 1.5x viewport width (matching only the ratio-1.0 foreground) left
+    // slower layers unable to ever pan their 3rd (and, for Background, 2nd)
+    // segment into view. Scaling segment width by ratio makes each layer's 3
+    // segments exactly span the viewport across its own (smaller) offset range.
+    private func segmentWidth(viewportWidth: CGFloat, panRange: CGFloat, ratio: CGFloat) -> CGFloat {
+        (viewportWidth + panRange * ratio) / 3
+    }
+
     @ViewBuilder
     private func layerContainer(
         viewportWidth: CGFloat,
         height: CGFloat,
-        blockWidth: CGFloat,
-        offset: CGFloat,
+        ratio: CGFloat,
+        panRange: CGFloat,
+        currentOffset: CGFloat,
         layerName: String,
         alignment: Alignment
     ) -> some View {
+        let blockWidth = segmentWidth(viewportWidth: viewportWidth, panRange: panRange, ratio: ratio)
+        let offset = currentOffset * ratio
         ZStack(alignment: .leading) {
-            ForEach(0..<3, id: \.self) { col in
+            // Columns -1 and 3 are the real 0/2 edge columns repeated one slot further out.
+            // They sit outside the normal [minScroll, 0] pan range and only ever peek into
+            // view during rubber-band overscroll, so it reads as "there's more land here"
+            // instead of the bare backdrop color.
+            ForEach(-1..<4, id: \.self) { col in
                 let xPosition = CGFloat(col) * blockWidth + offset
-                let perm = getPermutation(col: col)
-                
+                let permCol = max(0, min(2, col))
+                let perm = getPermutation(col: permCol)
+
                 // Assign a unique variant index from the permutation list based on the layer
                 // Background -> perm[0], Midground -> perm[1], Foreground -> perm[2]
                 let variantIndex = layerName == "Background" ? perm[0] : (layerName == "Midground" ? perm[1] : perm[2])

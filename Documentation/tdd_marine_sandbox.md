@@ -76,44 +76,65 @@ The application adheres to a strict 4-layer MVVM pattern.
 ```
 
 ### 2.2 Project Directory Architecture (MVVM+S Structure)
-Below is the layout of the project's source root, standardizing where all MVP implementation files live.
+Below is the physical layout of the project's source root and documentation folder, standardizing where all MVP implementation files live.
 
-```
-marinesandbox/
-├── App/
-│   └── MarineSandboxApp.swift          # App entry point, SwiftData container initialization
-├── Models/
-│   ├── UserProfile.swift               # SwiftData profile schema (unlocked cosmetics, saves)
-│   ├── ReefCanvas.swift                # SwiftData canvas schema (NGO region, width)
-│   ├── PlacedStructure.swift           # SwiftData structural entity (xPos coordinate, structure type)
-│   ├── CoralFrag.swift                 # SwiftData biological fragment state (species, growth, bleaching)
-│   └── NGOConfig.swift                 # Environmental static data configurations (Bali, Jeju, Caribbean)
-├── ViewModels/
-│   └── SandboxViewModel.swift          # Coordinates simulation state, input handlers, active workflows
-├── Views/
-│   ├── Canvas/
-│   │   ├── SandboxView.swift           # Primary interactive scroll view canvas
-│   │   ├── ParallaxScrollView.swift    # Background, Midground, and Foreground rendering container
-│   │   └── LottieCoralView.swift       # Lottie view wrapping animation frame-scrubbing controllers
-│   ├── Modals/
-│   │   ├── DiagnosticCardView.swift    # Post-timelapse feedback overlay popup cards
-│   │   └── ShareCardView.swift         # Visual share postcard generator (9:16 layout)
-│   └── GlobalMap/
-│       └── GlobalMapView.swift         # Virtual globe showing pins of peer sandboxes (roadmap item)
-├── Services/
-│   ├── EcoEngine.swift                 # Pure math stateless ecosystem update calculations
-│   ├── CloudKitSync.swift              # Handles background CloudKit container synchronization
-│   └── QRScannerService.swift          # Handles NGO code scanning (roadmap item)
-└── Resources/
-    ├── Assets.xcassets/                # Image catalogs, custom UI colors, app icons
-    │   ├── FG/                         # Foreground image assets (FG0, FG1, FG2)
-    │   ├── MG/                         # Midground image assets (MG0, MG1, MG2)
-    │   └── BG/                         # Background image assets (BG0, BG1, BG2)
-    ├── Lottie/                         # Vector JSON animations (e.g. acropora_grow.json)
-    └── Configs/                        # Static regional environmental JSON presets (e.g. BaliConfig.json)
-```
+#### 1. Documentation & Assets Structure
+*   `Documentation` - Project specifications, sprint tasks, user journey files, and user research materials.
+    *   [`prd_marine_sandbox.md`](file:///marinesandbox/Documentation/prd_marine_sandbox.md) - Product Requirements Document defining user personas, cognitive theories, and the 2-week MVP scope boundaries.
+    *   [`tdd_marine_sandbox.md`](file:///marinesandbox/Documentation/tdd_marine_sandbox.md) - Technical Design Document mapping database schema, visual parallax mathematics, and API stubs.
+    *   [`sprint_task_breakdown.md`](file:///marinesandbox/Documentation/sprint_task_breakdown.md) - Active sprint board tracking developer responsibilities and daily calendar progress.
+    *   `Transcription` - Audio recordings, raw JSON results, and markdown summaries from expert interviews and team syncs.
+        *   [`Team-Discussion-12Aug.md`](file:///marinesandbox/Documentation/Transcription/Team-Discussion-12Aug.md) - Key decisions regarding Rubble Onboarding, Apple Sign-In, and Algae Brush interactions.
+        *   [`Alex-Interview-9Aug.md`](file:///marinesandbox/Documentation/Transcription/Alex-Interview-9Aug.md) - Expert coral taxonomy, spawning behavior, and monoculture warning specifications.
+        *   [`Leon-Interview-1Aug.md`](file:///marinesandbox/Documentation/Transcription/Leon-Interview-1Aug.md) - Physical restoration techniques (Reef Stars, concrete anchors) and regional presets.
 
-### 2.3 Core Architectural Mandates
+#### 2. Source Code Directory Breakdown
+*   `marinesandbox` - Primary source package folder containing the Swift targets.
+    *   [`marinesandboxApp.swift`](file:///marinesandbox/marinesandbox/marinesandboxApp.swift) - Entry point of the iOS app; initializes the core SwiftData container.
+    *   [`ContentView.swift`](file:///marinesandbox/marinesandbox/ContentView.swift) - Root SwiftUI view, nesting the interactive canvas inside the app layout.
+    *   `Models` - SwiftData local persistent storage schemas and NGO configuration structs.
+        *   [`UserProfile.swift`](file:///marinesandbox/marinesandbox/Models/UserProfile.swift) - Schema storing user registration state, offline profile info, and unlocked cosmetics.
+        *   [`ReefCanvas.swift`](file:///marinesandbox/marinesandbox/Models/ReefCanvas.swift) - Schema storing the horizontal scroll canvas boundaries and selected NGO preset values.
+        *   [`PlacedStructure.swift`](file:///marinesandbox/marinesandbox/Models/PlacedStructure.swift) - Schema mapping deployed physical structures (e.g. Reef Stars) to horizontal canvas offsets.
+        *   [`CoralFrag.swift`](file:///marinesandbox/marinesandbox/Models/CoralFrag.swift) - Schema capturing growth percentage, algae coverage, bleaching flags, and active pest counts.
+        *   [`NGOConfig.swift`](file:///marinesandbox/marinesandbox/Models/NGOConfig.swift) - Static Preset struct seeding initial regional environments (Bali, Jeju, Caribbean).
+    *   `ViewModels` - Coordinator and business logic layer.
+        *   [`SandboxViewModel.swift`](file:///marinesandbox/marinesandbox/ViewModels/SandboxViewModel.swift) - Bishal's main controller. Coordinates the time-step increments, SwiftData transaction bindings, and runs the simplified 2D physics integration loop (dragging coordinates, velocity throws, boundary checking).
+    *   `Views` - UI elements and visual layers.
+        *   `Canvas` - Main interactive garden screen elements.
+            *   [`ParallaxScrollView.swift`](file:///marinesandbox/marinesandbox/Views/Canvas/ParallaxScrollView.swift) - Zarina's horizontal scrolling container. Stitches 3 parallax segments with strict boundary clamps, drawing the background assets top-pinned and foreground bottom-pinned.
+            *   [`SandboxView.swift`](file:///marinesandbox/marinesandbox/Views/Canvas/SandboxView.swift) - Bobo's mid-fidelity layout. Hosts the scrolling background canvas, overlays tool selectors (Brush/Hand), and draws active components.
+            *   [`LottieCoralView.swift`](file:///marinesandbox/marinesandbox/Views/Canvas/LottieCoralView.swift) - Wrapper translating coral model stages into Lottie playhead frames.
+        *   `Modals` - Popups and export cards.
+            *   [`DiagnosticCardView.swift`](file:///marinesandbox/marinesandbox/Views/Modals/DiagnosticCardView.swift) - Displays post-simulation feedback, teaching students why a monoculture or hot current failed.
+            *   [`ShareCardView.swift`](file:///marinesandbox/marinesandbox/Views/Modals/ShareCardView.swift) - Exporters capturing 9:16 snapshots of healthy reefs for social media sharing.
+        *   `GlobalMap` - Social comparison overlays.
+            *   [`GlobalMapView.swift`](file:///marinesandbox/marinesandbox/Views/GlobalMap/GlobalMapView.swift) - Pins virtual map coordinates of other restoration efforts (roadmap target).
+    *   `Services` - Specialized stateless utility layer.
+        *   [`EcoEngine.swift`](file:///marinesandbox/marinesandbox/Services/EcoEngine.swift) - Pure Swift math engine updating biodiversity indices ($H = -\sum p_i \ln p_i$), grazing balances, and thermal bleaching.
+        *   [`CloudKitSync.swift`](file:///marinesandbox/marinesandbox/Services/CloudKitSync.swift) - Handles background iCloud sync.
+        *   [`QRScannerService.swift`](file:///marinesandbox/marinesandbox/Services/QRScannerService.swift) - Camera scan wrapper to unlock regional settings from physical visits.
+    *   `Resources` - Media files, catalogs, and configurations.
+        *   `Assets.xcassets` - Image directories. Contains `/BG/`, `/MG/`, and `/FG/` catalogs.
+        *   `Lottie` - Folder containing vector JSON files for animated species.
+        *   `Configs` - JSON configurations seeding default parameters.
+
+### 2.3 Code Contracts
+To guarantee smooth parallel development across the team (Bishal, Zarina, Bobo, Reno), all critical components must adhere to the following strict coding contracts:
+
+| File / Component | Function / Property Signature | Inputs & Data Types | Outputs & Return Types | Behavioral Contract & Assertions |
+| :--- | :--- | :--- | :--- | :--- |
+| **`EcoEngine.swift`** | `static func updateState(canvas: ReefCanvas, threats: ThreatVector, steps: Int) -> ReefCanvas` | <ul><li>`canvas`: `ReefCanvas`</li><li>`threats`: `ThreatVector`</li><li>`steps`: `Int`</li></ul> | `ReefCanvas` (mutated copy) | advances the state vector over $N$ monthly steps. Calculates Shannon diversity index $H$, adds growth increments, and applies algae smothering and predator damage, clamping all results to the range `[0.0, 1.0]`. |
+| **`EcoEngine.swift`** | `static func calculateShannonIndex(for canvas: ReefCanvas) -> Double` | <ul><li>`canvas`: `ReefCanvas`</li></ul> | `Double` (diversity score) | Computes $H = -\sum (p_i \ln p_i)$ based on species counts. Asserts $H \ge 0.0$. |
+| **`ParallaxScrollView.swift`** | `struct ParallaxScrollView<Content: View>: View` | <ul><li>`content`: `() -> Content`</li><li>`onScrollOffsetChanged`: `((CGFloat) -> Void)?`</li></ul> | `some View` | Stitches exactly 3 horizontal segments (each of size `viewportWidth * 1.5`). Clamps final offsets to `[viewportWidth - 3 * blockWidth, 0.0]`, rendering background layers top-pinned and foreground bottom-pinned. |
+| **`ParallaxScrollView.swift`** | `private func getPermutation(col: Int) -> [Int]` | <ul><li>`col`: `Int` (column index)</li></ul> | `[Int]` (indices array) | Computes a deterministic permutation of `{0, 1, 2}` using a modulo hash. Guarantees that BG, MG, and FG layers in the same column receive unique variant indices. |
+| **`SandboxViewModel.swift`** | `func updateState()` | None (triggered by tick timer or Fast Forward action) | `Void` | Coordinates data between the persistent SwiftData context and `EcoEngine`. Commits model updates to database. |
+| **`SandboxViewModel.swift`** | `func updateDrag(id: UUID, translation: CGSize)` | <ul><li>`id`: `UUID`</li><li>`translation`: `CGSize`</li></ul> | `Void` | Sets coordinates for an interactive element (pest or debris) during active drag gestures: $\mathbf{P} = (x_{\text{start}} + dx, y_{\text{start}} + dy)$. |
+| **`SandboxViewModel.swift`** | `func applyFlick(id: UUID, velocity: CGVector)` | <ul><li>`id`: `UUID`</li><li>`velocity`: `CGVector`</li></ul> | `Void` | Initiates momentum-based physics if flick velocity vector magnitude $\|\mathbf{V}\| > 100 \text{ pt/sec}$. Integrates Euler formulas to slide the entity off-screen and delete it from database once bounds are crossed. |
+| **`LottieCoralView.swift`** | `struct LottieCoralView: View` | <ul><li>`growth`: `Double`</li><li>`algae`: `Double`</li><li>`isBleached`: `Bool`</li><li>`isDead`: `Bool`</li></ul> | `some View` | Maps growth `[0.0, 1.0]` to animation frames `0-60`; maps bleaching to frames `61-80`; maps algae coverage to frames `81-100`; freezes view at frame `100` if dead. |
+| **`ShareCardView.swift`** | `struct ShareCardView: View` | <ul><li>`canvas`: `ReefCanvas`</li><li>`profileName`: `String`</li><li>`onExportCompleted`: `(UIImage) -> Void`</li></ul> | `some View` | Takes a graphic snap of the current sandbox viewport, overlays statistics labels, locks the layout bounds to a `9:16` aspect ratio, and exports the final image. |
+
+### 2.4 Core Architectural Mandates
 *   **Continuous Coordinates:** Positions along the seabed are represented as continuous floating-point horizontal offsets (`xPos`), rather than discrete grid cells.
 *   **Frame-Bound Lottie Playbacks:** Coral growth and decay animations must be driven dynamically by binding the `CoralFrag.growthProgress` and `CoralFrag.algaePercentage` to the progress bounds of a Lottie vector animation file.
 *   **Local-First Sync:** SwiftData handles local state and profile storage offline. Syncing occurs in the background via native CloudKit container integration.

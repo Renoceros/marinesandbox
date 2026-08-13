@@ -27,10 +27,10 @@ Below is the master list of tasks required to build the MVP and subsequent featu
 | **TASK-MVP-104** | `marinesandbox/ViewModels`| Implement the simplified 2D physics simulation (dragging and flicking dynamics) inside `marinesandbox/ViewModels/SandboxViewModel.swift`. | Bishal | **In Scope** |
 | **TASK-MVP-105** | `marinesandbox/Views` | Produce initial visual drafts and placeholder assets for Background, Midground, and Foreground layers. | Sam | **In Scope** |
 | **TASK-MVP-106** | `marinesandbox/Views` | Integrate basic notifications/alerts for active threats (algae overgrowth or snail pests) onto the mid-fidelity canvas views. | Reno | **In Scope** |
-| **TASK-MVP-201** | `marinesandbox/Models` | Implement SwiftData schemas (`UserProfile`, `ReefCanvas`, `PlacedStructure`, `CoralFrag`) in `marinesandbox/Models/`. | Bishal | **In Scope** |
+| **TASK-MVP-201** | `marinesandbox/Models` | Implement SwiftData schemas (`UserProfile`, `ReefCanvas`, `CoralFrag`) in `marinesandbox/Models/`. | Bishal | **In Scope** |
 | **TASK-MVP-202** | `marinesandbox/ViewModels`| Implement `marinesandbox/ViewModels/SandboxViewModel.swift` state coordination and Fast Forward operations. (Hard Reset moved to settings). | Bishal | **In Scope** |
 | **TASK-MVP-203** | `marinesandbox/Services` | Set up static JSON configurations for local presets (`NGOConfig`) to seed mock Bali data on launch. | Zarina | **In Scope** |
-| **TASK-MVP-204** | `marinesandbox/Views` | Build Location Selection Screen and user routing system (new vs. returning users). | Reno / Bobo | **In Scope** |
+| **TASK-MVP-204** | `marinesandbox/Views` | Build Onboarding Page and first-launch routing (new vs. returning users). No location selection (DEC-008). | Reno / Bobo | **In Scope** |
 | **TASK-MVP-301** | `marinesandbox/Views` | Build `LottieCoralView.swift` SwiftUI wrapper and logic to scrub playheads based on state. | Bobo | **In Scope** |
 | **TASK-MVP-302** | `marinesandbox/Views` | Add custom animations and touch feedback for Brush Tool and Snail Kill Hand Tool. | Reno | **In Scope** |
 | **TASK-MVP-303** | `marinesandbox/Views` | Connect the midground layer to render custom recruited fauna silhouettes. | Bobo | **In Scope** |
@@ -95,8 +95,7 @@ Below is the physical layout of the project's source root and documentation fold
     *   `Models` - SwiftData local persistent storage schemas and NGO configuration structs.
         *   [`UserProfile.swift`](file:///marinesandbox/marinesandbox/Models/UserProfile.swift) - Schema storing user registration state, offline profile info, and unlocked cosmetics.
         *   [`ReefCanvas.swift`](file:///marinesandbox/marinesandbox/Models/ReefCanvas.swift) - Schema storing the horizontal scroll canvas boundaries and selected NGO preset values.
-        *   [`PlacedStructure.swift`](file:///marinesandbox/marinesandbox/Models/PlacedStructure.swift) - Schema mapping deployed physical structures (e.g. Reef Stars) to horizontal canvas offsets.
-        *   [`CoralFrag.swift`](file:///marinesandbox/marinesandbox/Models/CoralFrag.swift) - Schema capturing growth percentage, algae coverage, bleaching flags, and active pest counts.
+        *   [`CoralFrag.swift`](file:///marinesandbox/marinesandbox/Models/CoralFrag.swift) - Schema capturing continuous seabed coordinates, growth percentage, algae coverage, bleaching flags, and active pest counts.
         *   [`NGOConfig.swift`](file:///marinesandbox/marinesandbox/Models/NGOConfig.swift) - Static Preset struct seeding initial regional environments (Bali, Jeju, Caribbean).
     *   `ViewModels` - Coordinator and business logic layer.
         *   [`SandboxViewModel.swift`](file:///marinesandbox/marinesandbox/ViewModels/SandboxViewModel.swift) - Bishal's main controller. Coordinates the time-step increments, SwiftData transaction bindings, and runs the simplified 2D physics integration loop (dragging coordinates, velocity throws, boundary checking).
@@ -168,34 +167,21 @@ final class ReefCanvas {
     @Attribute(.unique) var id: UUID
     var ngoRegion: String // "Bali", "Jeju", "Caribbean"
     var canvasWidth: Double // Total horizontal scroll width
-    @Relationship(deleteRule: .cascade) var placedStructures: [PlacedStructure]
+    @Relationship(deleteRule: .cascade) var coralFrags: [CoralFrag]
     
-    init(id: UUID = UUID(), ngoRegion: String, canvasWidth: Double = 2000.0, placedStructures: [PlacedStructure] = []) {
+    init(id: UUID = UUID(), ngoRegion: String, canvasWidth: Double = 2000.0, coralFrags: [CoralFrag] = []) {
         self.id = id
         self.ngoRegion = ngoRegion
         self.canvasWidth = canvasWidth
-        self.placedStructures = placedStructures
-    }
-}
-
-@Model
-final class PlacedStructure {
-    @Attribute(.unique) var id: UUID
-    var xPos: Double // Continuous horizontal offset on the seabed
-    var structureType: String // "ReefStar", "Bottle"
-    @Relationship(deleteRule: .cascade) var coral: CoralFrag?
-    
-    init(id: UUID = UUID(), xPos: Double, structureType: String, coral: CoralFrag? = nil) {
-        self.id = id
-        self.xPos = xPos
-        self.structureType = structureType
-        self.coral = coral
+        self.coralFrags = coralFrags
     }
 }
 
 @Model
 final class CoralFrag {
     var species: String // "Acropora" (Staghorn), "BrainCoral" (Massive), etc.
+    var xPos: Double // Continuous horizontal offset on the seabed ground
+    var yPos: Double // Continuous vertical offset (supports walls/boulders)
     var growthProgress: Double // 0.0 (Baby) to 1.0 (Mature Adult)
     var algaePercentage: Double // 0.0 (Clean) to 1.0 (Fully Smothered)
     var predatorDamage: Double // 0.0 (None) to 1.0 (Fully Consumed)
@@ -208,8 +194,10 @@ final class CoralFrag {
     var isTeenager: Bool { growthProgress >= 0.3 && growthProgress < 0.7 && !isDead }
     var isAdult: Bool { growthProgress >= 0.7 && !isDead }
     
-    init(species: String, growthProgress: Double = 0.0, algaePercentage: Double = 0.0, predatorDamage: Double = 0.0, activePredators: [String] = [], isBleached: Bool = false, isDead: Bool = false) {
+    init(species: String, xPos: Double = 0.0, yPos: Double = 0.0, growthProgress: Double = 0.0, algaePercentage: Double = 0.0, predatorDamage: Double = 0.0, activePredators: [String] = [], isBleached: Bool = false, isDead: Bool = false) {
         self.species = species
+        self.xPos = xPos
+        self.yPos = yPos
         self.growthProgress = growthProgress
         self.algaePercentage = algaePercentage
         self.predatorDamage = predatorDamage
@@ -413,8 +401,8 @@ struct EcoEngine {
             var herbivoreCount = 0
             var predatorCount = 0
             
-            for structure in updatedCanvas.placedStructures {
-                guard let coral = structure.coral, !coral.isDead else { continue }
+            for coral in updatedCanvas.coralFrags {
+                guard !coral.isDead else { continue }
                 if coral.isBaby {
                     smallReefFishCount += 1
                 } else if coral.isTeenager {
@@ -430,9 +418,8 @@ struct EcoEngine {
             let herbivoreRecruitment = Double(herbivoreCount) * (1.0 + beta * H)
             let predatorRecruitment = Double(predatorCount) * (1.0 + beta * H)
             
-            // 3. Process placed structures
-            for structure in updatedCanvas.placedStructures {
-                guard let coral = structure.coral else { continue }
+            // 3. Process Individual Biological Coral Fragments
+            for coral in updatedCanvas.coralFrags {
                 if coral.isDead { continue }
                 
                 // Growth calculation adjusted by algae overgrowth and predator damage

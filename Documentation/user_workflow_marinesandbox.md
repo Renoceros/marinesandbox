@@ -28,11 +28,11 @@ The product is deliberately reduced to **one onboarding page and one interactive
 +---------------------------------------------------------------------------------+
 |  2. CORAL SCREEN  (THE screen — everything happens here)                        |
 |                                                                                 |
-|  First-launch state:  Dead seabed. White coral rubble. One empty Reef Star      |
-|                       base. ONE surviving live Staghorn frag in the rubble.     |
+|  First-launch state:  Dead seabed. White coral rubble. ONE surviving live       |
+|                       Staghorn frag in the rubble.                              |
 |                                                                                 |
-|  Guided first plant:  tap frag -> frag lifts -> Reef Star base pulses/glows     |
-|                       -> user drags frag onto base -> planted -> growth begins  |
+|  Guided first plant:  tap frag -> frag lifts -> targeted ground pulses/glows    |
+|                       -> user drags frag onto ground -> planted -> growth begins|
 |                                                                                 |
 |  Steady state:        Care loop, threats, growth stages, fauna recruitment,     |
 |                       fast forward, share — all on this screen.                 |
@@ -83,17 +83,17 @@ The product is deliberately reduced to **one onboarding page and one interactive
 
 | Aspect | Specification |
 | --- | --- |
-| Contains | White coral rubble across the foreground; one empty **Reef Star** base; exactly **one living Staghorn (Acropora) fragment** visible in the rubble (the only color in the scene); sparse blue water and sand in BG/MG |
+| Contains | White coral rubble across the foreground; exactly **one living Staghorn (Acropora) fragment** visible in the rubble (the only color in the scene); sparse blue water and sand in BG/MG |
 | Interactions | **Horizontal drag-pan** with momentum glide (clamped at both ends); **tap the live frag** to begin the guided plant |
 
 #### B. Guided first plant (implicit tutorial, no text)
 
 1. User **taps the surviving frag** -> it visually lifts / highlights.
-2. The **Reef Star base pulses and glows** — the only other highlighted element, so the user instinctively connects the two.
-3. User **drags the frag onto the base** -> frag snaps in, planting confirmed with a small satisfying feedback (settle animation / particle puff).
+2. A **targeted area on the seabed pulses and glows** — the only other highlighted element, so the user instinctively connects the two.
+3. User **drags the frag onto the highlighted seabed** -> frag snaps in, planting confirmed with a small satisfying feedback (settle animation / particle puff).
 4. Growth begins; the screen transitions into steady state.
 
-*Optional fallback:* if the user taps the glowing base instead of dragging, the frag auto-flies into place. Never hard-block the user.
+*Optional fallback:* if the user taps the glowing ground area instead of dragging, the frag auto-flies into place. Never hard-block the user.
 
 #### C. Steady state: the care loop
 
@@ -112,7 +112,7 @@ The product is deliberately reduced to **one onboarding page and one interactive
 | Drag-pan | Horizontal pan with momentum glide; hard clamp at segment boundaries |
 | Brush algae | Select Brush -> swipe over mossy coral -> algae wipes away per-swipe; sparkle effect on fully clean |
 | Remove pests | Select Hand -> **tap to smush** a snail/starfish, or **drag-flick** it off-screen (release velocity > 100 pt/s -> physics throw; despawn past viewport bounds; sparkle on success) |
-| Plant frag | Drag frag from rubble/palette onto a Reef Star or empty foreground position |
+| Plant frag | Drag frag from rubble/palette onto any empty position on the seabed foreground |
 | Fast Forward | Simulates 5–10 years -> plays visual timelapse morph of the reef -> opens Diagnostic Card |
 
 ---
@@ -156,6 +156,7 @@ The product is deliberately reduced to **one onboarding page and one interactive
 ## 4. Explicitly Removed / Out of Scope
 
 * **Location / NGO Selection Screen** — removed. No location picker anywhere in the flow (Bali/Living Seas is the implicit default for MVP; Jeju and Caribbean remain roadmap config items, not user-facing choices).
+* **Reef Star structures** — removed. Users plant coral fragments directly on the seabed ground/rubble, simplifying the interaction model.
 * **Hard Reset in gameplay UI** — Settings only.
 * **Plantation sub-zones** — planting is freeform anywhere on the foreground.
 * **Number dashboards / sliders** — all feedback is visual (timelapse morphs, world-state changes) plus the Diagnostic Card.

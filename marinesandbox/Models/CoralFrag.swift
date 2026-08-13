@@ -22,6 +22,14 @@ public final class CoralFrag {
     /// Used by `EcoEngine` to calculate Shannon diversity indices.
     public var species: String
     
+    /// Continuous horizontal coordinate position ($x$-coordinate) along the scrollable seabed.
+    /// Replacing the old PlacedStructure layout, this tracks the fragment's position directly on the seabed.
+    public var xPos: Double
+    
+    /// Continuous vertical coordinate position ($y$-coordinate) along the scrollable seabed.
+    /// Supports vertical placement for species like fan corals perched on boulders or vertical reef walls.
+    public var yPos: Double
+    
     /// Ratio representing coral growth, from `0.0` (freshly planted fragment) to `1.0` (mature adult colony).
     public var growthProgress: Double
     
@@ -59,6 +67,8 @@ public final class CoralFrag {
     
     public init(
         species: String,
+        xPos: Double = 0.0,
+        yPos: Double = 0.0,
         growthProgress: Double = 0.0,
         algaePercentage: Double = 0.0,
         predatorDamage: Double = 0.0,
@@ -67,6 +77,8 @@ public final class CoralFrag {
         isDead: Bool = false
     ) {
         self.species = species
+        self.xPos = xPos
+        self.yPos = yPos
         self.growthProgress = growthProgress
         self.algaePercentage = algaePercentage
         self.predatorDamage = predatorDamage

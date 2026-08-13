@@ -67,8 +67,8 @@ public struct EcoEngine {
             var herbivoreCount = 0
             var predatorCount = 0
             
-            for structure in canvas.placedStructures {
-                guard let coral = structure.coral, !coral.isDead else { continue }
+            for coral in canvas.coralFrags {
+                guard !coral.isDead else { continue }
                 
                 if coral.isAdult {
                     // Adult corals recruit grazing surgeonfish and pest-eating wrasses
@@ -81,9 +81,8 @@ public struct EcoEngine {
             let herbivoreRecruitment = Double(herbivoreCount) * (1.0 + beta * H)
             let predatorRecruitment = Double(predatorCount) * (1.0 + beta * H)
             
-            // 3. Process Individual Placed Structures & Biologicals
-            for structure in canvas.placedStructures {
-                guard let coral = structure.coral else { continue }
+            // 3. Process Individual Biological Coral Fragments
+            for coral in canvas.coralFrags {
                 if coral.isDead { continue }
                 
                 // --- A. GROWTH CONSTRAINTS ---
@@ -147,7 +146,7 @@ public struct EcoEngine {
     /// where $p_i$ is the relative proportion of living coral fragments belonging to species $i$.
     ///
     public static func calculateShannonIndex(for canvas: ReefCanvas) -> Double {
-        let activeCorals = canvas.placedStructures.compactMap { $0.coral }.filter { !$0.isDead }
+        let activeCorals = canvas.coralFrags.filter { !$0.isDead }
         guard !activeCorals.isEmpty else { return 0.0 }
         
         // Group active fragments by species

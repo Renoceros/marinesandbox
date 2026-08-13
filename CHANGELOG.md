@@ -26,9 +26,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The pro
 - Onboarding routes straight into the Coral Screen; Bali/Living Seas is now an implicit default rather than a user choice (DEC-008).
 - Sprint plan now links the workflow spec instead of a "User Journey specification" that never existed.
 - TDD §6 now points at `CONTRIBUTING.md` for the full development workflow.
+- `ReefCanvas` database model links `coralFrags` directly instead of wrapping them in `placedStructures` (DEC-024).
+- `CoralFrag` schema tracks `xPos` and `yPos` coordinates directly on the seabed, supporting vertical wall positioning (DEC-024).
+- `EcoEngine` processes `coralFrags` directly instead of mapping placed structures (DEC-024).
 
-### Deprecated
-- `TASK-MVP-204` ("Build Location Selection Screen and user routing") is void as written and needs rescoping (DEC-008).
+### Fixed
+- `TASK-MVP-204` rescoped in the TDD backlog and sprint plan: build the Onboarding Page and first-launch routing, **not** a Location Selection Screen. Both task definitions still instructed the team to build the removed screen (DEC-008).
+- Removed the stale "Select location (Bali)" step from the PRD §4.4 gameplay-loop diagram, and corrected the misaligned ASCII box borders in that diagram and in the workflow spec's Coral Screen box.
+
+### Removed
+- `PlacedStructure` SwiftData model class (DEC-024).
+- Reef Star structural frames from database schemas, user workflow, and PRD descriptions (DEC-024).
 
 ### Open questions blocking work
 - **DEC-016** — iOS 26.5 deployment target, Swift 5 language mode, and iPhone+iPad device family have never been explicitly agreed; they are Xcode template defaults.

@@ -50,6 +50,7 @@ Single source of truth for **why** the Marine Sandbox is built the way it is. If
 | DEC-021 | Ownership of parallax `scrollX` | Open | this session |
 | DEC-022 | Domain-layer test strategy | Open | this session |
 | DEC-023 | Feature-branch workflow, always based off latest `main` | Accepted | `CONTRIBUTING.md` |
+| DEC-024 | Direct seabed planting, PlacedStructure and ReefStar removal | Accepted | this session |
 
 ---
 
@@ -243,6 +244,18 @@ Nobody commits to `main`. All work happens on a feature branch cut from the **la
 - `main` stays releasable; the exhibition build can be cut at any time.
 - Definition of done is "merged into `main`", not "works on my machine".
 - Contributors without write access use the fork flow (documented in CONTRIBUTING.md).
+
+### DEC-024 — Direct seabed planting, PlacedStructure and ReefStar removal
+**Status:** Accepted · **Source:** this session
+
+We completely removed the `PlacedStructure` database schema and Reef Star structural frames from the database models, user onboarding, and core gameplay interactions. Corals are planted directly on the seabed ground/rubble, with continuous coordinates `xPos` and `yPos` stored directly in the `CoralFrag` model.
+
+*Why:* Placing metal Reef Star frames as a required step added unnecessary mechanical complexity and clashed with our direct direct-on-seabed visual aesthetic. Adding verticality (`yPos`) supports roadmapped species (like fan corals) nesting on boulders or vertical reef walls.
+
+*Consequence:*
+- The `PlacedStructure.swift` model file is deleted.
+- `ReefCanvas` maintains a direct cascade relationship to `coralFrags: [CoralFrag]`.
+- The onboarding tutorial flow is simplified: *tap surviving frag -> highlighted ground pulses -> drag frag onto ground to confirm planting*.
 
 ---
 

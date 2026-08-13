@@ -179,6 +179,7 @@ final class ReefCanvas {
 final class CoralFrag {
     var species: String // "Acropora" (Staghorn), "BrainCoral" (Massive), etc.
     var xPos: Double // Continuous horizontal offset on the seabed ground
+    var yPos: Double // Continuous vertical offset (supports walls/boulders)
     var growthProgress: Double // 0.0 (Baby) to 1.0 (Mature Adult)
     var algaePercentage: Double // 0.0 (Clean) to 1.0 (Fully Smothered)
     var predatorDamage: Double // 0.0 (None) to 1.0 (Fully Consumed)
@@ -191,9 +192,10 @@ final class CoralFrag {
     var isTeenager: Bool { growthProgress >= 0.3 && growthProgress < 0.7 && !isDead }
     var isAdult: Bool { growthProgress >= 0.7 && !isDead }
     
-    init(species: String, xPos: Double = 0.0, growthProgress: Double = 0.0, algaePercentage: Double = 0.0, predatorDamage: Double = 0.0, activePredators: [String] = [], isBleached: Bool = false, isDead: Bool = false) {
+    init(species: String, xPos: Double = 0.0, yPos: Double = 0.0, growthProgress: Double = 0.0, algaePercentage: Double = 0.0, predatorDamage: Double = 0.0, activePredators: [String] = [], isBleached: Bool = false, isDead: Bool = false) {
         self.species = species
         self.xPos = xPos
+        self.yPos = yPos
         self.growthProgress = growthProgress
         self.algaePercentage = algaePercentage
         self.predatorDamage = predatorDamage

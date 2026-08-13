@@ -150,7 +150,7 @@ The application implements a streamlined entry path tailored to both new and ret
 
 ### 4.3. Parallax 2D Side-On Canvas (No Grid)
 The simulation canvas moves away from a grid-based coordinate system to a continuous, side-on scrollable seabed environment:
-*   **Foreground Layer:** The active interactive layer representing the seabed. Users plant coral fragments at any arbitrary horizontal coordinate ($x$-position) along the terrain.
+*   **Foreground Layer:** The active interactive layer representing the seabed. Users plant coral fragments at continuous horizontal and vertical coordinates ($x$- and $y$-positions) along the terrain (supporting placement on flat sand, slopes, cliffs, or boulders).
 *   **Midground Layer:** Renders swimming fish, particles, and secondary reef flora. Uses parallax mapping to scroll at a slower speed than the foreground, providing spatial depth.
 *   **Background Layer:** Renders distant water gradients, deep ocean contours, and soft bioluminescent backdrops. Scrolls at a minimal speed to generate a three-dimensional parallax effect.
 

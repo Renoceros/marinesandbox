@@ -1,14 +1,48 @@
 import Foundation
 import SwiftData
 
+/// **ReefCanvas: SwiftData Persisted Active Sandbox Schema**
+///
+/// This persistent model represents the active garden canvas sandbox.
+/// It coordinates the horizontal layout limits and tracks placed structure elements.
+///
+/// ### Architectural Decoupling:
+/// As requested, **`locationType` has been removed** from the schema constraints.
+/// Users are no longer restricted to environmental sub-zones (like "Shallow Reef Flat" vs "Deep Wall Slope")
+/// which would limit growth speeds or enforce one-size-fits-all parameters.
+/// Instead, players can freely construct biodiverse gardens anywhere along the continuous horizontal landscape.
+///
 @Model
 public final class ReefCanvas {
+    
+    /// Unique identifier for the canvas layout.
     @Attribute(.unique) public var id: UUID
-    public var ngoRegion: String // "Bali", "Jeju", "Caribbean"
-    public var canvasWidth: Double // Total horizontal scroll width
+    
+    /// The primary NGO region selection (e.g. `"Bali"` / Living Seas default).
+    public var ngoRegion: String
+    
+    /// Total horizontal content width bounds in points.
+    /// This supports the parallax scrolling range limit.
+    public var canvasWidth: Double
+    
+    /// Array of physical structures (like Reef Stars or concrete anchors) placed along the canvas.
+    /// Cascades deletions when the canvas is cleared.
     @Relationship(deleteRule: .cascade) public var placedStructures: [PlacedStructure]
     
-    public init(id: UUID = UUID(), ngoRegion: String, canvasWidth: Double = 2000.0, placedStructures: [PlacedStructure] = []) {
+    /// Initializes a new ReefCanvas instance.
+    ///
+    /// - Parameters:
+    ///   - id: Unique identifier.
+    ///   - ngoRegion: Standard region name selector.
+    ///   - canvasWidth: Horizontal boundary length (points).
+    ///   - placedStructures: Pre-placed structures list.
+    ///
+    public init(
+        id: UUID = UUID(),
+        ngoRegion: String,
+        canvasWidth: Double = 2000.0,
+        placedStructures: [PlacedStructure] = []
+    ) {
         self.id = id
         self.ngoRegion = ngoRegion
         self.canvasWidth = canvasWidth

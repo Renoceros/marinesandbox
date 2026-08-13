@@ -8,6 +8,7 @@
 
 ## Checklist
 
+- [ ] Branch was cut from the latest `main`, and `main` has been merged in if it moved since ([CONTRIBUTING.md](../CONTRIBUTING.md))
 - [ ] `CHANGELOG.md` — added an entry under `[Unreleased]` in the right group
 - [ ] `DECISIONS.md` — added a `DEC-` entry **if** this changes scope, architecture, or UX (or ticked N/A below)
 - [ ] N/A — no scope, architecture, or UX decision in this PR

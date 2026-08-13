@@ -5,8 +5,8 @@ Single source of truth for **why** the Marine Sandbox is built the way it is. If
 ## How the team maintains this file
 
 1. **Who:** whoever makes or discovers the decision writes the entry. Not the PM's job alone.
-2. **When:** in the same PR as the change. A PR that alters scope, architecture, or UX without a `DEC-` entry is incomplete.
-3. **IDs are sequential and permanent.** Next free ID: **DEC-023**.
+2. **When:** in the same PR as the change (see [CONTRIBUTING.md](CONTRIBUTING.md)). A PR that alters scope, architecture, or UX without a `DEC-` entry is incomplete.
+3. **IDs are sequential and permanent.** Next free ID: **DEC-024**. If two open PRs claim the same number, the one merged first keeps it and the other renumbers.
 4. **Never rewrite an accepted entry.** To change a decision, add a new one and set the old entry's status to `Superseded by DEC-0XX`. The wrong turns are the valuable part of the record.
 5. **Cite the source** — commit hash, doc section, or transcript file — so anyone can trace it back.
 6. Decisions taken verbally in a meeting must land here before the branch merges, or they will be forgotten (this file exists because several already were).
@@ -49,6 +49,7 @@ Single source of truth for **why** the Marine Sandbox is built the way it is. If
 | DEC-020 | EcoEngine operates on value snapshots, not `@Model` classes | Proposed | this session |
 | DEC-021 | Ownership of parallax `scrollX` | Open | this session |
 | DEC-022 | Domain-layer test strategy | Open | this session |
+| DEC-023 | Feature-branch workflow, always based off latest `main` | Accepted | `CONTRIBUTING.md` |
 
 ---
 
@@ -78,7 +79,7 @@ Deferred: multi-region configs (Jeju, Caribbean), QR scan rewards, iCloud/CloudK
 ### DEC-004 — Skip the TechDemo phase
 **Status:** Accepted · **Source:** `66e4843`
 
-Work starts directly on main MVP views. `techdemo_tdd_marinesandbox.md` is retained for reference only and is **not** an active plan.
+Work starts directly on main MVP views. `Documentation/techdemo_tdd_marinesandbox.md` was deleted on `main` as a consequence.
 
 ### DEC-005 — Hard Reset removed from the gameplay UI
 **Status:** Accepted · **Source:** `eb151e8`, PRD §4.7
@@ -120,7 +121,7 @@ The user opens on a dead white-rubble seabed holding one living Staghorn fragmen
 
 Focus on active care of one coral type first. Bleaching may later return as a "prestige restart" achievement loop.
 
-> **Unresolved conflict:** PRD §4.6 and the TDD `EcoEngine` sketch still treat thermal bleaching as in-scope for the MVP, and PRD §1.5 lists it under IN SCOPE. Docs must be reconciled before Phase 3. Whoever resolves it: add the superseding entry here.
+> **Unresolved conflict — now in shipped code.** PRD §4.6 and §1.5 still treat thermal bleaching as MVP scope, and `EcoEngine.swift` section D (`b4845f2`) implements heat stress, bleaching, recovery, and bleached-coral mortality. Either the deferral is dead and the docs are right, or the engine is carrying unused scope. Whoever resolves it: add the superseding entry here and reconcile the PRD in the same PR.
 
 ### DEC-011 — Sign in with Apple over Passkeys
 **Status:** Accepted · **Source:** Team-Discussion-12Aug
@@ -154,6 +155,8 @@ Seabed positions are floating-point horizontal offsets.
 Exactly 3 stitched segments of 1.5× viewport width (4.5× total). `scrollX` clamped to `[-3.5 × viewportWidth, 0]`. Draw order: `#3BAFED` backdrop → MG (0.50, top-pinned) → BG (0.20, top-pinned) → FG (1.00, bottom-pinned). Per-column variant indices are a mutually exclusive permutation of `{0,1,2}` so no `0-0-0` vertical stack can occur. Columns render in a static `ForEach(0..<3)` with `.transition(.identity)` for seamless panning.
 
 *Supersedes:* the procedural infinite tiling approach (`2a53cce`, `929376f`), which produced visible seams and crossfades during panning.
+
+*Amended `1a9eeb7`:* segment width is now scaled per layer so slower-ratio layers can still pan all 3 segments into view, and overscroll past either boundary applies rubber-band resistance (coefficient `0.55`) rather than a hard stop.
 
 *Consequence:* the playable world is bounded, so the foreground must be clamped in the view model. Incurs **DEBT-001**.
 
@@ -200,11 +203,16 @@ Interactions hit-test against **model geometry**, never artwork bounds. Art is s
 *Consequence:* the team can build and playtest the full loop before assets exist, and swapping art is a one-line change that touches no gesture, physics, or engine code.
 
 ### DEC-020 — EcoEngine operates on value snapshots
-**Status:** Proposed · **Source:** this session
+**Status:** Proposed · **Source:** this session · **Applies to shipped code:** `marinesandbox/Services/EcoEngine.swift` (`b4845f2`)
 
-`EcoEngine` takes and returns plain `struct` state, with the view model mapping SwiftData ↔ snapshots.
+`EcoEngine` should take and return plain `struct` state, with the view model mapping SwiftData ↔ snapshots.
 
-*Why:* the TDD §5.1 sketch does `var updatedCanvas = canvas` on a `@Model` **class** — that is a reference copy, so it mutates the original and returns the same object. "Stateless" is not achievable as written, and it cannot be tested without a `ModelContainer`.
+*Why:* the engine documents itself as "completely stateless — taking the current state of a `ReefCanvas` … and returning an updated `ReefCanvas`", but `ReefCanvas` is a `@Model` **class**. It mutates `canvas.placedStructures[].coral` in place and returns the same reference. The API promises a pure function and delivers in-place mutation, which means:
+- callers cannot preview a result without committing it — this breaks Fast Forward, which needs to *compute* a steady state before showing the timelapse;
+- it cannot be unit-tested without a `ModelContainer`;
+- SwiftData change notifications fire mid-simulation for all 60 steps of a timelapse sweep.
+
+*Fix:* keep the maths exactly as written — it is sound — and change only the boundary: `step(state: ReefState, threats:) -> ReefState` over value types, with a thin SwiftData adapter.
 
 ### DEC-021 — Ownership of parallax `scrollX`
 **Status:** **Open** — blocks the entity layer · **Source:** this session
@@ -218,6 +226,24 @@ Interactions hit-test against **model geometry**, never artwork bounds. Art is s
 
 No test target exists, and adding one requires editing `project.pbxproj` — the most conflict-prone file in a 5-person sprint. Options: a sidecar SPM package pointing at the existing `Domain/` sources (real `swift test`, zero `.pbxproj` change), a proper Xcode test target, or a `#if DEBUG` assertion harness.
 
+*Related:* DEC-020 — the engine currently cannot be tested at all without a `ModelContainer`, so resolving that unblocks this.
+
+---
+
+## Process
+
+### DEC-023 — Feature-branch workflow, always based off the latest `main`
+**Status:** Accepted · **Source:** [CONTRIBUTING.md](CONTRIBUTING.md)
+
+Nobody commits to `main`. All work happens on a feature branch cut from the **latest** `main` at the moment work begins, and reaches `main` only through a pull request. Branch naming follows `{type}/{name}/{TASK-ID}-{description}` (TDD §6). Already-pushed branches are merged forward from `main`, never rebased or force-pushed.
+
+*Why:* five people are committing in parallel on a two-week sprint. Branching off a stale `main` means resolving someone else's conflicts inside your own feature, and `ParallaxScrollView.swift` has already been through two conflict-resolution merges (`4aeda93`, `c04c6de`). Requiring a PR also gives the changelog and this register a natural enforcement point — see the PR template.
+
+*Consequences:*
+- `main` stays releasable; the exhibition build can be cut at any time.
+- Definition of done is "merged into `main`", not "works on my machine".
+- Contributors without write access use the fork flow (documented in CONTRIBUTING.md).
+
 ---
 
 ## Technical Debt Register
@@ -229,8 +255,12 @@ No test target exists, and adding one requires editing `project.pbxproj` — the
 
 ### Known code issues (not yet decisions)
 
+*Verified against `main` at `94a1ea8`.*
+
 * `ParallaxScrollView` uses `.resizable().aspectRatio(contentMode: .fit)` on full-bleed layers, which letterboxes instead of filling the segment.
 * `Color(hex:)` is defined inside `ParallaxScrollView.swift`; it will collide the moment a second file defines it. Belongs in a design-system file.
+* `EcoEngine`'s doc comment claims it is stateless while it mutates its input in place (DEC-020). Whichever way that is resolved, the comment and the behaviour must agree.
+* `CoralFrag`'s doc comments hard-code Lottie frame ranges (e.g. "algae ≥ 0.5 transitions playhead to frames 81–100"), baking the single-playhead model into the data layer. If DEC-018 is accepted, these comments describe an approach we no longer use.
 
 ---
 

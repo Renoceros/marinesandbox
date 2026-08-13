@@ -509,5 +509,6 @@ To enable interactive dragging of structures/fragments and momentum-based flicki
 ---
 
 ## 6. Development Workflow
+See [`CONTRIBUTING.md`](../CONTRIBUTING.md) for the full workflow. In short: never commit to `main`, always branch off the latest `main`, and merge back through a pull request (DEC-023).
 *   **Branching Convention:** `feat/{developer-name}/{TASK-ID-description}` (e.g., `feat/sam/TASK-102-eco-engine`).
 *   **Mock Seeding Configuration:** Reads static JSON files (such as `BaliConfig.json`) to seed standard NGO parameters during mock runs.

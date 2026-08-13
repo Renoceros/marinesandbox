@@ -2,7 +2,9 @@
 
 Context for humans and AI coding agents. Read this before making changes.
 
-## Non-negotiable: keep the record
+## Non-negotiable
+
+**Work on a feature branch cut from the latest `main`, and merge back through a pull request.** Never commit to `main`. Full workflow in **[CONTRIBUTING.md](CONTRIBUTING.md)** (DEC-023).
 
 Every change updates **[CHANGELOG.md](CHANGELOG.md)** under `[Unreleased]`.
 Every change that alters scope, architecture, or UX also adds a `DEC-` entry to **[DECISIONS.md](DECISIONS.md)**.
@@ -38,13 +40,13 @@ The project uses **file-system synchronized groups** (`objectVersion 77`), so **
 
 | File | Purpose |
 | --- | --- |
+| `CONTRIBUTING.md` | How we branch, commit, review, and merge |
 | `DECISIONS.md` | Why things are the way they are. Decision register + tech debt |
 | `CHANGELOG.md` | What changed, when |
 | `Documentation/prd_marine_sandbox.md` | Product requirements, personas, pedagogy |
 | `Documentation/tdd_marine_sandbox.md` | Technical design, data models, parallax maths, task backlog |
 | `Documentation/user_workflow_marinesandbox.md` | End-to-end screen flow and interactions |
 | `Documentation/sprint_task_breakdown.md` | Day-by-day plan and task ownership |
-| `Documentation/techdemo_tdd_marinesandbox.md` | **Superseded** — TechDemo phase was skipped (DEC-004) |
 | `Documentation/Transcription/` | Interview and meeting transcripts (source material for decisions) |
 
 Where docs disagree, `DECISIONS.md` wins, and the loser should be fixed in the same PR. Known live conflict: PRD §4.6 vs DEC-010 on bleaching scope.

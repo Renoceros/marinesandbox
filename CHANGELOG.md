@@ -17,6 +17,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The pro
 ## [Unreleased]
 
 ### Added
+- Contributing guide (`CONTRIBUTING.md`): feature-branch workflow, always branch off the latest `main`, PR into `main`, branch naming, conflict handling for the shared records, and the fork flow for contributors without write access (DEC-023).
 - Decision register (`DECISIONS.md`) consolidating every scope, architecture, and UX decision from the docs, the 12 Aug team discussion, and the commit history, plus the tech-debt register (DEBT-001, DEBT-002) and a superseded/rejected log.
 - This changelog.
 - End-to-end user workflow spec (`Documentation/user_workflow_marinesandbox.md`): two-screen flow, per-screen contents and interactions, the four modals, and an explicit out-of-scope list (DEC-008).
@@ -24,6 +25,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The pro
 ### Changed
 - Onboarding routes straight into the Coral Screen; Bali/Living Seas is now an implicit default rather than a user choice (DEC-008).
 - Sprint plan now links the workflow spec instead of a "User Journey specification" that never existed.
+- TDD §6 now points at `CONTRIBUTING.md` for the full development workflow.
 
 ### Deprecated
 - `TASK-MVP-204` ("Build Location Selection Screen and user routing") is void as written and needs rescoping (DEC-008).
@@ -32,13 +34,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The pro
 - **DEC-016** — iOS 26.5 deployment target, Swift 5 language mode, and iPhone+iPad device family have never been explicitly agreed; they are Xcode template defaults.
 - **DEC-021** — who owns parallax `scrollX`. Blocks the interactive entity layer.
 - **DEC-022** — domain test strategy; no test target exists yet.
-- **DEC-010 conflict** — PRD §4.6 and §1.5 still treat thermal bleaching as MVP scope, but the 12 Aug discussion deferred it. Must be reconciled before Phase 3.
+- **DEC-010 conflict** — PRD §4.6 and §1.5 treat thermal bleaching as MVP scope and `EcoEngine` now implements it, but the 12 Aug discussion deferred it. Must be reconciled before Phase 3.
+- **DEC-020** — `EcoEngine` documents itself as stateless but mutates its `@Model` input in place, so Fast Forward cannot preview a steady state without committing it.
 
 ---
 
 ## 2026-08-13
 
+### Added
+- SwiftData domain models: `UserProfile`, `ReefCanvas`, `PlacedStructure`, `CoralFrag`, plus `ThreatVector` for environmental parameters (TASK-MVP-201).
+- `EcoEngine` stateless simulation maths: Shannon diversity index, biodiversity-scaled herbivore and predator recruitment, growth constrained by algae and pest damage, agricultural-runoff nutrient shocks, heat-stress bleaching with a recovery path, and mortality triggers (TASK-MVP-101).
+- Rubber-band overscroll resistance on the parallax canvas, so panning past either boundary resists instead of stopping dead.
+- Inline documentation and header comments across the new source files.
+
 ### Changed
+- Parallax segment width now scales per layer, so slower-ratio layers can pan all 3 stitched segments into view (DEC-015 amendment).
 - Sprint calendar skips the TechDemo phase and starts directly on MVP views; team roles updated to the five-member roster (DEC-004).
 - Planting is now freeform anywhere along the continuous foreground — sub-zones removed (DEC-006).
 - Canvas controls are mid-fidelity on-canvas overlays instead of a side dashboard with sliders (DEC-007).
@@ -48,6 +58,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The pro
 
 ### Deprecated
 - Hard Reset removed from the core gameplay UI; it now lives only in the Settings menu to prevent accidental data loss (DEC-005).
+
+### Removed
+- `Documentation/techdemo_tdd_marinesandbox.md` — the TechDemo phase was skipped (DEC-004).
 
 ---
 

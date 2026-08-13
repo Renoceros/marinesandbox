@@ -50,6 +50,7 @@ fastlane/test_output
 # Codebase Documentation
 # ==========================================
 codebase_understanding.md
+graphify-out/
 
 # ==========================================
 # AI Coding Agents & Assistants

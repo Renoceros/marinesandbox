@@ -3,6 +3,8 @@
 **Document Version:** v1.3  
 **Status:** Approved (Updated for 2-Week MVP Scope)  
 
+> **Decisions live in [`DECISIONS.md`](../DECISIONS.md).** Where this document and the decision register disagree, the register wins. Currently superseded here: §4.2 onboarding routing (DEC-008). Currently in conflict: §4.6 bleaching scope (DEC-010).
+
 ---
 
 ## 1. Executive Summary & Vision

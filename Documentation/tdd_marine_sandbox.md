@@ -3,6 +3,8 @@
 **Document Version:** v1.3  
 **Status:** Directory Architecture & Backlog Defined (Updated for 2-Week MVP Scope)  
 
+> **Decisions live in [`DECISIONS.md`](../DECISIONS.md).** Where this document and the decision register disagree, the register wins. Superseded sections here are flagged inline.
+
 ---
 
 ## 1. Team & Backlog Ownership

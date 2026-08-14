@@ -27,7 +27,7 @@ public final class SandboxViewModel {
     /// Horizontal parallax offset, owned here so the entity layer can hit-test
     /// corals and pests against the same value the renderer uses (DEC-021).
     /// Passed to `ParallaxScrollView` as a `Binding` once issue #6 lands.
-    public var scrollX: Double = 0
+    public var scrollX: CGFloat = 0.0
 
     /// The active canvas, loaded from (or created in) SwiftData.
     public private(set) var canvas: ReefCanvas?

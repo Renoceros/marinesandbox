@@ -47,8 +47,8 @@ struct SandboxView: View {
                 let seabedY = geometry.size.height
                 ZStack(alignment: .bottomLeading) {
                     ParallaxScrollView(scrollX: Binding(
-                        get: { CGFloat(viewModel.scrollX) },
-                        set: { viewModel.scrollX = Double($0) }
+                        get: { viewModel.scrollX },
+                        set: { viewModel.scrollX = $0 }
                     ))
 
                     entityLayer(viewModel: viewModel, seabedY: seabedY)

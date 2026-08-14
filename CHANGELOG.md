@@ -23,6 +23,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The pro
 - End-to-end user workflow spec (`Documentation/user_workflow_marinesandbox.md`): two-screen flow, per-screen contents and interactions, the four modals, and an explicit out-of-scope list (DEC-008).
 
 ### Changed
+- Resolved all open/proposed register decisions from the 12 Aug session: iOS 26.5 + iPad confirmed in scope (DEC-016), Lottie art pipeline adopted behind a 10-coral perf gate (DEC-017, DEC-018), art hit-testing lives behind a `ReefArtProvider` seam (DEC-019), EcoEngine moves to value-type snapshots to become unit-testable (DEC-020), parallax `scrollX` ownership hoists into `SandboxViewModel` (DEC-021, tracked in issue #6), and domain testing runs in a sidecar SPM package with zero `project.pbxproj` changes (DEC-022).
+- Thermal bleaching moves out of exhibition scope: the `EcoEngine` heat-stress code ships dormant — exhibition threat vectors never exceed 30°C — and returns post-exhibition as a prestige-restart loop (DEC-010, resolved by DEC-025; PRD §1.5/§4.6 reconciled).
 - Onboarding routes straight into the Coral Screen; Bali/Living Seas is now an implicit default rather than a user choice (DEC-008).
 - Sprint plan now links the workflow spec instead of a "User Journey specification" that never existed.
 - TDD §6 now points at `CONTRIBUTING.md` for the full development workflow.

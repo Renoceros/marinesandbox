@@ -6,7 +6,7 @@ Single source of truth for **why** the Marine Sandbox is built the way it is. If
 
 1. **Who:** whoever makes or discovers the decision writes the entry. Not the PM's job alone.
 2. **When:** in the same PR as the change (see [CONTRIBUTING.md](CONTRIBUTING.md)). A PR that alters scope, architecture, or UX without a `DEC-` entry is incomplete.
-3. **IDs are sequential and permanent.** Next free ID: **DEC-026**. If two open PRs claim the same number, the one merged first keeps it and the other renumbers.
+3. **IDs are sequential and permanent.** Next free ID: **DEC-031**. If two open PRs claim the same number, the one merged first keeps it and the other renumbers.
 4. **Never rewrite an accepted entry.** To change a decision, add a new one and set the old entry's status to `Superseded by DEC-0XX`. The wrong turns are the valuable part of the record.
 5. **Cite the source** — commit hash, doc section, or transcript file — so anyone can trace it back.
 6. Decisions taken verbally in a meeting must land here before the branch merges, or they will be forgotten (this file exists because several already were).
@@ -52,6 +52,11 @@ Single source of truth for **why** the Marine Sandbox is built the way it is. If
 | DEC-023 | Feature-branch workflow, always based off latest `main` | Accepted | `CONTRIBUTING.md` |
 | DEC-024 | Direct seabed planting, PlacedStructure and ReefStar removal | Accepted | `6623751` |
 | DEC-025 | Exhibition threat vectors benign; bleaching engine ships dormant | Accepted | this session |
+| DEC-026 | Gesture routing: tool gestures win on coral hit, pan wins on empty water | Accepted | this session |
+| DEC-027 | Tick cadence: 1 sim month per 5 real seconds on the Coral Screen | Accepted | this session |
+| DEC-028 | Pest spawning: 25%/tick on vulnerable corals, cap 2 per coral | Accepted | this session |
+| DEC-029 | Additional planting unlocks when the first coral reaches Teenager | Accepted | this session |
+| DEC-030 | Pest damage retuned to 0.02/month for demo-paced reaction time | Accepted | this session, simulator playtest |
 
 ---
 
@@ -273,6 +278,51 @@ Resolves the DEC-010 conflict. The exhibition build's `ThreatVector`s never carr
 - Exhibition gameplay scope is runoff shocks + pests only.
 - **PRD §4.6 and §1.5 must be reconciled in the same PR** that lands this entry: bleaching moves from "MVP scope" to "engine-supported, exhibition-dormant."
 - No test coverage required for §D in the DEC-022 suite; the prestige-restart revival will add it.
+
+### DEC-026 — Gesture routing: tool gestures win on coral hit, pan wins on empty water
+**Status:** Accepted · **Source:** this session
+
+The parallax canvas pans on drag, and the Brush/Hand tools also act on drags — two gestures competing for the same finger. Routing is by *where the drag starts*: a drag beginning inside a coral's hit rect (DEC-019 model geometry) belongs to the active tool; a drag beginning on empty water or sand pans the world. There is no mode lock-in, and the user never has to think about which gesture layer is active.
+
+*Why:* the alternatives all violate DEC-002 (entertainment-first). A "pan mode" toggle adds UI chrome the workflow doc bans; requiring tool deselection to pan punishes exploration; letting both fire means the world slides out from under a cleaning stroke.
+
+*Consequence:* brush strokes and pest flicks are only recognized inside coral hit rects. Wide-spaced planting (DEC-006) keeps hit rects small relative to open water, so panning is never starved of space.
+
+### DEC-027 — Tick cadence: 1 sim month per 5 real seconds
+**Status:** Accepted · **Source:** this session
+
+While the Coral Screen is visible, the engine ticks one simulation month every 5 real seconds. One constant (`tickInterval`) owns the pacing.
+
+*Why:* the maths was tuned for monthly steps (`baseGrowthRate 0.08` → ~12 months to maturity). At 5 s/month a well-cared coral reaches Adult in ~1 minute and neglect shows visible algae in ~30 s — fast enough for an exhibition demo loop, slow enough that care actions feel causal rather than frantic. Slower pacing (e.g. 30 s/month) would make a 5-minute visit show nothing, which breaks the visual-feedback mandate (PRD §3.3).
+
+*Consequence:* Fast Forward remains the long-horizon view (5-year sweeps); ticks are the live texture. Exhibition hardware runs unattended for hours — pacing constants must stay in one place so a floor-test can retune without a code dive.
+
+### DEC-028 — Pest spawning: 25%/tick on vulnerable corals, cap 2 per coral
+**Status:** Accepted · **Source:** this session
+
+Each tick, every living Baby/Teenager coral with no pests has a 25% chance to gain a Drupella snail. Maximum 2 pests per coral; Adults are spared (their recruited wrasses narratively keep them clean — this is the manual→automated arc made literal, PRD §3.2).
+
+*Why:* pests must be frequent enough that the Hand tool gets used in a short visit, rare enough that a first-time player isn't ambushed during the guided plant. The vulnerability gate teaches the ecology (young corals need protection) without a word of text. The cap prevents a neglected coral from becoming an unsaveable pest pile in one absent stretch.
+
+*Consequence:* spawning lives in `SandboxViewModel` (session behavior), not `EcoEngine` (which consumes `activePredators` as given). The one-time pest tooltip (DEC-012) triggers on the first spawn.
+
+### DEC-029 — Additional planting unlocks at first Teenager coral
+**Status:** Accepted · **Source:** this session
+
+The frag palette (additional planting, workflow §2.3C) appears only after the first planted coral reaches the Teenager stage. Before that, planting is the guided cold open only.
+
+*Why:* the workflow says planting opens "after the first coral proves healthy" but never defines healthy. Teenager (growth ≥ 0.3, ~4 well-kept months) is the first stage transition the player witnesses — the unlock *is* the reward for the first visible success, which is the Kolb loop (act → see result → new capability) in one beat. Unlocking earlier (on plant) spends the reward before it is earned; later (Adult) delays the core creative verb past a demo session's attention budget.
+
+*Consequence:* "proves healthy" = reaches Teenager. If user testing shows players stall in Baby, revisit the threshold — it is one comparison in the view model.
+
+### DEC-030 — Pest damage retuned to 0.02/month for demo-paced reaction time
+**Status:** Accepted · **Source:** this session, found in simulator playtest
+
+`basePredatorDamageRate` drops from 0.05 to 0.02 tissue/month per pest.
+
+*Why:* playtesting on the simulator showed the original rate kills a two-snail coral in ~50 real seconds at the DEC-027 demo pace (5 s/month) — faster than a first-time player can discover the Hand tool, which violates the lean-toward-optimism difficulty rationale (Alex interview, 9 Aug) and makes the workflow's 75% damage warning pointless (only ~25 s separated warning from death). At 0.02, one snail threatens a coral over ~4 minutes of neglect, the warning leaves ~1 minute to react, and recruited wrasses (control 0.04) now fully neutralize a single snail — making the manual→automated arc (PRD §3.2) literally true: an adult's fish keep it pest-free.
+
+*Consequence:* tests pin the new rate (`EcoEngineTests.snailInflictsBaseDamageWithoutWrasses`); if floor-testing shows pests feel toothless, retune the constant, not the structure. Related: the reef is paused during the guided cold open (ticks do nothing until the survivor is planted) so the tutorial can never kill the survivor — implemented with DEC-009's flow.
 
 ---
 

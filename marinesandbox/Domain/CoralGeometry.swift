@@ -42,14 +42,15 @@ public enum CoralGeometry {
         }
     }
 
-    /// The seabed-anchored bounding box of a coral, bottom-center anchored at its
-    /// (`xPos`, `yPos`). All hit-tests (tap-to-select, brush strokes, pest taps)
-    /// run against this rect.
-    public static func hitRect(for coral: CoralState) -> CGRect {
+    /// The seabed-anchored bounding box of a coral in canvas space (y measured down
+    /// from the top, matching screen space at `scrollX == 0`). The sprite's base sits
+    /// `yPos` points above the `seabedY` baseline, bottom-center anchored at `xPos`.
+    /// All hit-tests (tap-to-select, brush strokes, pest taps) run against this rect.
+    public static func hitRect(for coral: CoralState, seabedY: Double) -> CGRect {
         let footprint = footprint(for: coral)
         return CGRect(
             x: coral.xPos - footprint.size.width / 2,
-            y: coral.yPos - footprint.size.height,
+            y: seabedY - coral.yPos - footprint.size.height,
             width: footprint.size.width,
             height: footprint.size.height
         )
@@ -57,15 +58,15 @@ public enum CoralGeometry {
 
     /// The first coral whose hit rect contains a canvas-space point, front-most
     /// (last planted) wins when sprites overlap.
-    public static func hitTest(corals: [CoralState], at point: CGPoint) -> CoralState? {
-        corals.last { !$0.isDead && hitRect(for: $0).contains(point) }
+    public static func hitTest(corals: [CoralState], at point: CGPoint, seabedY: Double) -> CoralState? {
+        corals.last { !$0.isDead && hitRect(for: $0, seabedY: seabedY).contains(point) }
     }
 
     /// Converts a canvas-space point into normalised coral-local space for the
     /// algae grid (DEC-018): (0,0) top-left of the coral's box, (1,1) bottom-right.
     /// Returns `nil` when the point misses the coral entirely.
-    public static func localPoint(in coral: CoralState, canvasPoint: CGPoint) -> CGPoint? {
-        let rect = hitRect(for: coral)
+    public static func localPoint(in coral: CoralState, canvasPoint: CGPoint, seabedY: Double) -> CGPoint? {
+        let rect = hitRect(for: coral, seabedY: seabedY)
         guard rect.contains(canvasPoint) else { return nil }
         return CGPoint(
             x: (canvasPoint.x - rect.minX) / rect.width,

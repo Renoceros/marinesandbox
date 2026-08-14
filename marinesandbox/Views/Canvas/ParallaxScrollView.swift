@@ -3,10 +3,15 @@ import SwiftUI
 // MARK: - Parallax Scroll View
 
 public struct ParallaxScrollView: View {
-    @State private var scrollX: CGFloat = 0.0
+    // DEC-021: scrollX is owned by SandboxViewModel so the entity layer can
+    // hit-test against the same offset the renderer uses. This view only
+    // mutates the binding — all pan/clamp/rubber-band logic stays here.
+    @Binding var scrollX: CGFloat
     @State private var dragOffset: CGFloat = 0.0 // Follows active user finger drag
-    
-    public init() {}
+
+    public init(scrollX: Binding<CGFloat>) {
+        _scrollX = scrollX
+    }
     
     public var body: some View {
         GeometryReader { geometry in
@@ -211,7 +216,8 @@ extension Color {
 // MARK: - PREVIEW
 
 #Preview {
-    ParallaxScrollView()
+    @Previewable @State var scrollX: CGFloat = 0
+    ParallaxScrollView(scrollX: $scrollX)
         .background(Color.black)
         .edgesIgnoringSafeArea(.all)
 }

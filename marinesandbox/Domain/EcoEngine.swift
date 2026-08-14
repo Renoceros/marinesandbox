@@ -45,7 +45,11 @@ public enum EcoEngine {
     public static let baseGrazingRate: Double = 0.03
 
     /// Baseline rate of tissue consumption per active pest (e.g. Drupella snail).
-    public static let basePredatorDamageRate: Double = 0.05
+    /// Retuned 0.05 → 0.02 (DEC-030): at the 5 s/month demo pace (DEC-027), 0.05
+    /// killed a two-snail coral in ~50 s of neglect — faster than a first-time
+    /// player can learn the Hand tool. At 0.02 the 75% damage warning leaves ~1 min
+    /// to react, and recruited wrasses (control 0.04) fully neutralize one snail.
+    public static let basePredatorDamageRate: Double = 0.02
 
     /// Efficiency of recruited predatory fish (e.g. wrasses) in controlling pests.
     public static let basePredatorControlRate: Double = 0.04

@@ -25,13 +25,18 @@ public enum CoralGeometry {
     }
 
     /// Footprints per growth stage, from the asset viewBoxes:
-    /// fragment 59.89×181.77 · toddler 106.67×159.16 · teen 162.56×193.60 · adult 193.21×243.32.
-    /// Baby renders as a planted fragment; the teenager band interpolates between
-    /// the toddler and teen sprites; adults use the adult sprite.
+    /// shiny frag 87.14×131.06 · gray frag 59.89×181.77 · toddler 106.67×159.16 ·
+    /// teen 162.56×193.60 · adult 193.21×243.32.
+    /// A *living* baby renders as the shiny (colored) fragment — planted life must
+    /// read as alive (DEC-009). A dead baby renders as gray rubble (`Fragment1`).
+    /// The teenager band interpolates between the toddler and teen sprites;
+    /// adults use the adult sprite.
     public static func footprint(for coral: CoralState) -> Footprint {
         switch coral.stage {
         case .baby:
-            return Footprint(assetName: "Fragment1", size: CGSize(width: 59.89, height: 181.77))
+            return coral.isDead
+                ? Footprint(assetName: "Fragment1", size: CGSize(width: 59.89, height: 181.77))
+                : Footprint(assetName: "ShinyFragment", size: CGSize(width: 87.14, height: 131.06))
         case .teenager:
             // Interpolate within the band: early teen reads as toddler, late teen as teen.
             return coral.growthProgress < 0.5

@@ -46,10 +46,11 @@ The project uses **file-system synchronized groups** (`objectVersion 77`), so **
 | `Documentation/prd_marine_sandbox.md` | Product requirements, personas, pedagogy |
 | `Documentation/tdd_marine_sandbox.md` | Technical design, data models, parallax maths, task backlog |
 | `Documentation/user_workflow_marinesandbox.md` | End-to-end screen flow and interactions |
+| `Documentation/frontend_handoff.md` | What's built vs. mock in the current UI, and the stable contracts frontend builds against |
 | `Documentation/sprint_task_breakdown.md` | Day-by-day plan and task ownership |
 | `Documentation/Transcription/` | Interview and meeting transcripts (source material for decisions) |
 
-Where docs disagree, `DECISIONS.md` wins, and the loser should be fixed in the same PR. Known live conflict: PRD §4.6 vs DEC-010 on bleaching scope.
+Where docs disagree, `DECISIONS.md` wins, and the loser should be fixed in the same PR.
 
 ## Conventions
 

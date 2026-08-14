@@ -1,3 +1,4 @@
+import CoreGraphics
 import Foundation
 import SwiftData
 
@@ -39,6 +40,18 @@ public final class SandboxViewModel {
 
     /// Set when a Fast Forward completes; the view presents the Diagnostic Card (workflow §3.1).
     public var pendingDiagnostic: ReefState?
+
+    /// Plain-language reflection shown on the Diagnostic Card after Fast Forward.
+    public var diagnosticMessage: String?
+
+    /// The frag currently lifted by the user's finger (guided plant or palette drag).
+    public var liftedFragID: UUID?
+
+    /// Where the lifted frag is, in canvas coordinates (drives the drag preview).
+    public var liftedFragPosition: CGPoint = .zero
+
+    /// Set when the first pest ever spawns; the view shows the one-time tooltip (DEC-012).
+    public var showPestTooltip = false
 
     private let modelContext: ModelContext
 
@@ -219,5 +232,231 @@ public final class SandboxViewModel {
 
     private func save() {
         try? modelContext.save()
+    }
+}
+
+// MARK: - Gameplay Session (care loop)
+
+extension SandboxViewModel {
+
+    /// Seconds of real time per simulation month (DEC-027). One constant owns the
+    /// demo pacing; retune here after floor-testing.
+    public static let tickInterval: TimeInterval = 5.0
+
+    /// Fast Forward horizon in years (workflow §2.3C: 5–10 years).
+    public static let fastForwardYears: Int = 5
+
+    /// Pest spawn chance per vulnerable coral per tick, and the per-coral cap (DEC-028).
+    public static let pestSpawnChance: Double = 0.25
+    public static let pestCapPerCoral = 2
+
+    // MARK: Guided First Plant (DEC-009, DEC-024)
+
+    /// Phase of the guided cold open, for the view's highlight/pulse states.
+    public enum GuidedPlantPhase {
+        /// Nothing highlighted; waiting for the user to tap the survivor frag.
+        case awaitingFragTap
+        /// Frag lifted; the seabed target zone is pulsing.
+        case awaitingPlant
+        /// Planted. The steady-state care loop begins.
+        case done
+    }
+
+    /// The survivor frag from the cold open (nil once the guide is done or if absent).
+    public var survivorFrag: CoralFrag? {
+        guard let canvas, !canvas.guidedPlantDone else { return nil }
+        return canvas.coralFrags.first { !$0.isDead }
+    }
+
+    /// Current guide phase, derived from persisted state so an interrupted cold
+    /// open resumes correctly on relaunch.
+    public var guidedPlantPhase: GuidedPlantPhase {
+        if canvas?.guidedPlantDone == true { return .done }
+        return liftedFragID == nil ? .awaitingFragTap : .awaitingPlant
+    }
+
+    /// Lifts the survivor frag on tap (guide step 1: frag highlights).
+    public func liftSurvivorFrag() {
+        guard let survivor = survivorFrag else { return }
+        liftedFragID = survivor.id
+        liftedFragPosition = CGPoint(x: survivor.xPos, y: survivor.yPos)
+    }
+
+    /// Drags the lifted frag to a canvas-space point (guide step 2 in progress).
+    public func dragLiftedFrag(to point: CGPoint) {
+        liftedFragPosition = point
+    }
+
+    /// Drops the lifted frag (guide step 3: plant + settle feedback). The drop is
+    /// clamped to the playable bounds; a drop always plants — the guide never
+    /// hard-blocks (workflow §2.3B fallback).
+    public func plantLiftedFrag() {
+        guard let canvas, let id = liftedFragID,
+              let frag = canvas.coralFrags.first(where: { $0.id == id }) else { return }
+        let drop = Physics.clampedDrop(liftedFragPosition, canvasWidth: canvas.canvasWidth)
+        frag.xPos = drop.x
+        frag.yPos = 0
+        canvas.guidedPlantDone = true
+        liftedFragID = nil
+        save()
+    }
+
+    /// Tapping the glowing zone instead of dragging: the frag auto-flies there.
+    public func autoPlantSurvivor(at point: CGPoint) {
+        guard let survivor = survivorFrag else { return }
+        liftedFragID = survivor.id
+        liftedFragPosition = point
+        plantLiftedFrag()
+    }
+
+    // MARK: Additional Planting (DEC-029)
+
+    /// The frag palette appears once any planted coral reaches Teenager —
+    /// "the first coral proves healthy" made concrete.
+    public var isPlantingUnlocked: Bool {
+        canvas?.coralFrags.contains(where: { $0.isTeenager || $0.isAdult }) == true
+    }
+
+    // MARK: Hit Routing (DEC-026)
+
+    /// The coral under a canvas-space point, if any. Views call this first:
+    /// a hit means the active tool owns the gesture; a miss means the drag pans.
+    public func coral(atCanvasPoint point: CGPoint, seabedY: Double) -> CoralFrag? {
+        guard let canvas else { return nil }
+        let snapshots = canvas.coralFrags.map(\.snapshotForInteraction)
+        guard let hit = CoralGeometry.hitTest(corals: snapshots, at: point, seabedY: seabedY) else { return nil }
+        return canvas.coralFrags.first { $0.id == hit.id }
+    }
+
+    // MARK: Brush (DEC-012, DEC-018)
+
+    /// Applies one brush segment given in canvas space: hit-tests, converts to
+    /// coral-local space, clears the crossed cells. Returns cleared cell indices
+    /// (for sparkles/haptics), empty when the stroke missed every coral.
+    @discardableResult
+    public func applyBrushSegment(from start: CGPoint, to end: CGPoint, seabedY: Double) -> [Int] {
+        guard let frag = coral(atCanvasPoint: start, seabedY: seabedY)
+                ?? coral(atCanvasPoint: end, seabedY: seabedY) else { return [] }
+        let snapshot = frag.snapshotForInteraction
+        guard let localStart = CoralGeometry.localPoint(in: snapshot, canvasPoint: start, seabedY: seabedY)
+                ?? CoralGeometry.localPoint(in: snapshot, canvasPoint: end, seabedY: seabedY),
+              let localEnd = CoralGeometry.localPoint(in: snapshot, canvasPoint: end, seabedY: seabedY)
+                ?? CoralGeometry.localPoint(in: snapshot, canvasPoint: start, seabedY: seabedY)
+        else { return [] }
+        return brushStroke(from: localStart, to: localEnd, on: frag.id)
+    }
+
+    // MARK: Pests (DEC-028, DEC-012)
+
+    /// Called once per tick by the view's timer. Each living Baby/Teenager coral
+    /// with no pests has a 25% chance to gain a Drupella snail (cap 2 per coral).
+    /// Adults are spared — their recruited wrasses keep them clean (PRD §3.2).
+    public func spawnPestsIfNeeded(random: Double = Double.random(in: 0...1)) {
+        guard let canvas else { return }
+        var spawned = false
+        for frag in canvas.coralFrags {
+            guard !frag.isDead, frag.isBaby || frag.isTeenager,
+                  frag.activePredators.count < Self.pestCapPerCoral,
+                  random < Self.pestSpawnChance else { continue }
+            if frag.activePredators.isEmpty && !canvas.coralFrags.contains(where: { !$0.activePredators.isEmpty }) {
+                showPestTooltip = true
+            }
+            frag.activePredators.append("DrupellaSnail")
+            spawned = true
+        }
+        if spawned { save() }
+    }
+
+    public func dismissPestTooltip() {
+        showPestTooltip = false
+    }
+
+    /// Removes one pest from a coral by index — the domain outcome of both the
+    /// tap-smush and the flick (the velocity only chooses the view's animation).
+    @discardableResult
+    public func removePest(at index: Int, on fragID: UUID) -> String? {
+        guard let frag = canvas?.coralFrags.first(where: { $0.id == fragID }),
+              frag.activePredators.indices.contains(index) else { return nil }
+        let pest = frag.activePredators.remove(at: index)
+        save()
+        return pest
+    }
+
+    // MARK: Fast Forward → Diagnostic Card (workflow §2.3C, §3.1)
+
+    /// Simulates 5 years on a snapshot, commits once, and generates the
+    /// before/after reflection from what actually changed (Kolb: reflective
+    /// observation → active experimentation).
+    public func performFastForward() {
+        let before = snapshot()
+        let outcome = EcoEngine.step(state: before, threats: threats, months: Self.fastForwardYears * 12)
+        commit(outcome)
+        pendingDiagnostic = outcome
+        diagnosticMessage = Self.diagnose(before: before, after: outcome)
+    }
+
+    public func dismissDiagnosticCard() {
+        pendingDiagnostic = nil
+        diagnosticMessage = nil
+    }
+
+    /// Builds the card's message from the dominant change. No numbers — the card
+    /// is a visual/plain-language reflection, not a dashboard (DEC-007).
+    static func diagnose(before: ReefState, after: ReefState) -> String {
+        let beforeLiving = before.livingCorals
+        let afterLiving = after.livingCorals
+        let deaths = beforeLiving.count - afterLiving.count
+        let grew = zip(before.corals, after.corals).filter { $0.growthProgress < 0.7 && $1.growthProgress >= 0.7 }
+
+        if deaths > 0 {
+            let algaeDeaths = zip(before.corals, after.corals).filter { !$0.isDead && $1.isDead && $1.algaePercentage > 0.8 }
+            if !algaeDeaths.isEmpty {
+                return "Some corals were smothered by algae. Young corals need regular brushing until they're strong enough to attract helper fish."
+            }
+            return "Some corals didn't survive the pests. Snails and starfish eat coral tissue — remove them before the damage is done."
+        }
+        if !grew.isEmpty {
+            return "Your reef matured! Adult corals now attract fish that clean algae and eat pests for you. A healthy reef takes care of itself."
+        }
+        let avgAlgae = afterLiving.map(\.algaePercentage).reduce(0, +) / Double(max(afterLiving.count, 1))
+        if avgAlgae > 0.5 {
+            return "Algae is winning. Without brushing, it blocks the light your corals need to grow."
+        }
+        return "Your reef held steady. Plant a mix of species — diverse reefs recover from shocks that wipe out monocultures."
+    }
+
+    // MARK: Tick (DEC-027)
+
+    /// One live month: engine step + pest spawning. Driven by the view's timer so
+    /// ticking only happens while the Coral Screen is visible.
+    ///
+    /// The reef is **paused during the guided cold open** (DEC-009): until the
+    /// survivor frag is planted, nothing grows, accrues algae, spawns pests, or
+    /// dies. The tutorial must be safe — a coral that can die before the player
+    /// has learned to care for it teaches the wrong lesson.
+    public func tickLive() {
+        guard canvas?.guidedPlantDone == true else { return }
+        tick()
+        spawnPestsIfNeeded()
+    }
+}
+
+/// Model → domain projection for hit-testing and interaction routing.
+/// The simulation adapter is `SandboxViewModel.snapshot()` (DEC-020); this is
+/// geometry-only.
+extension CoralFrag {
+    var snapshotForInteraction: CoralState {
+        CoralState(
+            id: id,
+            species: species,
+            xPos: xPos,
+            yPos: yPos,
+            growthProgress: growthProgress,
+            coverage: AlgaeCoverage(cells: algaeCells),
+            predatorDamage: predatorDamage,
+            activePredators: activePredators,
+            isBleached: isBleached,
+            isDead: isDead
+        )
     }
 }

@@ -113,14 +113,28 @@ Legend: `[ ]` not started · `[~]` in progress · `[x]` done · `[—]` teammate
 
 ---
 
-## Phase 3 — Frontend skeleton (DEC-019) · shared lane, we support
+## Phase 3 — Frontend skeleton (DEC-019) · shared lane
 
 Build the full loop against `SkeletonArtProvider` — playtestable end-to-end before any final art exists. Layouts are Bobo's lane, art is Sam's; **our contribution is the `ReefArtProvider` protocol + domain hooks.** Sequencing note: everything here needs Phase 2.2's view model surface.
 
+### 3.0 Playable care-loop slice · OUR LANE (in progress)
+
+The minimum that makes the app *usable as the product intends*: every interaction in workflow §2.3C wired to the tested domain APIs. Product decisions taken here are registered as DEC-026–DEC-029.
+
+- [x] **Guided first plant** (DEC-009/024): tap survivor frag → frag lifts → seabed zone pulses → drag onto ground → snap + settle puff. Fallback: tapping the glowing zone auto-flies the frag (workflow §2.3B). Never hard-blocks.
+- [x] **Gesture routing** (DEC-026): drags that *start on a coral* go to the active tool; drags starting on empty water/sand pan the parallax. No mode lock-in.
+- [x] **Tick cadence** (DEC-027): 1 sim month per 5 real seconds while the Coral Screen is visible — baby→adult in ~1 minute of good care, visible algae creep in ~30s of neglect. Demo-paced, single constant.
+- [x] **Brush cleaning**: tool selected → drag over coral → screen→canvas→coral-local mapping → `brushStroke` per segment → live algae-mask fade + per-cell sparkle. Fast swipes leave no stripes (guaranteed by `AlgaeCoverage.clear`).
+- [x] **Pest loop** (DEC-028): each tick, vulnerable (baby/teen) corals with no pests have a 25% chance to gain a Drupella snail (cap 2/coral). Hand tool: tap = squash-smush, release > 100 pt/s = ballistic throw off-screen (`Physics.throwPosition` drives the arc). One-time tooltip on first encounter (DEC-012).
+- [x] **Fast Forward → Diagnostic Card**: button → `fastForward(years: 5)` on a snapshot → crossfade to the computed state → card with a plain-language before/after reflection (workflow §3.1), dismiss → back to canvas.
+- [x] **Additional planting unlock** (DEC-029): frag palette appears once the first coral reaches Teenager. Plant anywhere on the foreground (DEC-006).
+- [x] **Simulator verification** (iPhone 17 Pro, 26.5): onboarding → cold open → tap-to-lift → drag-to-plant → ticks/algae/pests/tooltip all observed live. Playtest fixes landed: gesture threshold (taps were swallowed), safe-area clipping, survivor readability, cold-open tick pause, pest damage retune (DEC-030). Not yet verified: pulse tap auto-fly fallback (tooling), palette drag (needs unlock state).
+
+### Remaining Phase 3 (teammates)
+
 - [—] `ReefArtProvider` protocol + `SkeletonArtProvider` (SwiftUI shapes). Hit-testing against model geometry, never artwork bounds.
-- [—] `SandboxView` over `ParallaxScrollView` (binding per #6): dead-rubble cold open (DEC-009), guided first plant, steady-state care loop.
-- [—] On-canvas tool overlays (DEC-007): Brush, Hand, Fast Forward, camera, night-mode, gear.
-- [—] Modals: `DiagnosticCardView`, `ShareCardView` (9:16), registration prompt at first Adult (TASK-MVP-305), Settings with Hard Reset behind confirmation.
+- [—] On-canvas overlay *polish* (DEC-007): night-mode toggle, camera button, settings gear.
+- [—] Modals: `ShareCardView` (9:16), registration prompt at first Adult (TASK-MVP-305), Settings with Hard Reset behind confirmation.
 - [—] Recruited fauna layer (TASK-MVP-303); adult-driven automation uses the same grid-clearing path as the brush (DEC-018).
 
 ## Phase 4 — Polish & integration (sprint Days 7–14) · shared lane

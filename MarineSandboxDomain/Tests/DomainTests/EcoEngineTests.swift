@@ -117,23 +117,25 @@ struct EcoEngineTests {
     // MARK: - Pests & Mortality
 
     @Test func snailInflictsBaseDamageWithoutWrasses() {
+        // DEC-030: base pest damage is 0.02/month — slow enough to react to.
         let result = EcoEngine.step(state: reef([coral(predators: ["DrupellaSnail"])]), threats: benign, months: 1)
-        #expect(abs(result.corals[0].predatorDamage - 0.05) < 1e-10)
+        #expect(abs(result.corals[0].predatorDamage - 0.02) < 1e-10)
     }
 
-    @Test func adultWrassesReducePestDamage() {
-        // One adult: predator control 0.04 vs snail damage 0.05 → net 0.01.
+    @Test func adultWrassesNeutralizeOneSnail() {
+        // One adult: predator control 0.04 vs snail damage 0.02 → net 0 (floored).
+        // The manual→automated arc made literal (PRD §3.2).
         let result = EcoEngine.step(
             state: reef([coral(growth: 1.0, predators: ["DrupellaSnail"])]),
             threats: benign,
             months: 1
         )
-        #expect(abs(result.corals[0].predatorDamage - 0.01) < 1e-10)
+        #expect(result.corals[0].predatorDamage == 0.0)
     }
 
     @Test func fullTissueLossKillsCoral() {
         let result = EcoEngine.step(
-            state: reef([coral(predatorDamage: 0.96, predators: ["DrupellaSnail"])]),
+            state: reef([coral(predatorDamage: 0.99, predators: ["DrupellaSnail"])]),
             threats: benign,
             months: 1
         )

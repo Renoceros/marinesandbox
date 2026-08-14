@@ -14,10 +14,17 @@ struct CoralGeometryTests {
     }
 
     @Test func footprintFollowsGrowthStage() {
-        #expect(CoralGeometry.footprint(for: coral(growth: 0.1)).assetName == "Fragment1")
+        // Living babies render as the colored shiny frag (DEC-009: alive must look alive).
+        #expect(CoralGeometry.footprint(for: coral(growth: 0.1)).assetName == "ShinyFragment")
         #expect(CoralGeometry.footprint(for: coral(growth: 0.4)).assetName == "CoralToddler")
         #expect(CoralGeometry.footprint(for: coral(growth: 0.6)).assetName == "CoralTeen")
         #expect(CoralGeometry.footprint(for: coral(growth: 0.9)).assetName == "CoralAdult")
+    }
+
+    @Test func deadBabyRendersAsGrayRubble() {
+        var dead = coral(growth: 0.1)
+        dead.isDead = true
+        #expect(CoralGeometry.footprint(for: dead).assetName == "Fragment1")
     }
 
     @Test func hitRectIsBottomCenterAnchored() {

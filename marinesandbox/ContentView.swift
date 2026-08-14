@@ -8,8 +8,10 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var viewModel = SandboxViewModel()
+
     var body: some View {
-        ParallaxScrollView()
+        ParallaxScrollView(scrollX: $viewModel.scrollX)
             .edgesIgnoringSafeArea(.all)
     }
 }

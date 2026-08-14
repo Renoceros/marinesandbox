@@ -3,10 +3,12 @@ import SwiftUI
 // MARK: - Parallax Scroll View
 
 public struct ParallaxScrollView: View {
-    @State private var scrollX: CGFloat = 0.0
+    @Binding var scrollX: CGFloat
     @State private var dragOffset: CGFloat = 0.0 // Follows active user finger drag
-    
-    public init() {}
+
+    public init(scrollX: Binding<CGFloat>) {
+        self._scrollX = scrollX
+    }
     
     public var body: some View {
         GeometryReader { geometry in
@@ -29,7 +31,7 @@ public struct ParallaxScrollView: View {
                 layerContainer(
                     viewportWidth: viewportWidth,
                     height: height,
-                    ratio: 0.50,
+                    ratio: 1,
                     panRange: panRange,
                     currentOffset: currentOffset,
                     layerName: "Midground",
@@ -40,7 +42,7 @@ public struct ParallaxScrollView: View {
                 layerContainer(
                     viewportWidth: viewportWidth,
                     height: height,
-                    ratio: 0.20,
+                    ratio: 1,
                     panRange: panRange,
                     currentOffset: currentOffset,
                     layerName: "Background",
@@ -51,7 +53,7 @@ public struct ParallaxScrollView: View {
                 layerContainer(
                     viewportWidth: viewportWidth,
                     height: height,
-                    ratio: 1.00,
+                    ratio: 1.30,
                     panRange: panRange,
                     currentOffset: currentOffset,
                     layerName: "Foreground",
@@ -211,7 +213,18 @@ extension Color {
 // MARK: - PREVIEW
 
 #Preview {
-    ParallaxScrollView()
-        .background(Color.black)
-        .edgesIgnoringSafeArea(.all)
+    ParallaxScrollViewPreviewHost()
+}
+
+// `.constant(0)` would silently discard every drag-release write to `scrollX`,
+// making the canvas preview snap back to the start on every release. A tiny
+// @State-backed host gives the preview a real, mutable binding to work with.
+private struct ParallaxScrollViewPreviewHost: View {
+    @State private var scrollX: CGFloat = 0.0
+
+    var body: some View {
+        ParallaxScrollView(scrollX: $scrollX)
+            .background(Color.black)
+            .edgesIgnoringSafeArea(.all)
+    }
 }

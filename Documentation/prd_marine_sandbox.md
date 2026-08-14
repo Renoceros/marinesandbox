@@ -3,6 +3,8 @@
 **Document Version:** v1.3  
 **Status:** Approved (Updated for 2-Week MVP Scope)  
 
+> **Decisions live in [`DECISIONS.md`](../DECISIONS.md).** Where this document and the decision register disagree, the register wins. Currently superseded here: §4.2 onboarding routing (DEC-008). Currently in conflict: §4.6 bleaching scope (DEC-010).
+
 ---
 
 ## 1. Executive Summary & Vision
@@ -26,7 +28,7 @@ The core of this development is a generalizable **pedagogical-ecological sandbox
 ### 1.5. 2-Week MVP Scope Boundaries
 To meet the 2-week launch deadline, features have been strictly prioritized:
 * **IN SCOPE:**
-  * Core gameplay loop (Reef Star structure placement, fragging with *Acropora* and *Brain Coral*).
+  * Core gameplay loop (coral fragment placement, fragging with *Acropora* and *Brain Coral*).
   * Pure Swift `EcoEngine` (stateless calculations of growth, algae overgrowth, manual vs helper fish grazing, and heat stress).
   * Manual care loop (brushing algae, picking snails) transitioning to automated care (attracting parrotfish and wrasses).
   * 3-layer horizontal Parallax Scroll View for seabed visual depth.
@@ -90,7 +92,7 @@ To create an environment that fosters **natural learning** (learning driven by c
 ### 3.1. Experiential Learning via Kolb's Cycle (Sandbox Loop)
 Kolb's Experiential Learning Theory posits that knowledge is created through the transformation of experience in a four-stage cyclical process.
 *   **Application:**
-    1.  *Concrete Experience:* User places structures (Reef Stars) and fragments, and performs active manual care (brushing algae, picking snails).
+    1.  *Concrete Experience:* User plants fragments directly on the ground/seabed, and performs active manual care (brushing algae, picking snails).
     2.  *Reflective Observation:* User triggers the **Fast Forward** and observes the multi-year visual timelapse of their reef's growth or collapse.
     3.  *Abstract Conceptualization:* User reads the diagnostic reflection card, linking their visual outcome to ecological principles (e.g., "Monocultures reduce grazer recruitment, leading to algae overgrowth").
     4.  *Active Experimentation:* User adjusts species spacing/composition or triggers a sandbox reset (via Settings) to test a new hypothesis.
@@ -144,13 +146,13 @@ To support Maximia's goals of escaping stress and expressing creativity, the UI 
 ### 4.2. Onboarding & Account Lifecycle Flow
 The application implements a streamlined entry path tailored to both new and returning students:
 *   **User Routing:**
-    *   *New Users:* Are routed through a **Location Selection Screen** (defaulting to Padangbai, Bali) $\rightarrow$ land on the active **Sea Bed Canvas** $\rightarrow$ guided to plant exactly **one Staghorn (Acropora) fragment** onto a pulsing Reef Star.
+    *   *New Users:* Land on the active **Sea Bed Canvas** $\rightarrow$ guided to plant exactly **one Staghorn (Acropora) fragment** onto a pulsing ground area.
     *   *Returning Users:* Bypass selection and are loaded directly into their last active **Sea Bed Canvas** from local cache.
 *   **Account Registration Prompt:** After successfully completing the initial planting and observing growth, the user is prompted with a modal to "Create a Login Account" to save progress (represented as a local profile registration for the MVP).
 
 ### 4.3. Parallax 2D Side-On Canvas (No Grid)
 The simulation canvas moves away from a grid-based coordinate system to a continuous, side-on scrollable seabed environment:
-*   **Foreground Layer:** The active interactive layer representing the seabed. Users can place Reef Star structures and plant coral fragments at any arbitrary horizontal coordinate ($x$-position) along the terrain.
+*   **Foreground Layer:** The active interactive layer representing the seabed. Users plant coral fragments at continuous horizontal and vertical coordinates ($x$- and $y$-positions) along the terrain (supporting placement on flat sand, slopes, cliffs, or boulders).
 *   **Midground Layer:** Renders swimming fish, particles, and secondary reef flora. Uses parallax mapping to scroll at a slower speed than the foreground, providing spatial depth.
 *   **Background Layer:** Renders distant water gradients, deep ocean contours, and soft bioluminescent backdrops. Scrolls at a minimal speed to generate a three-dimensional parallax effect.
 
@@ -160,8 +162,7 @@ The simulation models reef restoration progression through three primary phases:
 ```
                   +----------------------------------------------+
                   |               1. ONBOARDING & SETUP          |
-                  |  - Select location (Bali)                    |
-                  |  - Deploy Reef Star & Frag (First Staghorn)   |
+                  |  - Plant Coral Frag (First Staghorn)         |
                   +----------------------+-----------------------+
                                          |
                                          v
@@ -245,7 +246,7 @@ To satisfy Maximia's motivation to share "cool", unique things with friends on I
 
 ## 5. Multi-NGO Configuration Module
 Loads local environmental parameters and species sets for different regions:
-*   **Bali (Living Seas):** Tropical reef stars, *Acropora*, brain corals, temperature-induced bleaching.
+*   **Bali (Living Seas):** Staghorn corals (*Acropora*), brain corals, temperature-induced bleaching.
 *   **Jeju Island:** Rocky kelp forests, abalone, urchin overpopulation threats.
 *   **Caribbean:** Deep-sea coral species, disease vectors, physical hurricane damage threats.
 

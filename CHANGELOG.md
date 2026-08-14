@@ -22,6 +22,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The pro
 - This changelog.
 - End-to-end user workflow spec (`Documentation/user_workflow_marinesandbox.md`): two-screen flow, per-screen contents and interactions, the four modals, and an explicit out-of-scope list (DEC-008).
 - DeadCoral SVG visual assets (fragment 1, 2, and 3) in `Assets.xcassets` for SandboxView and SandboxViewModel rendering.
+- Sidecar SPM package (`MarineSandboxDomain/`) running `swift test` against the domain layer via a symlinked source folder — 36 tests pin engine maths, algae-grid brushing/grazing, and flick physics, with zero `project.pbxproj` changes (DEC-022).
+- Domain layer value types: `ReefState`/`CoralState` snapshots, 6×6 `AlgaeCoverage` grid with interpolated brush strokes, and pure drag/flick `Physics` (DEC-018, DEC-020, TASK-MVP-104).
+- `NGOConfig` model with the Bali/Living Seas exhibition preset; `heatwaveAllowed == false` is the enforcement point for bleaching dormancy (DEC-025).
+- `SandboxViewModel` coordinating views and domain: owns `scrollX` (DEC-021), adapts SwiftData ↔ snapshots (DEC-020), and handles planting, brushing, pest removal, runoff shocks, and Fast Forward (TASK-MVP-202).
+- Launch router (`RootView`): saved canvas → Coral Screen, first launch → single-tap Onboarding Page with placeholder visuals (DEC-008, TASK-MVP-204).
+- Sam's coral SVG set in `Assets.xcassets/Coral/` (vector-preserved): growth stages (toddler/teen/adult), four fragments, and the shiny survivor frag for the cold open (DEC-009).
+- `CoralGeometry` registry: per-stage model-space footprints from the asset viewBoxes, bottom-center anchored hit rects, tap hit-testing, and canvas→coral-local conversion for brush strokes (DEC-019).
+- The playable care loop (`SandboxView`): guided first plant with pulsing seabed target and auto-fly fallback (DEC-009/024), on-canvas Hand/Brush/Plant tool overlay (DEC-007), brush strokes that clear algae per drag segment with sparkle feedback (DEC-012/018), tap-to-smush and flick-to-throw pest removal with a one-time tooltip (DEC-012), live ticking at one sim month per 5 seconds (DEC-027), Drupella snail spawning on young corals (DEC-028), Fast Forward with a plain-language Diagnostic Card (workflow §3.1), and a frag palette that unlocks when the first coral reaches Teenager (DEC-029).
+- Gesture routing: touches starting on a coral belong to the active tool; drags on empty water pan the parallax world (DEC-026).
+- Frontend handoff doc (`Documentation/frontend_handoff.md`): which parts of the current UI are tested contracts vs. deliberate mock visuals for the frontend team to reskin.
+- Pest damage retuned 0.05 → 0.02/month after simulator playtest showed corals dying in under a minute of neglect; the reef is paused during the guided cold open so the tutorial can never kill the survivor (DEC-030).
+- Living baby corals render with the colored `ShinyFragment` sprite; gray `Fragment1` is reserved for dead rubble — planted life now reads as alive (DEC-009).
 
 ### Changed
 - Resolved all open/proposed register decisions from the 12 Aug session: iOS 26.5 + iPad confirmed in scope (DEC-016), Lottie art pipeline adopted behind a 10-coral perf gate (DEC-017, DEC-018), art hit-testing lives behind a `ReefArtProvider` seam (DEC-019), EcoEngine moves to value-type snapshots to become unit-testable (DEC-020), parallax `scrollX` ownership hoists into `SandboxViewModel` (DEC-021, tracked in issue #6), and domain testing runs in a sidecar SPM package with zero `project.pbxproj` changes (DEC-022).
@@ -32,6 +44,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The pro
 - `ReefCanvas` database model links `coralFrags` directly instead of wrapping them in `placedStructures` (DEC-024).
 - `CoralFrag` schema tracks `xPos` and `yPos` coordinates directly on the seabed, supporting vertical wall positioning (DEC-024).
 - `EcoEngine` processes `coralFrags` directly instead of mapping placed structures (DEC-024).
+- `EcoEngine` is now a pure function over `ReefState` value snapshots (maths unchanged); algae flows through the spatial `AlgaeCoverage` grid with identical aggregate rates (DEC-020, DEC-018).
+- `CoralFrag` gains a stable `id: UUID` for snapshot ↔ model matching and persists the algae grid as `algaeCells`; `algaePercentage` is now derived (DEC-020, DEC-018).
 
 ### Fixed
 - `TASK-MVP-204` rescoped in the TDD backlog and sprint plan: build the Onboarding Page and first-launch routing, **not** a Location Selection Screen. Both task definitions still instructed the team to build the removed screen (DEC-008).
@@ -40,13 +54,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The pro
 ### Removed
 - `PlacedStructure` SwiftData model class (DEC-024).
 - Reef Star structural frames from database schemas, user workflow, and PRD descriptions (DEC-024).
+- `Services/EcoEngine.swift` (replaced by the pure `Domain/EcoEngine.swift`, DEC-020) and the empty duplicate `App/MarineSandboxApp.swift` entry point.
 
 ### Open questions blocking work
-- **DEC-016** — iOS 26.5 deployment target, Swift 5 language mode, and iPhone+iPad device family have never been explicitly agreed; they are Xcode template defaults.
-- **DEC-021** — who owns parallax `scrollX`. Blocks the interactive entity layer.
-- **DEC-022** — domain test strategy; no test target exists yet.
-- **DEC-010 conflict** — PRD §4.6 and §1.5 treat thermal bleaching as MVP scope and `EcoEngine` now implements it, but the 12 Aug discussion deferred it. Must be reconciled before Phase 3.
-- **DEC-020** — `EcoEngine` documents itself as stateless but mutates its `@Model` input in place, so Fast Forward cannot preview a steady state without committing it.
+- None — DEC-016, DEC-020, DEC-021, DEC-022, and the DEC-010 conflict were all resolved in PR #7 (DEC-025) and are implemented in this change.
 
 ---
 

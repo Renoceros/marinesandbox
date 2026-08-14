@@ -1,17 +1,12 @@
-//
-//  marinesandboxApp.swift
-//  marinesandbox
-//
-//  Created by Moreno Kristovan on 11/08/26.
-//
-
 import SwiftUI
+import SwiftData
 
 @main
 struct marinesandboxApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootView()
         }
+        .modelContainer(for: [UserProfile.self, ReefCanvas.self, CoralFrag.self, NGOConfig.self])
     }
 }

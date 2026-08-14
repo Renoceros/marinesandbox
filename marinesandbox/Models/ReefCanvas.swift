@@ -28,6 +28,10 @@ public final class ReefCanvas {
     /// Array of coral fragments planted along the canvas.
     /// Cascades deletions when the canvas is cleared.
     @Relationship(deleteRule: .cascade) public var coralFrags: [CoralFrag]
+
+    /// Whether the guided first plant (DEC-009/024) has been completed.
+    /// Persisted so an interrupted cold open resumes the guide on next launch.
+    public var guidedPlantDone: Bool
     
     /// Initializes a new ReefCanvas instance.
     ///
@@ -41,11 +45,13 @@ public final class ReefCanvas {
         id: UUID = UUID(),
         ngoRegion: String,
         canvasWidth: Double = 2000.0,
-        coralFrags: [CoralFrag] = []
+        coralFrags: [CoralFrag] = [],
+        guidedPlantDone: Bool = false
     ) {
         self.id = id
         self.ngoRegion = ngoRegion
         self.canvasWidth = canvasWidth
         self.coralFrags = coralFrags
+        self.guidedPlantDone = guidedPlantDone
     }
 }

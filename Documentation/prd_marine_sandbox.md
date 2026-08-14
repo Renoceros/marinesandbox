@@ -3,7 +3,7 @@
 **Document Version:** v1.3  
 **Status:** Approved (Updated for 2-Week MVP Scope)  
 
-> **Decisions live in [`DECISIONS.md`](../DECISIONS.md).** Where this document and the decision register disagree, the register wins. Currently superseded here: §4.2 onboarding routing (DEC-008). Currently in conflict: §4.6 bleaching scope (DEC-010).
+> **Decisions live in [`DECISIONS.md`](../DECISIONS.md).** Where this document and the decision register disagree, the register wins. Currently superseded here: §4.2 onboarding routing (DEC-008). Amended: §1.5/§4.6 bleaching scope — engine-supported but dormant in the exhibition build (DEC-010, resolved by DEC-025).
 
 ---
 
@@ -32,11 +32,11 @@ To meet the 2-week launch deadline, features have been strictly prioritized:
   * Pure Swift `EcoEngine` (stateless calculations of growth, algae overgrowth, manual vs helper fish grazing, and heat stress).
   * Manual care loop (brushing algae, picking snails) transitioning to automated care (attracting parrotfish and wrasses).
   * 3-layer horizontal Parallax Scroll View for seabed visual depth.
-  * Thermal bleaching & ecological recovery window mechanics (Marine Heatwaves).
   * Mock regional config (Bali/Living Seas presets).
   * Visual Share Card generator (9:16 vertical postcard layout).
   * Local sandbox saves using in-memory / basic local persistence.
 * **DEFERRED (Post-MVP / Future Roadmap):**
+  * Thermal bleaching & ecological recovery window mechanics (Marine Heatwaves) — implemented in `EcoEngine` but **dormant**: exhibition threat vectors never exceed 30°C, so bleaching is never triggered. Returns later as a "prestige restart" achievement loop (DEC-010, resolved by DEC-025).
   * Multi-region Configurations (Jeju Island and Caribbean modules).
   * QR Code Amiibo-style scan rewards.
   * iCloud / CloudKit syncing and complex profile settings.
@@ -206,6 +206,8 @@ Different coral species exhibit distinct growth rates, attract different fish, a
     2.  *Trimming/Gardening:* Manually trim back the fast-growing *Acropora* over time to ensure the Brain Coral receives sufficient light and resources.
 
 ### 4.6. Thermal Bleaching vs. Algae Overgrowth Mechanics
+> **Exhibition build status: engine-supported, dormant (DEC-025).** The mechanics below are implemented in `EcoEngine` §D, but exhibition `ThreatVector`s never carry a Marine Heatwave (`waterTemperature` ≤ 30°C), so bleaching never triggers in gameplay. This section describes the intended design for the post-exhibition "prestige restart" loop — do not build UI for it yet.
+
 To prevent the pedagogical misconception that coral bleaching is caused by time or general neglect, the simulation makes a strict separation between maintenance issues and climate anomalies.
 
 #### 4.6.1. Baseline Stability (Time Isolation)

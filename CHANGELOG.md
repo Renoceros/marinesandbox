@@ -21,6 +21,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The pro
 - Decision register (`DECISIONS.md`) consolidating every scope, architecture, and UX decision from the docs, the 12 Aug team discussion, and the commit history, plus the tech-debt register (DEBT-001, DEBT-002) and a superseded/rejected log.
 - This changelog.
 - End-to-end user workflow spec (`Documentation/user_workflow_marinesandbox.md`): two-screen flow, per-screen contents and interactions, the four modals, and an explicit out-of-scope list (DEC-008).
+- DeadCoral SVG visual assets (fragment 1, 2, and 3) in `Assets.xcassets` for SandboxView and SandboxViewModel rendering.
 - Sidecar SPM package (`MarineSandboxDomain/`) running `swift test` against the domain layer via a symlinked source folder — 36 tests pin engine maths, algae-grid brushing/grazing, and flick physics, with zero `project.pbxproj` changes (DEC-022).
 - Domain layer value types: `ReefState`/`CoralState` snapshots, 6×6 `AlgaeCoverage` grid with interpolated brush strokes, and pure drag/flick `Physics` (DEC-018, DEC-020, TASK-MVP-104).
 - `NGOConfig` model with the Bali/Living Seas exhibition preset; `heatwaveAllowed == false` is the enforcement point for bleaching dormancy (DEC-025).

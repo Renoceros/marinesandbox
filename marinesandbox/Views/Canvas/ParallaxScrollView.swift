@@ -33,7 +33,8 @@ public struct ParallaxScrollView: View {
                     panRange: panRange,
                     currentOffset: currentOffset,
                     layerName: "Midground",
-                    alignment: .top
+                    alignment: .top,
+                    // verticalOffset: height * 0.12
                 )
 
                 // 3rd Layer: Background Layer (Parallax Ratio: 0.20, Top-Aligned)
@@ -44,7 +45,8 @@ public struct ParallaxScrollView: View {
                     panRange: panRange,
                     currentOffset: currentOffset,
                     layerName: "Background",
-                    alignment: .top
+                    alignment: .top,
+                    // verticalOffset: height * 0.07
                 )
 
                 // 4th Layer (Frontmost): Foreground Layer (Parallax Ratio: 1.00, Bottom-Aligned)
@@ -55,7 +57,8 @@ public struct ParallaxScrollView: View {
                     panRange: panRange,
                     currentOffset: currentOffset,
                     layerName: "Foreground",
-                    alignment: .bottom
+                    alignment: .bottom,
+                    // verticalOffset: -height * 0.08
                 )
             }
             .edgesIgnoringSafeArea(.all)
@@ -82,7 +85,16 @@ public struct ParallaxScrollView: View {
                         let targetX = scrollX + predicted
                         let clampedTarget = max(minScroll, min(0, targetX))
 
-                        withAnimation(.spring(response: 0.45, dampingFraction: 0.55)) {
+                        // Only the edges have anything to rubber-band against, so only
+                        // an out-of-bounds target gets the elastic overshoot spring.
+                        // An in-bounds settle uses a critically-damped spring so it
+                        // glides to a stop instead of bouncing mid-scroll.
+                        let isOutOfBounds = targetX < minScroll || targetX > 0
+                        let settleSpring: Animation = isOutOfBounds
+                            ? .spring(response: 0.45, dampingFraction: 0.55)
+                            : .spring(response: 0.35, dampingFraction: 0.9)
+
+                        withAnimation(settleSpring) {
                             scrollX = clampedTarget
                             dragOffset = 0.0
                         }
@@ -118,7 +130,8 @@ public struct ParallaxScrollView: View {
         panRange: CGFloat,
         currentOffset: CGFloat,
         layerName: String,
-        alignment: Alignment
+        alignment: Alignment,
+        verticalOffset: CGFloat = 0
     ) -> some View {
         let blockWidth = segmentWidth(viewportWidth: viewportWidth, panRange: panRange, ratio: ratio)
         let offset = currentOffset * ratio
@@ -149,7 +162,7 @@ public struct ParallaxScrollView: View {
                     }
                 }
                 .frame(width: blockWidth, height: height)
-                .offset(x: xPosition)
+                .offset(x: xPosition, y: verticalOffset)
                 .transition(.identity) // Disable implicit SwiftUI transition fades
             }
         }

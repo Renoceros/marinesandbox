@@ -26,6 +26,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The pro
 - `NGOConfig` model with the Bali/Living Seas exhibition preset; `heatwaveAllowed == false` is the enforcement point for bleaching dormancy (DEC-025).
 - `SandboxViewModel` coordinating views and domain: owns `scrollX` (DEC-021), adapts SwiftData ↔ snapshots (DEC-020), and handles planting, brushing, pest removal, runoff shocks, and Fast Forward (TASK-MVP-202).
 - Launch router (`RootView`): saved canvas → Coral Screen, first launch → single-tap Onboarding Page with placeholder visuals (DEC-008, TASK-MVP-204).
+- Sam's coral SVG set in `Assets.xcassets/Coral/` (vector-preserved): growth stages (toddler/teen/adult), four fragments, and the shiny survivor frag for the cold open (DEC-009).
+- `CoralGeometry` registry: per-stage model-space footprints from the asset viewBoxes, bottom-center anchored hit rects, tap hit-testing, and canvas→coral-local conversion for brush strokes (DEC-019).
 
 ### Changed
 - Resolved all open/proposed register decisions from the 12 Aug session: iOS 26.5 + iPad confirmed in scope (DEC-016), Lottie art pipeline adopted behind a 10-coral perf gate (DEC-017, DEC-018), art hit-testing lives behind a `ReefArtProvider` seam (DEC-019), EcoEngine moves to value-type snapshots to become unit-testable (DEC-020), parallax `scrollX` ownership hoists into `SandboxViewModel` (DEC-021, tracked in issue #6), and domain testing runs in a sidecar SPM package with zero `project.pbxproj` changes (DEC-022).

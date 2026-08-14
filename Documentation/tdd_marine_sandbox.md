@@ -3,6 +3,8 @@
 **Document Version:** v1.3  
 **Status:** Directory Architecture & Backlog Defined (Updated for 2-Week MVP Scope)  
 
+> **Decisions live in [`DECISIONS.md`](../DECISIONS.md).** Where this document and the decision register disagree, the register wins. Superseded sections here are flagged inline.
+
 ---
 
 ## 1. Team & Backlog Ownership
@@ -28,7 +30,7 @@ Below is the master list of tasks required to build the MVP and subsequent featu
 | **TASK-MVP-201** | `marinesandbox/Models` | Implement SwiftData schemas (`UserProfile`, `ReefCanvas`, `CoralFrag`) in `marinesandbox/Models/`. | Bishal | **In Scope** |
 | **TASK-MVP-202** | `marinesandbox/ViewModels`| Implement `marinesandbox/ViewModels/SandboxViewModel.swift` state coordination and Fast Forward operations. (Hard Reset moved to settings). | Bishal | **In Scope** |
 | **TASK-MVP-203** | `marinesandbox/Services` | Set up static JSON configurations for local presets (`NGOConfig`) to seed mock Bali data on launch. | Zarina | **In Scope** |
-| **TASK-MVP-204** | `marinesandbox/Views` | Build Location Selection Screen and user routing system (new vs. returning users). | Reno / Bobo | **In Scope** |
+| **TASK-MVP-204** | `marinesandbox/Views` | Build Onboarding Page and first-launch routing (new vs. returning users). No location selection (DEC-008). | Reno / Bobo | **In Scope** |
 | **TASK-MVP-301** | `marinesandbox/Views` | Build `LottieCoralView.swift` SwiftUI wrapper and logic to scrub playheads based on state. | Bobo | **In Scope** |
 | **TASK-MVP-302** | `marinesandbox/Views` | Add custom animations and touch feedback for Brush Tool and Snail Kill Hand Tool. | Reno | **In Scope** |
 | **TASK-MVP-303** | `marinesandbox/Views` | Connect the midground layer to render custom recruited fauna silhouettes. | Bobo | **In Scope** |
@@ -494,5 +496,6 @@ To enable interactive dragging of structures/fragments and momentum-based flicki
 ---
 
 ## 6. Development Workflow
+See [`CONTRIBUTING.md`](../CONTRIBUTING.md) for the full workflow. In short: never commit to `main`, always branch off the latest `main`, and merge back through a pull request (DEC-023).
 *   **Branching Convention:** `feat/{developer-name}/{TASK-ID-description}` (e.g., `feat/sam/TASK-102-eco-engine`).
 *   **Mock Seeding Configuration:** Reads static JSON files (such as `BaliConfig.json`) to seed standard NGO parameters during mock runs.

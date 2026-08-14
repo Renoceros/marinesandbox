@@ -28,11 +28,11 @@ The product is deliberately reduced to **one onboarding page and one interactive
 +---------------------------------------------------------------------------------+
 |  2. CORAL SCREEN  (THE screen — everything happens here)                        |
 |                                                                                 |
-|  First-launch state:  Dead seabed. White coral rubble. ONE surviving live Staghorn    |
-|                       frag in the rubble.                                       |
+|  First-launch state:  Dead seabed. White coral rubble. ONE surviving live       |
+|                       Staghorn frag in the rubble.                              |
 |                                                                                 |
 |  Guided first plant:  tap frag -> frag lifts -> targeted ground pulses/glows    |
-|                       -> user drags frag onto ground -> planted -> growth begins |
+|                       -> user drags frag onto ground -> planted -> growth begins|
 |                                                                                 |
 |  Steady state:        Care loop, threats, growth stages, fauna recruitment,     |
 |                       fast forward, share — all on this screen.                 |

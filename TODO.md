@@ -19,7 +19,7 @@ Legend: `[ ]` not started · `[~]` in progress · `[x]` done · `[—]` teammate
 
 ## Phase 1 — Testing infrastructure (DEC-022, DEC-020) · OUR LANE
 
-### 1.1 Sidecar SPM package
+### 1.1 Sidecar SPM package ✅ DONE
 
 - **Goal:** real `swift test` for the domain layer with zero `project.pbxproj` changes (DEC-022). The Xcode project uses file-system synchronized groups (DEC-016 note), so anything under `marinesandbox/` auto-joins the app target — the package must therefore live at **repo root**, outside the synced group.
 - **Files:**
@@ -32,7 +32,7 @@ Legend: `[ ]` not started · `[~]` in progress · `[x]` done · `[—]` teammate
   - `MarineSandboxDomain/` is not picked up by the app's synchronized group (it sits outside `marinesandbox/`).
 - **Normative:** DEC-022, DEC-016 (synchronized groups note).
 
-### 1.2 EcoEngine value-snapshot refactor
+### 1.2 EcoEngine value-snapshot refactor ✅ DONE
 
 - **Goal:** `EcoEngine` operates on `ReefState` value snapshots, not `@Model` classes (DEC-020). **Maths stays exactly as written** — only the boundary changes.
 - **Files:**
@@ -53,7 +53,7 @@ Legend: `[ ]` not started · `[~]` in progress · `[x]` done · `[—]` teammate
   - Old `Services/EcoEngine.swift` is gone; app target still builds (synchronized groups pick up `Domain/` automatically).
 - **Normative:** DEC-020, DEC-018, DEC-025.
 
-### 1.3 Core engine test suite
+### 1.3 Core engine test suite ✅ DONE (36 tests green)
 
 - **Goal:** pin the engine's behavior so the refactor and all future tuning are verifiable. Swift Testing framework (`@Test`, `#expect`).
 - **Files:** `MarineSandboxDomain/Tests/DomainTests/EcoEngineTests.swift`, `AlgaeCoverageTests.swift`.
@@ -70,7 +70,7 @@ Legend: `[ ]` not started · `[~]` in progress · `[x]` done · `[—]` teammate
 
 ## Phase 2 — Domain layer ("backend") · OUR LANE unless marked
 
-### 2.1 `NGOConfig` SwiftData model + Bali preset seed
+### 2.1 `NGOConfig` SwiftData model + Bali preset seed ✅ DONE (schema half)
 
 - **Goal:** the last empty model gets a schema; the Bali/Living Seas default config seeds on first launch (TASK-MVP-203 is Zarina's file-loading half — **our half is the schema**).
 - **Files:** `marinesandbox/Models/NGOConfig.swift`.
@@ -78,7 +78,7 @@ Legend: `[ ]` not started · `[~]` in progress · `[x]` done · `[—]` teammate
 - **Acceptance:** model compiles into the app target; a `NGOConfig(regionName: "Bali")` fixture documents the exhibition defaults; `heatwaveAllowed == false` is asserted in a comment citing DEC-025.
 - **Normative:** DEC-003 (Bali implicit default, other regions config-only), DEC-025, PRD §4, TASK-MVP-201 note (PlacedStructure removed — DEC-024).
 
-### 2.2 `SandboxViewModel`
+### 2.2 `SandboxViewModel` ✅ DONE
 
 - **Goal:** the View↔Domain coordinator (TASK-MVP-202). Owns `scrollX` (DEC-021), maps SwiftData ↔ snapshots, translates care actions into state mutations.
 - **Files:** `marinesandbox/ViewModels/SandboxViewModel.swift`.
@@ -92,7 +92,7 @@ Legend: `[ ]` not started · `[~]` in progress · `[x]` done · `[—]` teammate
 - **Risk:** `CoralFrag` currently has **no stable `UUID`** — add `id: UUID` to the model so snapshot↔model matching survives round trips. Small schema change; note it in the PR.
 - **Normative:** DEC-005, DEC-013, DEC-018, DEC-021, DEBT-001, workflow doc §2.3C.
 
-### 2.3 Drag/flick 2D physics
+### 2.3 Drag/flick 2D physics ✅ DONE
 
 - **Goal:** TASK-MVP-104 — the tactile layer for planting and pest removal.
 - **Files:** `marinesandbox/Domain/Physics.swift` (pure, testable) + consumed by `SandboxViewModel`.
@@ -103,7 +103,7 @@ Legend: `[ ]` not started · `[~]` in progress · `[x]` done · `[—]` teammate
 - **Acceptance:** `Physics.swift` has no SwiftUI/SwiftData imports; flick threshold behavior unit-tested (99 pt/s stays, 101 pt/s throws); trajectory deterministic.
 - **Normative:** DEC-012, workflow doc §2.3C interaction table, TASK-MVP-104.
 
-### 2.4 First-launch routing
+### 2.4 First-launch routing ✅ DONE (routing half; onboarding visuals are Reno/Bobo)
 
 - **Goal:** TASK-MVP-204 as rescoped (DEC-008): route without a router screen. **Our half is the routing logic; the Onboarding Page visuals are Reno/Bobo's.**
 - **Files:** `marinesandbox/marinesandboxApp.swift` (or `App/MarineSandboxApp.swift` — reconcile the duplicate App entry points as part of this; one must go), `ContentView.swift`.

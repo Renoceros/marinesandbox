@@ -40,6 +40,14 @@ public struct AlgaeCoverage: Equatable, Sendable {
         self.cells = Array(repeating: clamped, count: Self.resolution * Self.resolution)
     }
 
+    /// Rehydrates a grid from persisted cells (e.g. `CoralFrag.algaeCells`).
+    /// A wrong-length array — including the empty array stored by older saves —
+    /// falls back to a clean grid rather than trapping.
+    public init(cells: [Float]) {
+        let count = Self.resolution * Self.resolution
+        self.cells = cells.count == count ? cells : Array(repeating: 0, count: count)
+    }
+
     // MARK: - Derived Aggregates
 
     /// Mean coverage across the grid — the scalar the ecology maths consumes.

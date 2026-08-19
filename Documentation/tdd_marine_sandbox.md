@@ -39,6 +39,7 @@ Below is the master list of tasks required to build the MVP and subsequent featu
 | **TASK-MVP-401** | `marinesandbox/Services` | Verify EcoEngine calculations under long simulations (math stress tests). | Bishal / Zarina | **In Scope** |
 | **TASK-MVP-402** | `marinesandbox/Views` | Optimize `ParallaxScrollView` render frames to ensure fluid 60fps scrolling. | Bobo / Zarina | **In Scope** |
 | **TASK-MVP-403** | `All` | Code review cleanup and memory safety check (`[weak self]`). | All | **In Scope** |
+| **TASK-MVP-404** | `All` | Compile and integrate SFX/ambient assets into `marinesandbox/Resources/Audio/` per `Audio.md` and implement local audio player service. | All | **In Scope** |
 | **TASK-ROAD-501** | `marinesandbox/Services` | Enforce COPPA guidelines: encrypt saved data and isolate user profiles inside local container storage. | Bishal / Zarina | **Deferred** |
 | **TASK-ROAD-502** | `marinesandbox/Services` | Build Apple native iCloud / CloudKit syncing layer for profiles and settings. | Bishal | **Deferred** |
 | **TASK-ROAD-503** | `marinesandbox/Views` | Implement advanced parallax micro-animations (swaying seaweed/seagrass blades, custom spline swimming fish paths). | Bobo | **Deferred** |

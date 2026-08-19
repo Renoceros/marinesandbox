@@ -142,6 +142,7 @@ The minimum that makes the app *usable as the product intends*: every interactio
 - [—] **10-coral Lottie perf check** — the DEC-017 gate. Must pass before final art is committed; if it fails, `SkeletonArtProvider` carries the exhibition.
 - [—] Lottie integration per DEC-018 layered compositions (TASK-MVP-301's single-playhead mapping is superseded).
 - [—] Care tool polish (TASK-MVP-302), share card with final art (TASK-MVP-304).
+- [—] **Audio compile & integration**: compile all SFX/ambient assets into `marinesandbox/Resources/Audio/` per [`Audio.md`](marinesandbox/Resources/Audio/Audio.md) and implement local audio player service.
 - [x/—] Engine stress coverage: folded into Phase 1.3 (determinism + 60-step sweep). TASK-MVP-401's remaining half (render-frame optimization) is Bobo/Zarina.
 - [—] Memory audit (TASK-MVP-403): `[weak self]` on all async tasks.
 

@@ -107,6 +107,7 @@ gantt
 
 ### Days 13–14: Bug Fixes & Code Cleanup
 * **TASK-MVP-403 (All):** Code review cleanup. Ensure all async tasks (`Task`) utilize `[weak self]` memory safety rules.
+* **TASK-MVP-404 (All):** Compile and integrate SFX/ambient assets into `marinesandbox/Resources/Audio/` per [`Audio.md`](file:///Users/moreno_m5/Projects/CH5/marinesandbox/marinesandbox/Resources/Audio/Audio.md) and implement local audio player service.
 * **Deliverable:** Fully functional, compiler-error-free Marine Sandbox iOS application ready for deployment.
 
 ---

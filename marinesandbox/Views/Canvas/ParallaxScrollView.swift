@@ -29,36 +29,52 @@ public struct ParallaxScrollView: View {
                 layerContainer(
                     viewportWidth: viewportWidth,
                     height: height,
-                    ratio: 0.50,
+                    ratio: 0.40,
                     panRange: panRange,
                     currentOffset: currentOffset,
                     layerName: "Midground",
                     alignment: .top,
-                    // verticalOffset: height * 0.12
+                    widthScale: 1.0,
+                    verticalOffset: 100
                 )
 
                 // 3rd Layer: Background Layer (Parallax Ratio: 0.20, Top-Aligned)
                 layerContainer(
                     viewportWidth: viewportWidth,
                     height: height,
-                    ratio: 0.20,
+                    ratio: 0.30,
                     panRange: panRange,
                     currentOffset: currentOffset,
                     layerName: "Background",
                     alignment: .top,
-                    // verticalOffset: height * 0.07
+                    widthScale: 1.0,
+                    verticalOffset: 50
                 )
 
-                // 4th Layer (Frontmost): Foreground Layer (Parallax Ratio: 1.00, Bottom-Aligned)
+                // 4th Layer: Foreground Layer (Parallax Ratio: 1.00, Bottom-Aligned)
                 layerContainer(
                     viewportWidth: viewportWidth,
                     height: height,
-                    ratio: 1.00,
+                    ratio: 0.20,
                     panRange: panRange,
                     currentOffset: currentOffset,
                     layerName: "Foreground",
                     alignment: .bottom,
-                    // verticalOffset: -height * 0.08
+                    widthScale: 1.5,
+                    verticalOffset: 0
+                )
+
+                // 5th Layer (Frontmost): Topground Layer (Parallax Ratio: 0.10, Top-Aligned)
+                layerContainer(
+                    viewportWidth: viewportWidth,
+                    height: height,
+                    ratio: 0.20,
+                    panRange: panRange,
+                    currentOffset: currentOffset,
+                    layerName: "Topground",
+                    alignment: .top,
+                    widthScale: 1.0,
+                    verticalOffset: 10
                 )
             }
             .edgesIgnoringSafeArea(.all)
@@ -109,19 +125,20 @@ public struct ParallaxScrollView: View {
         (1 - 1 / (overscroll * coefficient / dimension + 1)) * dimension
     }
 
-    // Renders the horizontal window of exactly 3 stitched columns (no infinite scroll).
+    // Renders a horizontal strip of stitched columns (no infinite scroll).
     //
-    // Every layer shares the same drag range (`currentOffset` clamped to
-    // [-panRange, 0]), but slower layers (ratio < 1) only ever move through
-    // `panRange * ratio` px of that range. Sizing every layer's segments at a
-    // fixed 1.5x viewport width (matching only the ratio-1.0 foreground) left
-    // slower layers unable to ever pan their 3rd (and, for Background, 2nd)
-    // segment into view. Scaling segment width by ratio makes each layer's 3
-    // segments exactly span the viewport across its own (smaller) offset range.
-    private func segmentWidth(viewportWidth: CGFloat, panRange: CGFloat, ratio: CGFloat) -> CGFloat {
-        (viewportWidth + panRange * ratio) / 3
-    }
-
+    // Every artwork is authored one screen wide, so `widthScale: 1.0` renders it
+    // at exactly its intended width. Height is never set directly — it falls out
+    // of the asset's own aspect ratio, which is what keeps the zoom uniform.
+    // Driving size from a target *height* would work back to a different width
+    // and squash the artwork horizontally; driving it from width cannot.
+    //
+    // To move a layer up or down, use `verticalOffset` rather than resizing it.
+    //
+    // Column count is derived rather than fixed: every layer shares the same
+    // drag range, but a layer with ratio < 1 only travels `panRange * ratio` px
+    // of it, so it needs just enough columns to keep the viewport covered
+    // across its own (smaller) travel.
     @ViewBuilder
     private func layerContainer(
         viewportWidth: CGFloat,
@@ -131,32 +148,36 @@ public struct ParallaxScrollView: View {
         currentOffset: CGFloat,
         layerName: String,
         alignment: Alignment,
+        widthScale: CGFloat = 1.0,
         verticalOffset: CGFloat = 0
     ) -> some View {
-        let blockWidth = segmentWidth(viewportWidth: viewportWidth, panRange: panRange, ratio: ratio)
+        let blockWidth = viewportWidth * widthScale
         let offset = currentOffset * ratio
+        let columnCount = min(24, max(1, Int(ceil((viewportWidth + panRange * ratio) / blockWidth))))
+
         ZStack(alignment: .leading) {
-            // Columns -1 and 3 are the real 0/2 edge columns repeated one slot further out.
-            // They sit outside the normal [minScroll, 0] pan range and only ever peek into
-            // view during rubber-band overscroll, so it reads as "there's more land here"
-            // instead of the bare backdrop color.
-            ForEach(-1..<4, id: \.self) { col in
+            // Columns -1 and `columnCount` repeat the real edge columns one slot further
+            // out. They sit outside the normal [minScroll, 0] pan range and only ever peek
+            // into view during rubber-band overscroll, so it reads as "there's more land
+            // here" instead of the bare backdrop color.
+            ForEach(-1...columnCount, id: \.self) { col in
                 let xPosition = CGFloat(col) * blockWidth + offset
-                let permCol = max(0, min(2, col))
+                let permCol = max(0, min(columnCount - 1, col))
                 let perm = getPermutation(col: permCol)
 
-                // Assign a unique variant index from the permutation list based on the layer
-                // Background -> perm[0], Midground -> perm[1], Foreground -> perm[2]
-                let variantIndex = layerName == "Background" ? perm[0] : (layerName == "Midground" ? perm[1] : perm[2])
-                
+                // Assign a unique variant index from the permutation list based on the layer.
+                // Topground shares Background's slot: they draw from different asset sets,
+                // so a matching index never reads as a repeat.
+                let variantIndex = perm[variantSlot(for: layerName)]
+
                 VStack(spacing: 0) {
                     if alignment == .bottom {
                         Spacer()
                     }
-                    
+
                     renderBlockView(layer: layerName, variantIndex: variantIndex)
                         .frame(width: blockWidth)
-                    
+
                     if alignment == .top {
                         Spacer()
                     }
@@ -183,11 +204,27 @@ public struct ParallaxScrollView: View {
         return permutations[hash]
     }
     
+    private func variantSlot(for layerName: String) -> Int {
+        switch layerName {
+        case "Background", "Topground": return 0
+        case "Midground": return 1
+        default: return 2
+        }
+    }
+
+    private func assetPrefix(for layerName: String) -> String {
+        switch layerName {
+        case "Topground": return "SF"
+        case "Background": return "BG"
+        case "Midground": return "MG"
+        default: return "FG"
+        }
+    }
+
     // Helper to render Image assets directly by name mapping
     @ViewBuilder
     private func renderBlockView(layer: String, variantIndex: Int) -> some View {
-        let prefix = layer == "Background" ? "BG" : (layer == "Midground" ? "MG" : "FG")
-        Image("\(prefix)\(variantIndex)")
+        Image("\(assetPrefix(for: layer))\(variantIndex)")
             .resizable()
             .aspectRatio(contentMode: .fit)
     }

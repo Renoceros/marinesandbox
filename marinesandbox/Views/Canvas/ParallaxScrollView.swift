@@ -23,9 +23,17 @@ public struct ParallaxScrollView: View {
             let currentOffset = scrollX + dragOffset
 
             ZStack(alignment: .leading) {
-                // 1st Layer (Backmost): Solid backdrop color (#3BAFED) ignoring safe area
-                Color(hex: "3BAFED")
-                    .edgesIgnoringSafeArea(.all)
+                // 1st Layer (Backmost): Linear gradient backdrop ignoring safe area
+                LinearGradient(
+                    gradient: Gradient(stops: [
+                        .init(color: Color(hex: "000000"), location: 0.0),
+                        .init(color: Color(hex: "3BAFED"), location: 0.55),
+                        .init(color: Color(hex: "3BAFED"), location: 1.0)
+                    ]),
+                    startPoint: .bottom,
+                    endPoint: .top
+                )
+                .edgesIgnoringSafeArea(.all)
 
                 // 2nd Layer: Midground Layer (Parallax Ratio: 0.50, Top-Aligned)
                 layerContainer(
@@ -37,7 +45,8 @@ public struct ParallaxScrollView: View {
                     layerName: "Midground",
                     alignment: .top,
                     widthScale: 1.5,
-                    verticalOffset: 0
+                    verticalOffset: 0,
+                    opacity: 0.8
                     
                 )
 
@@ -51,7 +60,8 @@ public struct ParallaxScrollView: View {
                     layerName: "Background",
                     alignment: .top,
                     widthScale: 1.5,
-                    verticalOffset: 0
+                    verticalOffset: 0,
+                    opacity: 0.8
                 )
 
                 // 4th Layer: Foreground Layer (Parallax Ratio: 1.00, Bottom-Aligned)
@@ -77,7 +87,8 @@ public struct ParallaxScrollView: View {
                     layerName: "Topground",
                     alignment: .top,
                     widthScale: 1.5,
-                    verticalOffset: 0
+                    verticalOffset: 0,
+                    opacity: 0.9
                 )
             }
             .edgesIgnoringSafeArea(.all)

@@ -177,8 +177,14 @@ public struct ParallaxScrollView: View {
                         Spacer()
                     }
 
-                    renderBlockView(layer: layerName, variantIndex: variantIndex)
-                        .frame(width: blockWidth)
+                    if layerName == "Background" || layerName == "Midground" {
+                        renderBlockView(layer: layerName, variantIndex: variantIndex)
+                            .frame(width: blockWidth, height: height)
+                            .clipped()
+                    } else {
+                        renderBlockView(layer: layerName, variantIndex: variantIndex)
+                            .frame(width: blockWidth)
+                    }
 
                     if alignment == .top {
                         Spacer()
@@ -226,9 +232,10 @@ public struct ParallaxScrollView: View {
     // Helper to render Image assets directly by name mapping
     @ViewBuilder
     private func renderBlockView(layer: String, variantIndex: Int) -> some View {
-        Image("\(assetPrefix(for: layer))\(variantIndex)")
+        let contentMode: ContentMode = (layer == "Background" || layer == "Midground") ? .fill : .fit
+        return Image("\(assetPrefix(for: layer))\(variantIndex)")
             .resizable()
-            .aspectRatio(contentMode: .fit)
+            .aspectRatio(contentMode: contentMode)
     }
 }
 

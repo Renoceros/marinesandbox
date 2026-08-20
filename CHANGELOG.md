@@ -17,6 +17,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The pro
 ## [Unreleased]
 
 ### Added
+- Lottie 4.6.1 runtime and a `LottieCoralView` renderer for the paired 60-frame coral lifecycle assets: living corals deterministically select a left/right orientation from their UUID and scrub their full lifecycle timeline from `growthProgress` (DEC-017, DEC-018, DEC-031).
 - Audio and SFX specification sheet ([`Audio.md`](file:///Users/moreno_m5/Projects/CH5/marinesandbox/marinesandbox/Resources/Audio/Audio.md)) detailing the required interaction SFX, ambient loops, placement triggers, and performance guidelines for the exhibition build.
 - Project `README.md`: what the app is, why it exists, tech stack, project layout, build/test commands, documentation map, contributing summary, and roadmap — all cross-linked to the PRD, DECISIONS, and CONTRIBUTING docs.
 - Contributing guide (`CONTRIBUTING.md`): feature-branch workflow, always branch off the latest `main`, PR into `main`, branch naming, conflict handling for the shared records, and the fork flow for contributors without write access (DEC-023).

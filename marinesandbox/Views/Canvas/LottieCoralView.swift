@@ -1,0 +1,44 @@
+import Lottie
+import SwiftUI
+
+struct LottieCoralView: UIViewRepresentable {
+    let coralID: UUID
+    let growthProgress: Double
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(frame: CoralLifecycle.frame(for: growthProgress))
+    }
+
+    func makeUIView(context: Context) -> LottieAnimationView {
+        let orientation = CoralLifecycle.orientation(for: coralID)
+        let animationView = LottieAnimationView(
+            dotLottieName: orientation.assetName,
+            bundle: .main,
+            subdirectory: "Lottie"
+        ) { view, error in
+            guard error == nil else { return }
+            context.coordinator.isLoaded = true
+            view.currentFrame = context.coordinator.frame
+        }
+        animationView.contentMode = .scaleAspectFit
+        animationView.backgroundBehavior = .pauseAndRestore
+        animationView.isAccessibilityElement = false
+        return animationView
+    }
+
+    func updateUIView(_ animationView: LottieAnimationView, context: Context) {
+        let frame = CoralLifecycle.frame(for: growthProgress)
+        context.coordinator.frame = frame
+        guard context.coordinator.isLoaded else { return }
+        animationView.currentFrame = frame
+    }
+
+    final class Coordinator {
+        var frame: Double
+        var isLoaded = false
+
+        init(frame: Double) {
+            self.frame = frame
+        }
+    }
+}

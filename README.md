@@ -29,7 +29,7 @@ Field conservation programs (e.g. Living Seas, Bali) create strong emotional bon
 | Platform | iOS 26.5, Xcode 26.6, Swift 5.0 language mode |
 | UI | SwiftUI, MVVM+S |
 | Persistence | SwiftData |
-| Dependencies | **None.** No SPM packages in the app target. |
+| Dependencies | [`lottie-spm` 4.6.1](https://github.com/airbnb/lottie-spm) for coral lifecycle rendering (DEC-017). |
 | Tests | Domain layer, via a sidecar SPM package ([DEC-022](DECISIONS.md#dec-022)) |
 | Bundle | `com.molamola.marinesandbox` |
 

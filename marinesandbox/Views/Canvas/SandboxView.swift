@@ -120,11 +120,7 @@ struct SandboxView: View {
             let baseY = seabedY - (isLifted ? viewModel.liftedFragPosition.y : coral.yPos)
 
             ZStack {
-                Image(assetName)
-                    .resizable()
-                    .frame(width: footprint.size.width, height: footprint.size.height)
-                    .saturation(frag.isDead ? 0 : 1)
-                    .opacity(frag.isDead ? 0.5 : 1)
+                coralArtView(frag: frag, assetName: assetName, footprint: footprint)
                     .scaleEffect(isLifted ? 1.15 : 1.0)
                     .shadow(color: isLifted ? .white.opacity(0.6) : .clear, radius: 12)
                     .shadow(color: isSurvivor ? .yellow.opacity(0.8) : .clear, radius: 18)
@@ -150,6 +146,24 @@ struct SandboxView: View {
             .gesture(coralDrag(viewModel: viewModel, frag: frag, seabedY: seabedY))
             .onTapGesture { handleCoralTap(viewModel: viewModel, frag: frag) }
             .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isLifted)
+        }
+    }
+
+    @ViewBuilder
+    private func coralArtView(
+        frag: CoralFrag,
+        assetName: String,
+        footprint: CoralGeometry.Footprint
+    ) -> some View {
+        if frag.isDead {
+            Image(assetName)
+                .resizable()
+                .frame(width: footprint.size.width, height: footprint.size.height)
+                .saturation(0)
+                .opacity(0.5)
+        } else {
+            LottieCoralView(coralID: frag.id, growthProgress: frag.growthProgress)
+                .frame(width: footprint.size.width, height: footprint.size.height)
         }
     }
 

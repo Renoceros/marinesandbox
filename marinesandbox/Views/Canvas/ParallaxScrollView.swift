@@ -31,12 +31,12 @@ public struct ParallaxScrollView: View {
                 layerContainer(
                     viewportWidth: viewportWidth,
                     height: height,
-                    ratio: 0.40,
+                    ratio: 0.50,
                     panRange: panRange,
                     currentOffset: currentOffset,
                     layerName: "Midground",
                     alignment: .top,
-                    widthScale: 1.0,
+                    widthScale: 1.5,
                     verticalOffset: 100
                 )
 
@@ -44,12 +44,12 @@ public struct ParallaxScrollView: View {
                 layerContainer(
                     viewportWidth: viewportWidth,
                     height: height,
-                    ratio: 0.30,
+                    ratio: 0.20,
                     panRange: panRange,
                     currentOffset: currentOffset,
                     layerName: "Background",
                     alignment: .top,
-                    widthScale: 1.0,
+                    widthScale: 1.5,
                     verticalOffset: 50
                 )
 
@@ -57,7 +57,7 @@ public struct ParallaxScrollView: View {
                 layerContainer(
                     viewportWidth: viewportWidth,
                     height: height,
-                    ratio: 0.20,
+                    ratio: 1.00,
                     panRange: panRange,
                     currentOffset: currentOffset,
                     layerName: "Foreground",
@@ -70,12 +70,12 @@ public struct ParallaxScrollView: View {
                 layerContainer(
                     viewportWidth: viewportWidth,
                     height: height,
-                    ratio: 0.20,
+                    ratio: 0.10,
                     panRange: panRange,
                     currentOffset: currentOffset,
                     layerName: "Topground",
                     alignment: .top,
-                    widthScale: 1.0,
+                    widthScale: 1.5,
                     verticalOffset: 10
                 )
             }
@@ -177,14 +177,8 @@ public struct ParallaxScrollView: View {
                         Spacer()
                     }
 
-                    if layerName == "Background" || layerName == "Midground" {
-                        renderBlockView(layer: layerName, variantIndex: variantIndex)
-                            .frame(width: blockWidth, height: height)
-                            .clipped()
-                    } else {
-                        renderBlockView(layer: layerName, variantIndex: variantIndex)
-                            .frame(width: blockWidth)
-                    }
+                    renderBlockView(layer: layerName, variantIndex: variantIndex)
+                        .frame(width: blockWidth)
 
                     if alignment == .top {
                         Spacer()
@@ -232,10 +226,9 @@ public struct ParallaxScrollView: View {
     // Helper to render Image assets directly by name mapping
     @ViewBuilder
     private func renderBlockView(layer: String, variantIndex: Int) -> some View {
-        let contentMode: ContentMode = (layer == "Background" || layer == "Midground") ? .fill : .fit
-        return Image("\(assetPrefix(for: layer))\(variantIndex)")
+        Image("\(assetPrefix(for: layer))\(variantIndex)")
             .resizable()
-            .aspectRatio(contentMode: contentMode)
+            .aspectRatio(contentMode: .fit)
     }
 }
 

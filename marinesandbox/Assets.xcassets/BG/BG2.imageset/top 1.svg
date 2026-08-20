@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 603 338.14">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: none;
+        stroke: #b5ebff;
+      }
+
+      .cls-1, .cls-2 {
+        isolation: isolate;
+      }
+
+      .cls-2 {
+        fill: #b5ebff;
+      }
+
+      .cls-3 {
+        opacity: .8;
+      }
+    </style>
+  </defs>
+  <g id="bg">
+    <g id="top" class="cls-3">
+      <g id="_1" data-name="1">
+        <g id="_1_bubbles" data-name="1 bubbles">
+          <path class="cls-2" d="M550.53,239.93c0,10.32-19.62,5.12-45.91,5.12s-49.31,5.21-49.31-5.12,21.32-18.69,47.61-18.69,47.61,8.37,47.61,18.69Z"/>
+          <path class="cls-2" d="M137.45,269.75c0-10.32-19.62-5.12-45.91-5.12s-49.31-5.21-49.31,5.12,21.32,18.69,47.61,18.69,47.61-8.37,47.61-18.69Z"/>
+          <ellipse class="cls-2" cx="568.34" cy="213.04" rx="24.94" ry="10.17"/>
+          <ellipse class="cls-2" cx="141.9" cy="297" rx="24.94" ry="10.17"/>
+          <circle class="cls-2" cx="440.65" cy="255.64" r="7.68"/>
+          <circle class="cls-2" cx="564.51" cy="237.63" r="3.84"/>
+          <circle class="cls-2" cx="272.05" cy="331.82" r="3.84"/>
+          <circle class="cls-2" cx="99.29" cy="307.17" r="7.68"/>
+          <circle class="cls-2" cx="58.06" cy="252.47" r="7.68"/>
+          <circle class="cls-2" cx="79.66" cy="320.53" r="4.41"/>
+        </g>
+        <g id="_1_lines" data-name="1 lines">
+          <path class="cls-1" d="M89.27,284.58c94.41,7.84,77.57,50.5,121.14,52.92,99.58,5.52,186.91-146.82,340.41-124.46"/>
+        </g>
+        <g id="_1_lines-2" data-name="1 lines">
+          <path class="cls-1" d="M105.12,284.58c94.41,7.84,77.57,50.5,121.14,52.92,99.58,5.52,186.91-146.82,340.41-124.46"/>
+        </g>
+        <path id="_1-2" data-name="1" class="cls-2" d="M603,209.5c-70.28,3.88-112.5-24-180,21-94.92,63.28-233.33,155.15-273,61C35,282,43,209.5,0,209.5,0,137.5,0,0,0,0h603v209.5Z"/>
+      </g>
+    </g>
+  </g>
+</svg>

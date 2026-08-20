@@ -52,6 +52,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The pro
 - `CoralFrag` gains a stable `id: UUID` for snapshot ↔ model matching and persists the algae grid as `algaeCells`; `algaePercentage` is now derived (DEC-020, DEC-018).
 
 ### Fixed
+- Fixed letterboxing and vertical squishing bugs on background, midground, and topground parallax layers in [`ParallaxScrollView.swift`](marinesandbox/Views/Canvas/ParallaxScrollView.swift) by restoring the designed `widthScale: 1.5` and speed ratios from the TDD, preserving their aspect ratios.
+- Added custom opacity configuration support (`opacity` parameter) to `layerContainer` in [`ParallaxScrollView.swift`](marinesandbox/Views/Canvas/ParallaxScrollView.swift) and set default vertical offsets to 0.
+- Replaced the backmost solid backdrop color with a bottom-to-top linear gradient transitioning from dark blue (`#042638`) at the bottom to `#3BAFED` at 55% height and adjusted midground opacity to 0.5 inside [`ParallaxScrollView.swift`](marinesandbox/Views/Canvas/ParallaxScrollView.swift).
+- Integrated updated `coral.lottie` resource inside resources catalog.
 - `TASK-MVP-204` rescoped in the TDD backlog and sprint plan: build the Onboarding Page and first-launch routing, **not** a Location Selection Screen. Both task definitions still instructed the team to build the removed screen (DEC-008).
 - Removed the stale "Select location (Bali)" step from the PRD §4.4 gameplay-loop diagram, and corrected the misaligned ASCII box borders in that diagram and in the workflow spec's Coral Screen box.
 

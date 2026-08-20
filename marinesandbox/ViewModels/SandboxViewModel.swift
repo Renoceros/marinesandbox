@@ -44,6 +44,12 @@ public final class SandboxViewModel {
     /// Plain-language reflection shown on the Diagnostic Card after Fast Forward.
     public var diagnosticMessage: String?
 
+    public var lottiePlaybackTargets: [UUID: Double] = [:]
+
+    public func completeLottiePlayback(for coralID: UUID) {
+        lottiePlaybackTargets[coralID] = nil
+    }
+
     /// The frag currently lifted by the user's finger (guided plant or palette drag).
     public var liftedFragID: UUID?
 
@@ -109,8 +115,12 @@ public final class SandboxViewModel {
         let now = Date()
         let elapsed = now.timeIntervalSince(canvas.lastSeenAt)
         guard elapsed > 1 else { return }
-        let outcome = EcoEngine.advance(state: snapshot(), threats: threats, elapsed: elapsed, allowDeath: false)
+        let before = snapshot()
+        let outcome = EcoEngine.advance(state: before, threats: threats, elapsed: elapsed, allowDeath: false)
         commit(outcome)
+        lottiePlaybackTargets = Dictionary(uniqueKeysWithValues: zip(before.corals, outcome.corals).compactMap { before, after in
+            before.growthProgress == after.growthProgress ? nil : (after.id, after.growthProgress)
+        })
         canvas.lastSeenAt = now
         save()
     }
@@ -422,13 +432,20 @@ extension SandboxViewModel {
     /// reflective observation → active experimentation).
     public func performFastForward() {
         let before = snapshot()
-        let outcome = EcoEngine.advance(
+        var outcome = EcoEngine.advance(
             state: before,
             threats: threats,
             elapsed: Self.fastForwardInterval,
             allowDeath: true
         )
+        for index in outcome.corals.indices where !outcome.corals[index].isDead {
+            outcome.corals[index].growthProgress = max(
+                outcome.corals[index].growthProgress,
+                CoralLifecycle.nextPhaseProgress(after: before.corals[index].growthProgress)
+            )
+        }
         commit(outcome)
+        lottiePlaybackTargets = Dictionary(uniqueKeysWithValues: outcome.corals.map { ($0.id, $0.growthProgress) })
         spawnPestsIfNeeded(elapsed: Self.fastForwardInterval)
         pendingDiagnostic = outcome
         diagnosticMessage = Self.diagnose(before: before, after: outcome)

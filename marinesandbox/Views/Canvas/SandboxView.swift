@@ -120,7 +120,7 @@ struct SandboxView: View {
             let baseY = seabedY - (isLifted ? viewModel.liftedFragPosition.y : coral.yPos)
 
             ZStack {
-                coralArtView(frag: frag, assetName: assetName, footprint: footprint)
+                coralArtView(viewModel: viewModel, frag: frag, assetName: assetName, footprint: footprint)
                     .scaleEffect(isLifted ? 1.15 : 1.0)
                     .shadow(color: isLifted ? .white.opacity(0.6) : .clear, radius: 12)
                     .shadow(color: isSurvivor ? .yellow.opacity(0.8) : .clear, radius: 18)
@@ -151,6 +151,7 @@ struct SandboxView: View {
 
     @ViewBuilder
     private func coralArtView(
+        viewModel: SandboxViewModel,
         frag: CoralFrag,
         assetName: String,
         footprint: CoralGeometry.Footprint
@@ -162,8 +163,13 @@ struct SandboxView: View {
                 .saturation(0)
                 .opacity(0.5)
         } else {
-            LottieCoralView(coralID: frag.id, growthProgress: frag.growthProgress)
-                .frame(width: footprint.size.width, height: footprint.size.height)
+            LottieCoralView(
+                coralID: frag.id,
+                growthProgress: frag.growthProgress,
+                playbackProgress: viewModel.lottiePlaybackTargets[frag.id],
+                onPlaybackCompleted: { viewModel.completeLottiePlayback(for: frag.id) }
+            )
+            .frame(width: footprint.size.width, height: footprint.size.height)
         }
     }
 

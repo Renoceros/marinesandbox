@@ -6,7 +6,7 @@ Single source of truth for **why** the Marine Sandbox is built the way it is. If
 
 1. **Who:** whoever makes or discovers the decision writes the entry. Not the PM's job alone.
 2. **When:** in the same PR as the change (see [CONTRIBUTING.md](CONTRIBUTING.md)). A PR that alters scope, architecture, or UX without a `DEC-` entry is incomplete.
-3. **IDs are sequential and permanent.** Next free ID: **DEC-031**. If two open PRs claim the same number, the one merged first keeps it and the other renumbers.
+3. **IDs are sequential and permanent.** Next free ID: **DEC-032**. If two open PRs claim the same number, the one merged first keeps it and the other renumbers.
 4. **Never rewrite an accepted entry.** To change a decision, add a new one and set the old entry's status to `Superseded by DEC-0XX`. The wrong turns are the valuable part of the record.
 5. **Cite the source** — commit hash, doc section, or transcript file — so anyone can trace it back.
 6. Decisions taken verbally in a meeting must land here before the branch merges, or they will be forgotten (this file exists because several already were).
@@ -289,7 +289,7 @@ The parallax canvas pans on drag, and the Brush/Hand tools also act on drags —
 *Consequence:* brush strokes and pest flicks are only recognized inside coral hit rects. Wide-spaced planting (DEC-006) keeps hit rects small relative to open water, so panning is never starved of space.
 
 ### DEC-027 — Tick cadence: 1 sim month per 5 real seconds
-**Status:** Accepted · **Source:** this session
+**Status:** Superseded by DEC-031 · **Source:** this session
 
 While the Coral Screen is visible, the engine ticks one simulation month every 5 real seconds. One constant (`tickInterval`) owns the pacing.
 
@@ -323,6 +323,29 @@ The frag palette (additional planting, workflow §2.3C) appears only after the f
 *Why:* playtesting on the simulator showed the original rate kills a two-snail coral in ~50 real seconds at the DEC-027 demo pace (5 s/month) — faster than a first-time player can discover the Hand tool, which violates the lean-toward-optimism difficulty rationale (Alex interview, 9 Aug) and makes the workflow's 75% damage warning pointless (only ~25 s separated warning from death). At 0.02, one snail threatens a coral over ~4 minutes of neglect, the warning leaves ~1 minute to react, and recruited wrasses (control 0.04) now fully neutralize a single snail — making the manual→automated arc (PRD §3.2) literally true: an adult's fish keep it pest-free.
 
 *Consequence:* tests pin the new rate (`EcoEngineTests.snailInflictsBaseDamageWithoutWrasses`); if floor-testing shows pests feel toothless, retune the constant, not the structure. Related: the reef is paused during the guided cold open (ticks do nothing until the survivor is planted) so the tutorial can never kill the survivor — implemented with DEC-009's flow.
+
+### DEC-031 — 7-day per-coral real-time lifecycle; backend growth + graceful catch-up
+**Status:** Accepted · **Source:** this session
+
+Each coral fragment has its own 7-day lifecycle anchored to its planting moment (`plantedAt`). 7 days is the **healthy best case** — algae smothering and pest damage *slow* the per-coral growth clock (prolong maturation, don't pause it); extreme neglect still kills. Care makes a coral grow faster. The old global sim-month clock and `tickInterval` (DEC-027) are gone.
+
+**Backend growth + graceful catch-up on launch.** Growth advances on wall-clock time, including while the app is closed. Each `ReefCanvas` persists `lastSeenAt`. On launch, the engine computes elapsed real time since `lastSeenAt` and advances every coral — growth accrues and algae accumulates (nobody was brushing), **but nothing dies offline**. The return moment is a delightful reveal ("see how your reef changed"), not a punishment — algae creates an immediate care task (engagement), and the graceful no-death cap keeps the lean-toward-optimism rationale (Alex interview, 9 Aug) intact.
+
+**Exhibition mode replaces the auto-tick with a Fast Forward button.** Visitors don't keep the app open for 7 days, and a 5-minute museum visit shows ~0 wall-clock growth. Instead of DEC-027's 5-sec/month auto-tick, the exhibition build exposes a **Fast Forward button** the visitor taps to jump the reef ahead through growth stages — the "grow it" dopamine beat. The personal (post-exhibition) app uses the 7-day real-time lifecycle + catch-up.
+
+*Why:* "each coral grows for 7 days, start to finish" is the lifecycle age the product wants. It is ~10,000× slower than DEC-027's 5 s/month, so DEC-027's exhibition-demo rationale (a well-kept coral hits Adult in ~1 minute) cannot coexist with it. The split — real-time for the personal app, tap-to-advance for the exhibition — keeps both the long-term attachment fantasy (your reef lives over a week) and the museum demo loop (a visitor sees stages change in one tap).
+
+*Consequences:*
+- `CoralFrag` (SwiftData) and `CoralState` (domain) gain `plantedAt: Date`. `ReefCanvas` gains `lastSeenAt: Date`.
+- `EcoEngine` growth becomes time-based: a coral's `growthProgress` is derived from elapsed healthy time since `plantedAt`, not an accumulating monthly scalar. The algae/pest slowdown modifiers from the monthly model are preserved as rate multipliers on the per-coral clock, so the pedagogy (care → faster growth) survives the rewrite. One constant (`maturationInterval`, 7 days) owns the healthy best-case pacing.
+- Algae and pest dynamics keep their spatial-grid model (DEC-018) and rates (DEC-030), but advance by elapsed real time during catch-up and by the live tick during play — they are no longer coupled to the growth month count.
+- The live tick (`tickLive`) stays, but it now advances a short wall-clock slice (the tick interval) instead of one sim month; it remains the driver for pest spawning (DEC-028) and the visual texture while the screen is visible. `tickInterval` is retuned from "1 sim month" to "the live refresh slice" — a small fraction of real time.
+- Fast Forward is repurposed for exhibition: a tap jumps growth forward by a tunable stage increment (not the old 5-year sweep). The 5-year Diagnostic Card (workflow §2.3C) is revisited in a follow-up; for the MVP it becomes the stage-jump preview.
+- DEC-030's pest rate (0.02/month) was calibrated against 5 s/month. Under real-time pacing the per-snail threat window is now ~days, not ~minutes — retune the constant after floor-testing, not the structure (same guidance as DEC-030).
+- The reef stays paused during the guided cold open (DEC-009): catch-up does not run, and the survivor's clock does not start, until the survivor is planted.
+- Tests: `EcoEngineTests` rewrite the growth assertions to elapsed-time form; new tests cover catch-up (offline growth, offline algae accrual, no offline death, per-coral independent clocks). `plantedAt` default keeps existing snapshots valid.
+
+*Supersedes:* **DEC-027** (5 s/month auto-tick). DEC-030's *rate value* is revisited but its *structure* (modifier-based slowdown, no offline death during the tutorial) is preserved.
 
 ---
 

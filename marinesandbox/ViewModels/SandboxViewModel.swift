@@ -77,10 +77,16 @@ public final class SandboxViewModel {
 
     /// Loads the saved canvas, or creates the dead-rubble starting state with one
     /// surviving Staghorn fragment (DEC-009) on first launch.
+    ///
+    /// On a returning canvas (personal mode), runs **graceful catch-up** (DEC-031):
+    /// advances every coral by `now - lastSeenAt` with `allowDeath: false` so the
+    /// player returns to growth + accrued algae (an immediate care task), never a dead
+    /// reef. Exhibition mode skips catch-up — a visitor's session is fresh per tap.
     public func loadOrCreateCanvas() {
         let descriptor = FetchDescriptor<ReefCanvas>()
         if let existing = try? modelContext.fetch(descriptor).first {
             canvas = existing
+            runCatchUpIfNeeded()
             return
         }
 
@@ -88,6 +94,24 @@ public final class SandboxViewModel {
         let canvas = ReefCanvas(ngoRegion: config.regionName, coralFrags: [survivor])
         modelContext.insert(canvas)
         self.canvas = canvas
+        save()
+    }
+
+    /// Advances the reef by the offline gap, gracefully (DEC-031). No-op in exhibition
+    /// mode or before the guided first plant is done (the tutorial must stay frozen).
+    /// Updates `lastSeenAt` to now after applying the catch-up.
+    private func runCatchUpIfNeeded() {
+        guard let canvas, !config.isExhibitionMode, canvas.guidedPlantDone else {
+            canvas?.lastSeenAt = Date()
+            save()
+            return
+        }
+        let now = Date()
+        let elapsed = now.timeIntervalSince(canvas.lastSeenAt)
+        guard elapsed > 1 else { return }
+        let outcome = EcoEngine.advance(state: snapshot(), threats: threats, elapsed: elapsed, allowDeath: false)
+        commit(outcome)
+        canvas.lastSeenAt = now
         save()
     }
 
@@ -102,6 +126,7 @@ public final class SandboxViewModel {
                 xPos: frag.xPos,
                 yPos: frag.yPos,
                 growthProgress: frag.growthProgress,
+                plantedAt: frag.plantedAt,
                 coverage: AlgaeCoverage(cells: frag.algaeCells),
                 predatorDamage: frag.predatorDamage,
                 activePredators: frag.activePredators,
@@ -129,6 +154,7 @@ public final class SandboxViewModel {
                 frag.xPos = coral.xPos
                 frag.yPos = coral.yPos
                 frag.growthProgress = coral.growthProgress
+                frag.plantedAt = coral.plantedAt
                 frag.algaeCells = coral.coverage.cells
                 frag.predatorDamage = coral.predatorDamage
                 frag.activePredators = coral.activePredators
@@ -141,6 +167,7 @@ public final class SandboxViewModel {
                     xPos: coral.xPos,
                     yPos: coral.yPos,
                     growthProgress: coral.growthProgress,
+                    plantedAt: coral.plantedAt,
                     algaeCells: coral.coverage.cells,
                     predatorDamage: coral.predatorDamage,
                     activePredators: coral.activePredators,
@@ -210,17 +237,11 @@ public final class SandboxViewModel {
         threats.agriculturalRunoff = active
     }
 
-    /// Advances a single month of active play.
+    /// Advances the reef by one live refresh slice of real time (DEC-031). Called by
+    /// the view's timer while the Coral Screen is visible. Pest spawning is handled by
+    /// `tickLive`, which wraps this.
     public func tick() {
-        commit(EcoEngine.step(state: snapshot(), threats: threats, months: 1))
-    }
-
-    /// Simulates 5–10 years, then hands the steady state to the Diagnostic Card
-    /// (workflow §2.3C, §3.1). Computed on a snapshot first (DEC-020), committed once.
-    public func fastForward(years: Int = 5) {
-        let outcome = EcoEngine.step(state: snapshot(), threats: threats, months: years * 12)
-        commit(outcome)
-        pendingDiagnostic = outcome
+        commit(EcoEngine.advance(state: snapshot(), threats: threats, elapsed: Self.tickInterval, allowDeath: true))
     }
 
     /// Dismisses the Diagnostic Card after the user reads it (Kolb: reflection → experimentation).
@@ -239,15 +260,20 @@ public final class SandboxViewModel {
 
 extension SandboxViewModel {
 
-    /// Seconds of real time per simulation month (DEC-027). One constant owns the
-    /// demo pacing; retune here after floor-testing.
-    public static let tickInterval: TimeInterval = 5.0
+    /// Live refresh slice in real seconds (DEC-031). The live tick advances the reef
+    /// by this much wall time per fire — a small slice so Lottie growth scrubbing stays
+    /// smooth. Retune here after floor-testing.
+    public static let tickInterval: TimeInterval = 1.0
 
-    /// Fast Forward horizon in years (workflow §2.3C: 5–10 years).
-    public static let fastForwardYears: Int = 5
+    /// Exhibition Fast Forward jump in real seconds (DEC-031). One tap advances every
+    /// coral by this much wall time — roughly one growth stage per tap on a healthy
+    /// coral (7-day maturation ÷ 3 stages ≈ 2.3 days). Retune here.
+    public static let fastForwardInterval: TimeInterval = 2 * 24 * 60 * 60
 
-    /// Pest spawn chance per vulnerable coral per tick, and the per-coral cap (DEC-028).
-    public static let pestSpawnChance: Double = 0.25
+    /// Pest spawn probability per second per eligible coral (DEC-028, retuned for
+    /// real-time pacing under DEC-031). Targets ~1 pest event per ~12 h on a vulnerable
+    /// coral. Rolled against `elapsed` so it scales with the tick slice or FF jump.
+    public static let pestSpawnChancePerSecond: Double = 1.0 / (12 * 60 * 60)
     public static let pestCapPerCoral = 2
 
     // MARK: Guided First Plant (DEC-009, DEC-024)
@@ -348,16 +374,21 @@ extension SandboxViewModel {
 
     // MARK: Pests (DEC-028, DEC-012)
 
-    /// Called once per tick by the view's timer. Each living Baby/Teenager coral
-    /// with no pests has a 25% chance to gain a Drupella snail (cap 2 per coral).
+    /// Spawns Drupella snails on eligible corals, scaled by the elapsed span (DEC-028,
+    /// retuned for real-time pacing under DEC-031). Each living Baby/Teenager coral
+    /// with spare pest capacity rolls against `pestSpawnChancePerSecond × elapsed`.
     /// Adults are spared — their recruited wrasses keep them clean (PRD §3.2).
-    public func spawnPestsIfNeeded(random: Double = Double.random(in: 0...1)) {
-        guard let canvas else { return }
+    public func spawnPestsIfNeeded(
+        elapsed: TimeInterval,
+        random: Double = Double.random(in: 0...1)
+    ) {
+        guard let canvas, elapsed > 0 else { return }
+        let chance = min(1.0, Self.pestSpawnChancePerSecond * elapsed)
         var spawned = false
         for frag in canvas.coralFrags {
             guard !frag.isDead, frag.isBaby || frag.isTeenager,
                   frag.activePredators.count < Self.pestCapPerCoral,
-                  random < Self.pestSpawnChance else { continue }
+                  random < chance else { continue }
             if frag.activePredators.isEmpty && !canvas.coralFrags.contains(where: { !$0.activePredators.isEmpty }) {
                 showPestTooltip = true
             }
@@ -382,15 +413,23 @@ extension SandboxViewModel {
         return pest
     }
 
-    // MARK: Fast Forward → Diagnostic Card (workflow §2.3C, §3.1)
+    // MARK: Fast Forward → stage jump (DEC-031; workflow §2.3C diagnostic revisited later)
 
-    /// Simulates 5 years on a snapshot, commits once, and generates the
-    /// before/after reflection from what actually changed (Kolb: reflective
-    /// observation → active experimentation).
+    /// Exhibition Fast Forward (DEC-031): one tap advances every coral by
+    /// `fastForwardInterval` of wall time — roughly one growth stage on a healthy
+    /// coral — and spawns pests across the jump. Computed on a snapshot (DEC-020),
+    /// committed once, then the Diagnostic Card reflects what changed (Kolb:
+    /// reflective observation → active experimentation).
     public func performFastForward() {
         let before = snapshot()
-        let outcome = EcoEngine.step(state: before, threats: threats, months: Self.fastForwardYears * 12)
+        let outcome = EcoEngine.advance(
+            state: before,
+            threats: threats,
+            elapsed: Self.fastForwardInterval,
+            allowDeath: true
+        )
         commit(outcome)
+        spawnPestsIfNeeded(elapsed: Self.fastForwardInterval)
         pendingDiagnostic = outcome
         diagnosticMessage = Self.diagnose(before: before, after: outcome)
     }
@@ -425,10 +464,10 @@ extension SandboxViewModel {
         return "Your reef held steady. Plant a mix of species — diverse reefs recover from shocks that wipe out monocultures."
     }
 
-    // MARK: Tick (DEC-027)
+    // MARK: Tick (DEC-031)
 
-    /// One live month: engine step + pest spawning. Driven by the view's timer so
-    /// ticking only happens while the Coral Screen is visible.
+    /// One live refresh slice: engine advance + pest spawning. Driven by the view's
+    /// timer so ticking only happens while the Coral Screen is visible.
     ///
     /// The reef is **paused during the guided cold open** (DEC-009): until the
     /// survivor frag is planted, nothing grows, accrues algae, spawns pests, or
@@ -437,7 +476,7 @@ extension SandboxViewModel {
     public func tickLive() {
         guard canvas?.guidedPlantDone == true else { return }
         tick()
-        spawnPestsIfNeeded()
+        spawnPestsIfNeeded(elapsed: Self.tickInterval)
     }
 }
 
@@ -452,6 +491,7 @@ extension CoralFrag {
             xPos: xPos,
             yPos: yPos,
             growthProgress: growthProgress,
+            plantedAt: plantedAt,
             coverage: AlgaeCoverage(cells: algaeCells),
             predatorDamage: predatorDamage,
             activePredators: activePredators,

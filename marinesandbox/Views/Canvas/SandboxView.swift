@@ -31,7 +31,9 @@ struct SandboxView: View {
     /// Brief sparkle marker where a brush stroke cleared cells.
     @State private var sparkleAt: CGPoint?
 
-    /// The tick timer (DEC-027): one sim month every 5 s while this screen is visible.
+    /// The live tick timer (DEC-031): advances the reef by one refresh slice while this
+    /// screen is visible. Only active in the personal (non-exhibition) app — exhibition
+    /// mode drives growth through the Fast Forward button instead.
     private let ticker = Timer.publish(every: SandboxViewModel.tickInterval, on: .main, in: .common).autoconnect()
 
     struct FlyingPest: Equatable {
@@ -79,7 +81,12 @@ struct SandboxView: View {
                         diagnosticCard(viewModel: viewModel)
                     }
                 }
-                .onReceive(ticker) { _ in viewModel.tickLive() }
+                .onReceive(ticker) { _ in
+                    // DEC-031: the live auto-tick runs only in the personal app.
+                    // Exhibition mode drives growth via the Fast Forward button.
+                    guard !viewModel.config.isExhibitionMode else { return }
+                    viewModel.tickLive()
+                }
             } else {
                 Color(hex: "3BAFED").ignoresSafeArea()
             }
@@ -263,17 +270,21 @@ struct SandboxView: View {
         VStack {
             HStack {
                 Spacer()
-                Button {
-                    viewModel.performFastForward()
-                } label: {
-                    Label("Fast Forward", systemImage: "forward.fill")
-                        .font(.callout.bold())
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 10)
-                        .background(.ultraThinMaterial, in: Capsule())
+                // DEC-031: the Fast Forward button is the exhibition progression
+                // mechanism (tap to jump stages). The personal app grows in real time.
+                if viewModel.config.isExhibitionMode {
+                    Button {
+                        viewModel.performFastForward()
+                    } label: {
+                        Label("Fast Forward", systemImage: "forward.fill")
+                            .font(.callout.bold())
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 10)
+                            .background(.ultraThinMaterial, in: Capsule())
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, 56) // root ignores safe area — keep clear of the status bar
                 }
-                .padding(.horizontal)
-                .padding(.top, 56) // root ignores safe area — keep clear of the status bar
             }
             Spacer()
             HStack(spacing: 12) {

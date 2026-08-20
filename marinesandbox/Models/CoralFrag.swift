@@ -35,7 +35,14 @@ public final class CoralFrag {
     public var yPos: Double
 
     /// Ratio representing coral growth, from `0.0` (freshly planted fragment) to `1.0` (mature adult colony).
+    /// Accumulates *effective* healthy time, not wall time — algae and pest slowdown
+    /// modifiers (DEC-031) make a neglected coral take longer than 7 days to mature.
     public var growthProgress: Double
+
+    /// Wall-clock moment this fragment was planted (DEC-031). Anchors the 7-day
+    /// lifecycle and the per-coral age. Growth does not advance during the guided
+    /// cold open (DEC-009), so the survivor's clock effectively starts when ticks begin.
+    public var plantedAt: Date
 
     /// Row-major 6×6 algae coverage grid (see `AlgaeCoverage` in the domain layer, DEC-018).
     /// Each cell is `0.0` (clean) to `1.0` (fully smothered). Brushing clears the cells a
@@ -82,6 +89,7 @@ public final class CoralFrag {
         xPos: Double = 0.0,
         yPos: Double = 0.0,
         growthProgress: Double = 0.0,
+        plantedAt: Date = Date(),
         algaeCells: [Float] = [],
         predatorDamage: Double = 0.0,
         activePredators: [String] = [],
@@ -93,6 +101,7 @@ public final class CoralFrag {
         self.xPos = xPos
         self.yPos = yPos
         self.growthProgress = growthProgress
+        self.plantedAt = plantedAt
         self.algaeCells = algaeCells
         self.predatorDamage = predatorDamage
         self.activePredators = activePredators

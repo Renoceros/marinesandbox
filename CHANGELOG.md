@@ -52,6 +52,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The pro
 
 ### Fixed
 - Fixed letterboxing and vertical squishing bugs on background, midground, and topground parallax layers in [`ParallaxScrollView.swift`](marinesandbox/Views/Canvas/ParallaxScrollView.swift) by restoring the designed `widthScale: 1.5` and speed ratios from the TDD, preserving their aspect ratios.
+- Added custom opacity configuration support (`opacity` parameter) to `layerContainer` in [`ParallaxScrollView.swift`](marinesandbox/Views/Canvas/ParallaxScrollView.swift) and set default vertical offsets to 0.
 - `TASK-MVP-204` rescoped in the TDD backlog and sprint plan: build the Onboarding Page and first-launch routing, **not** a Location Selection Screen. Both task definitions still instructed the team to build the removed screen (DEC-008).
 - Removed the stale "Select location (Bali)" step from the PRD §4.4 gameplay-loop diagram, and corrected the misaligned ASCII box borders in that diagram and in the workflow spec's Coral Screen box.
 

@@ -37,7 +37,8 @@ public struct ParallaxScrollView: View {
                     layerName: "Midground",
                     alignment: .top,
                     widthScale: 1.5,
-                    verticalOffset: 100
+                    verticalOffset: 0
+                    
                 )
 
                 // 3rd Layer: Background Layer (Parallax Ratio: 0.20, Top-Aligned)
@@ -50,7 +51,7 @@ public struct ParallaxScrollView: View {
                     layerName: "Background",
                     alignment: .top,
                     widthScale: 1.5,
-                    verticalOffset: 50
+                    verticalOffset: 0
                 )
 
                 // 4th Layer: Foreground Layer (Parallax Ratio: 1.00, Bottom-Aligned)
@@ -70,13 +71,13 @@ public struct ParallaxScrollView: View {
                 layerContainer(
                     viewportWidth: viewportWidth,
                     height: height,
-                    ratio: 0.10,
+                    ratio: 1.00,
                     panRange: panRange,
                     currentOffset: currentOffset,
                     layerName: "Topground",
                     alignment: .top,
                     widthScale: 1.5,
-                    verticalOffset: 10
+                    verticalOffset: 0
                 )
             }
             .edgesIgnoringSafeArea(.all)
@@ -151,7 +152,8 @@ public struct ParallaxScrollView: View {
         layerName: String,
         alignment: Alignment,
         widthScale: CGFloat = 1.0,
-        verticalOffset: CGFloat = 0
+        verticalOffset: CGFloat = 0,
+        opacity: Double = 1.0
     ) -> some View {
         let blockWidth = viewportWidth * widthScale
         let offset = currentOffset * ratio
@@ -186,6 +188,7 @@ public struct ParallaxScrollView: View {
                 }
                 .frame(width: blockWidth, height: height)
                 .offset(x: xPosition, y: verticalOffset)
+                .opacity(opacity)
                 .transition(.identity) // Disable implicit SwiftUI transition fades
             }
         }

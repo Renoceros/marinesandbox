@@ -26,7 +26,7 @@ public struct ParallaxScrollView: View {
                 // 1st Layer (Backmost): Linear gradient backdrop ignoring safe area
                 LinearGradient(
                     gradient: Gradient(stops: [
-                        .init(color: Color(hex: "000000"), location: 0.0),
+                        .init(color: Color(hex: "042638"), location: 0.0),
                         .init(color: Color(hex: "3BAFED"), location: 0.55),
                         .init(color: Color(hex: "3BAFED"), location: 1.0)
                     ]),
@@ -46,7 +46,7 @@ public struct ParallaxScrollView: View {
                     alignment: .top,
                     widthScale: 1.5,
                     verticalOffset: 0,
-                    opacity: 0.8
+                    opacity: 0.5
                     
                 )
 

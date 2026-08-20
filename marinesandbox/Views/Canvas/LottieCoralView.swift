@@ -15,8 +15,7 @@ struct LottieCoralView: UIViewRepresentable {
         let orientation = CoralLifecycle.orientation(for: coralID)
         let animationView = LottieAnimationView(
             dotLottieName: orientation.assetName,
-            bundle: .main,
-            subdirectory: "Lottie"
+            bundle: .main
         ) { view, error in
             guard error == nil else { return }
             context.coordinator.isLoaded = true

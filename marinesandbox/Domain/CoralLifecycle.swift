@@ -13,29 +13,26 @@ public enum CoralLifecycle {
         }
     }
 
-    public static let babyEnd = 0.3
-    public static let teenagerEnd = 0.7
+    public static let fragmentFrame: Double = 0
+    public static let babyFrame: Double = 15
+    public static let toddlerFrame: Double = 30
+    public static let teenagerFrame: Double = 45
+    public static let adultFrame: Double = 59
+
+    public static let babyEnd = 0.25
+    public static let toddlerEnd = 0.50
+    public static let teenagerEnd = 0.75
     public static let adultEnd = 1.0
-    public static let babyStartFrame: Double = 0
-    public static let teenagerStartFrame: Double = 20
-    public static let adultStartFrame: Double = 40
-    public static let finalFrame: Double = 59
 
     public static func frame(for growthProgress: Double) -> Double {
         let progress = min(max(growthProgress, 0), adultEnd)
-        switch progress {
-        case ..<babyEnd:
-            return teenagerStartFrame * progress / babyEnd
-        case ..<teenagerEnd:
-            return teenagerStartFrame + (adultStartFrame - teenagerStartFrame) * (progress - babyEnd) / (teenagerEnd - babyEnd)
-        default:
-            return adultStartFrame + (finalFrame - adultStartFrame) * (progress - teenagerEnd) / (adultEnd - teenagerEnd)
-        }
+        return progress * adultFrame
     }
 
     public static func nextPhaseProgress(after growthProgress: Double) -> Double {
         switch min(max(growthProgress, 0), adultEnd) {
         case ..<babyEnd: babyEnd
+        case ..<toddlerEnd: toddlerEnd
         case ..<teenagerEnd: teenagerEnd
         default: adultEnd
         }

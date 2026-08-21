@@ -26,7 +26,9 @@ struct LottieCoralView: UIViewRepresentable {
 
     func makeUIView(context: Context) -> LottieAnimationView {
         let orientation = CoralLifecycle.orientation(for: coralID)
-        let animationView = LottieAnimationView()
+        let animationView = LottieAnimationView(
+            configuration: LottieConfiguration(renderingEngine: .mainThread)
+        )
         animationView.contentMode = .scaleAspectFit
         animationView.backgroundBehavior = .pauseAndRestore
         animationView.isAccessibilityElement = false

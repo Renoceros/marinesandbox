@@ -17,29 +17,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The pro
 ## [Unreleased]
 
 ### Added
+- 10 interaction SFX and ambient ocean audio assets in `Resources/Audio/` (`ambient_ocean_loop.wav`, `brush_swipe.wav`, `sparkle_clean.wav`, `frag_lift.wav`, `frag_plant.wav`, `pest_smush.wav`, `pest_flick.wav`, `pest_splash.wav`, `plant_reject.wav`, `threat_warning.wav`) (DEC-035).
+- Dedicated SVG vector assets for Sponge tool (`Tool/Sponge.imageset/sponge.svg`), Snail enemy (`Enemy/Snail.imageset/snail.svg`), and decorative Icing elements (`Icing/RockBG`, `Icing/RockFG`, `Icing/Seaweed`).
 - Lottie 4.6.1 runtime and a `LottieCoralView` renderer for the paired 60-frame coral lifecycle assets: living corals deterministically select a left/right orientation from their UUID and scrub their full lifecycle timeline from `growthProgress` (DEC-017, DEC-018, DEC-031).
-- Audio and SFX specification sheet ([`Audio.md`](file:///Users/moreno_m5/Projects/CH5/marinesandbox/marinesandbox/Resources/Audio/Audio.md)) detailing the required interaction SFX, ambient loops, placement triggers, and performance guidelines for the exhibition build.
-- Project `README.md`: what the app is, why it exists, tech stack, project layout, build/test commands, documentation map, contributing summary, and roadmap — all cross-linked to the PRD, DECISIONS, and CONTRIBUTING docs.
-- Contributing guide (`CONTRIBUTING.md`): feature-branch workflow, always branch off the latest `main`, PR into `main`, branch naming, conflict handling for the shared records, and the fork flow for contributors without write access (DEC-023).
-- Decision register (`DECISIONS.md`) consolidating every scope, architecture, and UX decision from the docs, the 12 Aug team discussion, and the commit history, plus the tech-debt register (DEBT-001, DEBT-002) and a superseded/rejected log.
-- This changelog.
-- End-to-end user workflow spec (`Documentation/user_workflow_marinesandbox.md`): two-screen flow, per-screen contents and interactions, the four modals, and an explicit out-of-scope list (DEC-008).
-- DeadCoral SVG visual assets (fragment 1, 2, and 3) in `Assets.xcassets` for SandboxView and SandboxViewModel rendering.
-- Sidecar SPM package (`MarineSandboxDomain/`) running `swift test` against the domain layer via a symlinked source folder — 36 tests pin engine maths, algae-grid brushing/grazing, and flick physics, with zero `project.pbxproj` changes (DEC-022).
-- Domain layer value types: `ReefState`/`CoralState` snapshots, 6×6 `AlgaeCoverage` grid with interpolated brush strokes, and pure drag/flick `Physics` (DEC-018, DEC-020, TASK-MVP-104).
-- `NGOConfig` model with the Bali/Living Seas exhibition preset; `heatwaveAllowed == false` is the enforcement point for bleaching dormancy (DEC-025).
-- `SandboxViewModel` coordinating views and domain: owns `scrollX` (DEC-021), adapts SwiftData ↔ snapshots (DEC-020), and handles planting, brushing, pest removal, runoff shocks, and Fast Forward (TASK-MVP-202).
-- Launch router (`RootView`): saved canvas → Coral Screen, first launch → single-tap Onboarding Page with placeholder visuals (DEC-008, TASK-MVP-204).
-- Sam's coral SVG set in `Assets.xcassets/Coral/` (vector-preserved): growth stages (toddler/teen/adult), four fragments, and the shiny survivor frag for the cold open (DEC-009).
-- `CoralGeometry` registry: per-stage model-space footprints from the asset viewBoxes, bottom-center anchored hit rects, tap hit-testing, and canvas→coral-local conversion for brush strokes (DEC-019).
-- The playable care loop (`SandboxView`): guided first plant with pulsing seabed target and auto-fly fallback (DEC-009/024), on-canvas Hand/Brush/Plant tool overlay (DEC-007), brush strokes that clear algae per drag segment with sparkle feedback (DEC-012/018), tap-to-smush and flick-to-throw pest removal with a one-time tooltip (DEC-012), live ticking at one sim month per 5 seconds (DEC-027), Drupella snail spawning on young corals (DEC-028), Fast Forward with a plain-language Diagnostic Card (workflow §3.1), and a frag palette that unlocks when the first coral reaches Teenager (DEC-029).
-- Gesture routing: touches starting on a coral belong to the active tool; drags on empty water pan the parallax world (DEC-026).
-- Frontend handoff doc (`Documentation/frontend_handoff.md`): which parts of the current UI are tested contracts vs. deliberate mock visuals for the frontend team to reskin.
-- Pest damage retuned 0.05 → 0.02/month after simulator playtest showed corals dying in under a minute of neglect; the reef is paused during the guided cold open so the tutorial can never kill the survivor (DEC-030).
-- Living baby corals render with the colored `ShinyFragment` sprite; gray `Fragment1` is reserved for dead rubble — planted life now reads as alive (DEC-009).
 
 ### Changed
+- Simplified tool interaction model to a single Sponge cleaning tool (`Tool/Sponge.imageset`) with default bare-hand snail smushing (DEC-032).
+- Non-lethal pest tuning: pest infestation slows growth rate but does not cause coral death/mortality (DEC-033).
+- Redesigned snail enemy spawning to randomized off-screen waves crawling toward corals, with height-squash smush feedback (DEC-034).
 - 7-day per-coral real-time lifecycle (DEC-031, supersedes DEC-027): each coral grows over 7 wall-clock days from its own `plantedAt`, algae/pest slow the per-coral clock (prolong, don't pause), growth advances in the backend with graceful catch-up on launch (corals grow + algae accrues, no offline death), and the exhibition build replaces the 5-sec/month auto-tick with a Fast Forward button that jumps stages. Adds `plantedAt` to `CoralFrag`/`CoralState` and `lastSeenAt` to `ReefCanvas`; `EcoEngine` growth becomes time-based.
+- Deferred multi-species SVGs, dynamic NGO config loading, and Shannon Index fauna silhouette visuals to the next sprint cycle (DEC-036).
 - Updated the master sprint plan ([`sprint_task_breakdown.md`](file:///Users/moreno_m5/Projects/CH5/marinesandbox/Documentation/sprint_task_breakdown.md)), technical design ([`tdd_marine_sandbox.md`](file:///Users/moreno_m5/Projects/CH5/marinesandbox/Documentation/tdd_marine_sandbox.md)), and [`TODO.md`](file:///Users/moreno_m5/Projects/CH5/marinesandbox/TODO.md) queue to insert `TASK-MVP-404` for audio compilation and player service integration.
 - Resolved all open/proposed register decisions from the 12 Aug session: iOS 26.5 + iPad confirmed in scope (DEC-016), Lottie art pipeline adopted behind a 10-coral perf gate (DEC-017, DEC-018), art hit-testing lives behind a `ReefArtProvider` seam (DEC-019), EcoEngine moves to value-type snapshots to become unit-testable (DEC-020), parallax `scrollX` ownership hoists into `SandboxViewModel` (DEC-021, tracked in issue #6), and domain testing runs in a sidecar SPM package with zero `project.pbxproj` changes (DEC-022).
 - Thermal bleaching moves out of exhibition scope: the `EcoEngine` heat-stress code ships dormant — exhibition threat vectors never exceed 30°C — and returns post-exhibition as a prestige-restart loop (DEC-010, resolved by DEC-025; PRD §1.5/§4.6 reconciled).

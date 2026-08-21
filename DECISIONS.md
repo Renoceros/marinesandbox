@@ -6,7 +6,7 @@ Single source of truth for **why** the Marine Sandbox is built the way it is. If
 
 1. **Who:** whoever makes or discovers the decision writes the entry. Not the PM's job alone.
 2. **When:** in the same PR as the change (see [CONTRIBUTING.md](CONTRIBUTING.md)). A PR that alters scope, architecture, or UX without a `DEC-` entry is incomplete.
-3. **IDs are sequential and permanent.** Next free ID: **DEC-032**. If two open PRs claim the same number, the one merged first keeps it and the other renumbers.
+3. **IDs are sequential and permanent.** Next free ID: **DEC-037**. If two open PRs claim the same number, the one merged first keeps it and the other renumbers.
 4. **Never rewrite an accepted entry.** To change a decision, add a new one and set the old entry's status to `Superseded by DEC-0XX`. The wrong turns are the valuable part of the record.
 5. **Cite the source** — commit hash, doc section, or transcript file — so anyone can trace it back.
 6. Decisions taken verbally in a meeting must land here before the branch merges, or they will be forgotten (this file exists because several already were).
@@ -57,6 +57,12 @@ Single source of truth for **why** the Marine Sandbox is built the way it is. If
 | DEC-028 | Pest spawning: 25%/tick on vulnerable corals, cap 2 per coral | Accepted | this session |
 | DEC-029 | Additional planting unlocks when the first coral reaches Teenager | Accepted | this session |
 | DEC-030 | Pest damage retuned to 0.02/month for demo-paced reaction time | Accepted | this session, simulator playtest |
+| DEC-031 | 7-day per-coral real-time lifecycle; backend growth + graceful catch-up | Accepted | this session |
+| DEC-032 | Single Sponge cleaning tool + bare-hand pest smush | Accepted | this session |
+| DEC-033 | Non-lethal pest impact: growth slowdown only, mortality disabled | Accepted | this session |
+| DEC-034 | Off-screen snail wave spawning and height-squash smush interaction | Accepted | this session |
+| DEC-035 | Audio SFX and ambient ocean loop integration | Accepted | this session |
+| DEC-036 | Multi-species SVGs, NGO Config, and Shannon fauna visuals deferred | Accepted | this session |
 
 ---
 
@@ -346,6 +352,49 @@ Each coral fragment has its own 7-day lifecycle anchored to its planting moment 
 - Tests: `EcoEngineTests` rewrite the growth assertions to elapsed-time form; new tests cover catch-up (offline growth, offline algae accrual, no offline death, per-coral independent clocks). `plantedAt` default keeps existing snapshots valid.
 
 *Supersedes:* **DEC-027** (5 s/month auto-tick). DEC-030's *rate value* is revisited but its *structure* (modifier-based slowdown, no offline death during the tutorial) is preserved.
+
+### DEC-032 — Single Sponge cleaning tool + bare-hand pest smush
+**Status:** Accepted · **Source:** this session
+
+The active tool palette is simplified to a single cleaning tool: the **Sponge** (`Tool/Sponge.imageset/sponge.svg`). When no tool is selected (default bare-hand state), clicking/tapping pests (snails) directly smushes them. Swiping with the Sponge cleans algae on the corals.
+
+*Why:* Reduces cognitive overload and gesture conflicts for first-time exhibition players. Having a single clear cleaning tool alongside direct-touch interactions aligns with DEC-002 (entertainment-first, intuitive physical mechanics).
+
+*Consequence:* The tool overlay displays the Sponge tool; when unselected (or in bare-hand mode), tapping on snails smushes them directly without having to switch to a Hand tool first.
+
+### DEC-033 — Non-lethal pest impact: growth slowdown only, mortality disabled
+**Status:** Accepted · **Source:** this session
+
+Pests (snails) slow down coral growth rate rather than killing corals. Total tissue mortality from pest accumulation (`predatorDamage >= 1.0 -> isDead`) is disabled for the current sprint.
+
+*Why:* Premature coral death during early discovery causes frustration before players learn the cleaning and smushing loops. Corals remain alive but visibly delayed in growth progress when infested, encouraging pest management without punishing curiosity.
+
+*Consequence:* `EcoEngine` growth calculation preserves the slowdown factor `(1.0 - predatorDamage)` but removes the fatal mortality trigger on pests.
+
+### DEC-034 — Off-screen snail wave spawning and height-squash smush interaction
+**Status:** Accepted · **Source:** this session
+
+Snails (`Enemy/Snail.imageset/snail.svg`) no longer instantly appear statically on coral bounding boxes. Instead, they spawn via a randomized timer in waves from off-screen margins, crawling towards active coral frags. When clicked/tapped, snails compress vertically (height-squash animation) and fade away.
+
+*Why:* Creates dynamic visual life in the aquarium canvas and gives players a clear threat-approach window to react before pests attach and slow coral growth.
+
+*Consequence:* Snail rendering uses the dedicated vector asset `Image("Snail")` instead of placeholder circles, with height-scale spring compression upon smush.
+
+### DEC-035 — Audio SFX and ambient ocean loop integration
+**Status:** Accepted · **Source:** this session, `Audio.md`
+
+All 10 sound assets compiled in `Resources/Audio/` (`ambient_ocean_loop.wav`, `brush_swipe.wav`, `sparkle_clean.wav`, `frag_lift.wav`, `frag_plant.wav`, `pest_smush.wav`, `pest_flick.wav`, `pest_splash.wav`, `plant_reject.wav`, `threat_warning.wav`) are wired via a lightweight `AudioPlayerService` / `AVAudioPlayer` manager.
+
+*Why:* Tactile and auditory feedback are critical for DEC-002 (entertainment-first satisfaction). Water immersion requires continuous subtle ocean ambience and immediate haptic/audio response on touch.
+
+*Consequence:* Audio service lifecycle is managed in the view model / view layer, auto-starting ambient loop on canvas appearance.
+
+### DEC-036 — Multi-species SVGs, NGO Config, and Shannon fauna visuals deferred
+**Status:** Accepted · **Source:** this session
+
+Multi-species SVG asset mapping (Brain, Elkhorn, Sponge, Table), external NGO configuration loading, and visual fauna silhouette spawning driven by the Shannon Index are deferred to the next sprint cycle. For this sprint, visual growth animation focuses on the Staghorn Lottie compositions (`coral.lottie`, `coral_lh.lottie`).
+
+*Why:* Allows the team to complete and polish the end-to-end "sponge cake" care loop (sponge cleaning, snail waves, audio, growth pacing) before broadening the taxonomic palette and external configuration layers.
 
 ---
 

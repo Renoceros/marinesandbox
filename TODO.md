@@ -123,22 +123,22 @@ The minimum that makes the app *usable as the product intends*: every interactio
 
 - [x] **Guided first plant** (DEC-009/024): tap survivor frag → frag lifts → seabed zone pulses → drag onto ground → snap + settle puff. Fallback: tapping the glowing zone auto-flies the frag (workflow §2.3B). Never hard-blocks.
 - [x] **Gesture routing** (DEC-026): drags that *start on a coral* go to the active tool; drags starting on empty water/sand pan the parallax. No mode lock-in.
-- [x] **Tick cadence** (DEC-027): 1 sim month per 5 real seconds while the Coral Screen is visible — baby→adult in ~1 minute of good care, visible algae creep in ~30s of neglect. Demo-paced, single constant.
-- [x] **Sponge cleaning** (DEC-031): single sponge tool (`Tool/Sponge.imageset`) selected → drag over coral → screen→canvas→coral-local mapping → `brushStroke` per segment → live algae-mask fade + sparkle + audio feedback (`brush_swipe.wav`, `sparkle_clean.wav`).
-- [ ] **Snail enemy waves & smush** (DEC-031, DEC-033): vector snail asset (`Enemy/Snail.imageset`) spawning in off-screen waves via random timer; default bare-hand tap triggers vertical height-squash animation and audio (`pest_smush.wav`).
-- [ ] **Non-lethal pest impact** (DEC-032): pest infestation slows down growth rate via `(1 - predatorDamage)`; mortality disabled for MVP exploration.
+- [x] **Sponge cleaning** (DEC-032): single sponge tool (`Tool/Sponge.imageset`) selected → drag over coral → screen→canvas→coral-local mapping → `brushStroke` per segment → live algae-mask fade + sparkle feedback.
+- [x] **Snail vector asset & height-squash smush** (DEC-032, DEC-034): vector snail asset (`Enemy/Snail.imageset`) rendering; default bare-hand tap triggers vertical height-squash animation and pest removal.
+- [x] **Non-lethal pest impact** (DEC-033): pest infestation slows down growth rate via `(1 - predatorDamage)`; mortality disabled for MVP exploration.
 - [x] **Fast Forward → Diagnostic Card**: button → `fastForward(years: 5)` on a snapshot → crossfade to the computed state → card with a plain-language before/after reflection (workflow §3.1), dismiss → back to canvas.
 - [x] **Additional planting unlock** (DEC-029): frag palette appears once the first coral reaches Teenager. Plant anywhere on the foreground (DEC-006).
-- [ ] **Audio player service & FX** (DEC-034): local `AudioPlayerService` loading 10 WAVs from `Resources/Audio/` for ambient loop and touch feedback.
+- [ ] **Snail enemy waves (off-screen spawning)** (DEC-034): spawn snails via random timer from off-screen margins, crawling toward corals.
+- [ ] **Audio player service & FX** (DEC-035): local `AudioPlayerService` loading 10 WAVs from `Resources/Audio/` for ambient loop and touch feedback.
 - [ ] **Threat alerts**: non-blocking warning banners when algae coverage or snail slowdown thresholds are breached.
-- [ ] **Lottie Staghorn growth**: `coral.lottie` / `coral_lh.lottie` runtime integration for Acropora growth stages.
+- [x] **Lottie Staghorn growth**: `coral.lottie` / `coral_lh.lottie` runtime integration for Acropora growth stages (`LottieCoralView.swift`).
 
 ### Remaining Phase 3 (teammates / deferred)
 
 - [—] `ReefArtProvider` protocol + `SkeletonArtProvider` (SwiftUI shapes). Hit-testing against model geometry, never artwork bounds.
 - [—] On-canvas overlay *polish* (DEC-007): night-mode toggle, camera button, settings gear.
 - [—] Modals: `ShareCardView` (9:16), registration prompt at first Adult (TASK-MVP-305), Settings with Hard Reset behind confirmation.
-- [—] Deferred to next sprint (DEC-035): Multi-species SVG mapping, NGO dynamic config, and Shannon Index recruited fauna silhouettes.
+- [—] Deferred to next sprint (DEC-036): Multi-species SVG mapping, NGO dynamic config, and Shannon Index recruited fauna silhouettes.
 
 ## Phase 4 — Polish & integration (sprint Days 7–14) · shared lane
 

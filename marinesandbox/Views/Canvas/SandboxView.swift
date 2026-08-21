@@ -31,6 +31,9 @@ struct SandboxView: View {
     /// Brief sparkle marker where a brush stroke cleared cells.
     @State private var sparkleAt: CGPoint?
 
+    /// Pests currently executing their vertical squash & fade-out smush animation (DEC-034).
+    @State private var smushedPestIDs: Set<String> = []
+
     /// The live tick timer (DEC-031): advances the reef by one refresh slice while this
     /// screen is visible. Only active in the personal (non-exhibition) app — exhibition
     /// mode drives growth through the Fast Forward button instead.
@@ -191,32 +194,31 @@ struct SandboxView: View {
             .opacity(frag.isDead ? 0.5 : 1)
     }
 
-    /// Pest dot with tap-to-smush and drag-to-flick (DEC-012). Position derived
-    /// from the pest index so model and view never disagree about where pests are.
+    /// Pest view using Snail vector asset with tap-to-smush height-squash and drag-to-flick (DEC-032, DEC-034).
     @ViewBuilder
     private func pestView(viewModel: SandboxViewModel, frag: CoralFrag, index: Int, footprint: CoralGeometry.Footprint) -> some View {
         let local = CGPoint(x: 0.35 + 0.3 * Double(index), y: 0.4)
         let isFlying = flyingPest?.fragID == frag.id && flyingPest?.pestIndex == index
+        let pestKey = "\(frag.id)-\(index)"
+        let isSmushed = smushedPestIDs.contains(pestKey)
 
-        Circle()
-            .fill(Color(red: 0.45, green: 0.25, blue: 0.15))
-            .frame(width: 22, height: 22)
-            .overlay(Circle().stroke(.white.opacity(0.7), lineWidth: 1.5))
+        Image("Snail")
+            .resizable()
+            .scaledToFit()
+            .frame(width: 32, height: 32)
+            .scaleEffect(x: isSmushed ? 1.35 : 1.0, y: isSmushed ? 0.2 : 1.0, anchor: .bottom)
+            .opacity(isSmushed ? 0.0 : (isFlying ? 0.9 : 1.0))
             .position(x: local.x * footprint.size.width, y: local.y * footprint.size.height)
             .offset(isFlying ? flyOffset(for: flyingPest) : .zero)
-            .opacity(isFlying ? 0.9 : 1)
             .onTapGesture {
-                withAnimation(.spring(response: 0.2, dampingFraction: 0.4)) {
-                    viewModel.dismissPestTooltip()
-                    _ = viewModel.removePest(at: index, on: frag.id)
-                }
+                handlePestTap(fragID: frag.id, index: index, viewModel: viewModel)
             }
             .gesture(
                 DragGesture(minimumDistance: 4)
                     .onEnded { value in
                         let velocity = CGPoint(x: value.velocity.width, y: value.velocity.height)
                         guard Physics.isFlick(velocity: velocity) else {
-                            _ = viewModel.removePest(at: index, on: frag.id)
+                            handlePestTap(fragID: frag.id, index: index, viewModel: viewModel)
                             return
                         }
                         // Flick: animate along the ballistic arc, then remove (DEC-012).
@@ -236,6 +238,19 @@ struct SandboxView: View {
                         }
                     }
             )
+    }
+
+    private func handlePestTap(fragID: UUID, index: Int, viewModel: SandboxViewModel) {
+        let key = "\(fragID)-\(index)"
+        guard !smushedPestIDs.contains(key) else { return }
+        withAnimation(.spring(response: 0.25, dampingFraction: 0.6)) {
+            _ = smushedPestIDs.insert(key)
+        }
+        viewModel.dismissPestTooltip()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+            _ = viewModel.removePest(at: index, on: fragID)
+            smushedPestIDs.remove(key)
+        }
     }
 
     private func flyOffset(for pest: FlyingPest?) -> CGSize {
@@ -290,7 +305,7 @@ struct SandboxView: View {
                     // water. `yPos` is height *above* the seabed, so it is the
                     // distance from the sand up to the touch, never negative.
                     viewModel.dragLiftedFrag(to: CGPoint(x: canvas.x, y: liftHeight(of: value.location.y, seabedY: seabedY)))
-                } else if viewModel.selectedTool == .brush {
+                } else if viewModel.selectedTool == .sponge {
                     if let last = lastBrushPoint {
                         let cleared = viewModel.applyBrushSegment(from: last, to: canvas, seabedY: seabedY)
                         if !cleared.isEmpty { sparkleAt = value.location }
@@ -360,7 +375,7 @@ struct SandboxView: View {
         }
     }
 
-    // MARK: - Tool Overlay (DEC-007: on-canvas, no dashboard)
+    // MARK: - Tool Overlay (DEC-007, DEC-032: on-canvas Sponge tool)
 
     @ViewBuilder
     private func toolOverlay(viewModel: SandboxViewModel) -> some View {
@@ -385,100 +400,108 @@ struct SandboxView: View {
             }
             Spacer()
             HStack(spacing: 12) {
-                toolButton(.hand, icon: "hand.point.up.left.fill", viewModel: viewModel)
-                toolButton(.brush, icon: "paintbrush.fill", viewModel: viewModel)
-                toolButton(.plant, icon: "leaf.fill", viewModel: viewModel)
+                spongeToolButton(viewModel: viewModel)
             }
-            .padding(.bottom, 8)
+            .padding(.bottom, 12)
         }
     }
 
-    private func toolButton(_ tool: SandboxViewModel.Tool, icon: String, viewModel: SandboxViewModel) -> some View {
-        Button {
-            viewModel.selectedTool = tool
+    private func spongeToolButton(viewModel: SandboxViewModel) -> some View {
+        let isSelected = viewModel.selectedTool == .sponge
+        return Button {
+            withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
+                viewModel.selectedTool = isSelected ? nil : .sponge
+            }
         } label: {
-            Image(systemName: icon)
-                .font(.title2)
-                .frame(width: 52, height: 52)
-                .background(viewModel.selectedTool == tool ? Color.white.opacity(0.9) : Color.black.opacity(0.35), in: Circle())
-                .foregroundStyle(viewModel.selectedTool == tool ? .blue : .white)
+            ZStack {
+                Circle()
+                    .fill(isSelected ? Color.white.opacity(0.95) : Color.black.opacity(0.4))
+                    .frame(width: 58, height: 58)
+                    .overlay(
+                        Circle()
+                            .stroke(isSelected ? Color.cyan : Color.white.opacity(0.3), lineWidth: isSelected ? 2.5 : 1)
+                    )
+                    .shadow(color: isSelected ? Color.cyan.opacity(0.6) : .clear, radius: 8)
+
+                Image("Sponge")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 36, height: 36)
+                    .scaleEffect(isSelected ? 1.1 : 1.0)
+            }
         }
-        .accessibilityLabel(tool == .hand ? "Hand tool" : tool == .brush ? "Brush tool" : "Plant tool")
+        .accessibilityLabel("Sponge cleaning tool")
     }
 
     // MARK: - Frag Palette (DEC-029)
 
     @ViewBuilder
     private func fragPalette(viewModel: SandboxViewModel, seabedY: Double) -> some View {
-        if viewModel.selectedTool == .plant {
-            HStack(spacing: 16) {
-                ForEach(viewModel.config.availableSpecies, id: \.self) { species in
-                    Image("Fragment1")
-                        .resizable()
-                        .frame(width: 34, height: 80)
-                        .padding(8)
-                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
-                        .overlay(
-                            Text(species).font(.caption2).foregroundStyle(.white).offset(y: 52)
-                        )
-                        .gesture(
-                            DragGesture(minimumDistance: 0)
-                                .onChanged { value in
-                                    paletteDragSpecies = species
-                                    viewModel.liftedFragPosition = CGPoint(
-                                        x: value.location.x - ParallaxMetrics.seabedOffset(scrollX: viewModel.scrollX),
-                                        y: liftHeight(of: value.location.y, seabedY: seabedY)
-                                    )
-                                }
-                                .onEnded { value in
-                                    let fallHeight = liftHeight(of: value.location.y, seabedY: seabedY)
-                                    let drop = CGPoint(
-                                        x: value.location.x - ParallaxMetrics.seabedOffset(scrollX: viewModel.scrollX),
-                                        y: fallHeight
-                                    )
-                                    // Plant at the height it was released from, then settle
-                                    // it down to the sand on the next runloop pass. Inserting
-                                    // straight at y 0 would pop the frag onto the seabed with
-                                    // nothing to animate from.
-                                    //
-                                    // KNOWN GAP: `settleFrag` writes a SwiftData `@Model`
-                                    // property, and such a write does not carry a
-                                    // `withAnimation` transaction — so this descent snaps
-                                    // rather than sinking. The coral drag above works around
-                                    // it by animating view-model state and committing after;
-                                    // the palette drop needs the same treatment. Unreachable
-                                    // while `PlaygroundMode` hides the palette.
-                                    let planted = viewModel.plantFrag(species: species, at: drop)
-                                    paletteDragSpecies = nil
-                                    if let planted {
-                                        let resting = viewModel.restingHeight(forDropHeight: fallHeight, atX: drop.x)
-                                        DispatchQueue.main.async {
-                                            withAnimation(sinkAnimation(fallHeight: fallHeight - resting, seabedY: seabedY)) {
-                                                viewModel.settleFrag(id: planted.id, fromDropHeight: fallHeight)
-                                            }
+        HStack(spacing: 16) {
+            ForEach(viewModel.config.availableSpecies, id: \.self) { species in
+                Image("Fragment1")
+                    .resizable()
+                    .frame(width: 34, height: 80)
+                    .padding(8)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
+                    .overlay(
+                        Text(species).font(.caption2).foregroundStyle(.white).offset(y: 52)
+                    )
+                    .gesture(
+                        DragGesture(minimumDistance: 0)
+                            .onChanged { value in
+                                paletteDragSpecies = species
+                                viewModel.liftedFragPosition = CGPoint(
+                                    x: value.location.x - ParallaxMetrics.seabedOffset(scrollX: viewModel.scrollX),
+                                    y: liftHeight(of: value.location.y, seabedY: seabedY)
+                                )
+                            }
+                            .onEnded { value in
+                                let fallHeight = liftHeight(of: value.location.y, seabedY: seabedY)
+                                let drop = CGPoint(
+                                    x: value.location.x - ParallaxMetrics.seabedOffset(scrollX: viewModel.scrollX),
+                                    y: fallHeight
+                                )
+                                // Plant at the height it was released from, then settle
+                                // it down to the sand on the next runloop pass. Inserting
+                                // straight at y 0 would pop the frag onto the seabed with
+                                // nothing to animate from.
+                                //
+                                // KNOWN GAP: `settleFrag` writes a SwiftData `@Model`
+                                // property, and such a write does not carry a
+                                // `withAnimation` transaction — so this descent snaps
+                                // rather than sinking. The coral drag above works around
+                                // it by animating view-model state and committing after;
+                                // the palette drop needs the same treatment. Unreachable
+                                // while `PlaygroundMode` hides the palette.
+                                let planted = viewModel.plantFrag(species: species, at: drop)
+                                paletteDragSpecies = nil
+                                if let planted {
+                                    let resting = viewModel.restingHeight(forDropHeight: fallHeight, atX: drop.x)
+                                    DispatchQueue.main.async {
+                                        withAnimation(sinkAnimation(fallHeight: fallHeight - resting, seabedY: seabedY)) {
+                                            viewModel.settleFrag(id: planted.id, fromDropHeight: fallHeight)
                                         }
                                     }
                                 }
-                        )
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.bottom, 76)
-
-            // Drag preview follows the finger.
-            if paletteDragSpecies != nil {
-                Image("Fragment1")
-                    .resizable()
-                    .frame(width: 45, height: 110)
-                    .opacity(0.85)
-                    // Tracks the finger in 2D like a lifted frag does, so the drag
-                    // preview and the sink that follows describe one continuous move.
-                    .position(
-                        x: viewModel.liftedFragPosition.x + ParallaxMetrics.seabedOffset(scrollX: viewModel.scrollX),
-                        y: seabedY - viewModel.liftedFragPosition.y - 55
+                            }
                     )
-                    .allowsHitTesting(false)
             }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.bottom, 76)
+
+        // Drag preview follows the finger.
+        if paletteDragSpecies != nil {
+            Image("Fragment1")
+                .resizable()
+                .frame(width: 45, height: 110)
+                .opacity(0.85)
+                .position(
+                    x: viewModel.liftedFragPosition.x + ParallaxMetrics.seabedOffset(scrollX: viewModel.scrollX),
+                    y: seabedY - viewModel.liftedFragPosition.y - 55
+                )
+                .allowsHitTesting(false)
         }
     }
 

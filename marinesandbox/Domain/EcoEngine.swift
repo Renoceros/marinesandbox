@@ -150,10 +150,8 @@ public enum EcoEngine {
             if state.corals[index].isBleached && state.corals[index].algaePercentage > 0.8 {
                 state.corals[index].isDead = true
             }
-            // 2. Tissue Loss: corals die if predator damage reaches 100%
-            if state.corals[index].predatorDamage >= 1.0 {
-                state.corals[index].isDead = true
-            }
+            // 2. Tissue Loss: pest mortality is disabled for MVP exploration (DEC-033);
+            // pests strictly slow down growth via predatorModifier in section A.
         }
 
         return state

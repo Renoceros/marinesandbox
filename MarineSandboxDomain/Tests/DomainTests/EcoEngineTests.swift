@@ -156,13 +156,15 @@ struct EcoEngineTests {
         #expect(result.corals[0].predatorDamage == 0.0)
     }
 
-    @Test func fullTissueLossKillsCoral() {
+    @Test func fullTissueLossDoesNotKillCoralInMVP() {
+        // DEC-033: pests slow growth but do not kill corals for MVP exploration.
         let result = EcoEngine.advance(
             state: reef([coral(predatorDamage: 0.99, predators: ["DrupellaSnail"])]),
             threats: benign,
             elapsed: oneDay
         )
-        #expect(result.corals[0].isDead)
+        #expect(!result.corals[0].isDead)
+        #expect(result.corals[0].predatorDamage >= 1.0)
     }
 
     @Test func bleachedCoralSmotheredByAlgaeDies() {

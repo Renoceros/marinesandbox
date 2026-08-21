@@ -17,11 +17,9 @@ public final class SandboxViewModel {
 
     // MARK: - Tools & Published Surface
 
-    /// The active on-canvas tool (DEC-007: overlays on the canvas, no side dashboard).
-    public enum Tool {
-        case brush
-        case hand
-        case plant
+    /// The active on-canvas tool (DEC-032: single Sponge tool + bare-hand default).
+    public enum Tool: String, CaseIterable, Sendable {
+        case sponge
     }
 
     /// Horizontal parallax offset, owned here so the entity layer can hit-test
@@ -35,8 +33,8 @@ public final class SandboxViewModel {
     /// The regional config driving this session's threats. Exhibition: Bali (DEC-003).
     public private(set) var config: NGOConfig
 
-    /// The currently selected care tool.
-    public var selectedTool: Tool = .hand
+    /// The currently selected care tool (`nil` represents default bare-hand mode, DEC-032).
+    public var selectedTool: Tool? = nil
 
     /// Set when a Fast Forward completes; the view presents the Diagnostic Card (workflow §3.1).
     public var pendingDiagnostic: ReefState?

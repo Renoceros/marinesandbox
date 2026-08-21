@@ -59,6 +59,13 @@ public final class SandboxViewModel {
     /// Set when the first pest ever spawns; the view shows the one-time tooltip (DEC-012).
     public var showPestTooltip = false
 
+    /// Width of one seabed artwork block. Set from the viewport by
+    /// `updateFieldGeometry`; used to find which sand sits under a coral.
+    public private(set) var seabedBlockWidth: CGFloat = 0
+
+    /// Fallback sand height used only before the artwork can be measured.
+    public private(set) var seabedFallbackHeight: CGFloat = 0
+
     private let modelContext: ModelContext
 
     /// Session threat state, derived from the config. `heatwaveAllowed == false`
@@ -314,8 +321,53 @@ extension SandboxViewModel {
     /// Lifts the survivor frag on tap (guide step 1: frag highlights).
     public func liftSurvivorFrag() {
         guard let survivor = survivorFrag else { return }
-        liftedFragID = survivor.id
-        liftedFragPosition = CGPoint(x: survivor.xPos, y: survivor.yPos)
+        liftFrag(id: survivor.id)
+    }
+
+    /// Lifts any frag by id, so it follows the finger until it is dropped.
+    ///
+    /// The guided plant lifts only the survivor; the playground field lifts
+    /// whichever coral the drag started on, which is what makes a planted coral
+    /// repositionable instead of fixed where it first landed.
+    public func liftFrag(id: UUID) {
+        guard let frag = canvas?.coralFrags.first(where: { $0.id == id }) else { return }
+        liftedFragID = id
+        liftedFragPosition = CGPoint(x: frag.xPos, y: frag.yPos)
+    }
+
+    /// Clears the reef down to one healthy coral in the middle of the field.
+    ///
+    /// Only used by `PlaygroundMode`. A canvas that already holds exactly one
+    /// living frag is left alone, so a coral you dragged somewhere stays there
+    /// across a relaunch; anything else — several frags, or a dead one — is
+    /// reset to a clean field.
+    public func resetToSinglePlaygroundFrag() {
+        guard let canvas else { return }
+
+        // No guide in the playground, whether or not the field needs rebuilding.
+        // This also drops the survivor glow: `survivorFrag` is nil once the
+        // guided plant is marked done.
+        canvas.guidedPlantDone = true
+        liftedFragID = nil
+        showPestTooltip = false
+
+        let isAlreadyCleanField = canvas.coralFrags.count == 1
+            && canvas.coralFrags.allSatisfy { !$0.isDead }
+
+        if !isAlreadyCleanField {
+            for frag in canvas.coralFrags { modelContext.delete(frag) }
+            canvas.coralFrags.removeAll()
+
+            let frag = CoralFrag(
+                species: "Acropora",
+                xPos: canvas.canvasWidth / 2,
+                yPos: 0,
+                growthProgress: 0.15
+            )
+            modelContext.insert(frag)
+            canvas.coralFrags.append(frag)
+        }
+        save()
     }
 
     /// Drags the lifted frag to a canvas-space point (guide step 2 in progress).
@@ -331,9 +383,65 @@ extension SandboxViewModel {
               let frag = canvas.coralFrags.first(where: { $0.id == id }) else { return }
         let drop = Physics.clampedDrop(liftedFragPosition, canvasWidth: canvas.canvasWidth)
         frag.xPos = drop.x
-        frag.yPos = 0
+        frag.yPos = restingHeight(forDropHeight: liftedFragPosition.y, atX: drop.x)
         canvas.guidedPlantDone = true
         liftedFragID = nil
+        save()
+    }
+
+    /// Settles an already-planted frag down onto the sand. Split out from
+    /// planting so a palette drop can insert the frag at the height it was
+    /// released from and *then* animate it down — inserting straight at y 0
+    /// leaves SwiftUI nothing to animate from.
+    public func settleFrag(id: UUID, fromDropHeight dropHeight: Double) {
+        guard let frag = canvas?.coralFrags.first(where: { $0.id == id }) else { return }
+        frag.yPos = restingHeight(forDropHeight: dropHeight, atX: frag.xPos)
+        save()
+    }
+
+    /// Where a frag released at `dropHeight` above the container floor settles.
+    ///
+    /// Released in open water it sinks to the sand surface; released within the
+    /// sand it holds that depth, so the band works as a field with a near and a
+    /// far edge instead of a single line.
+    public func restingHeight(forDropHeight dropHeight: Double, atX x: Double) -> Double {
+        // The sand rises and dips across its width, so the ceiling is the sand
+        // height under *this* coral. A flat value left corals hovering wherever
+        // the seabed fell away beneath them.
+        let surface = SeabedProfile.shared.surfaceHeight(
+            atLayerX: CGFloat(x),
+            blockWidth: seabedBlockWidth
+        ) ?? Double(seabedFallbackHeight)
+
+        return ParallaxMetrics.restingHeight(dropHeight: dropHeight, surfaceHeight: surface)
+    }
+
+    /// Records the field's geometry: the plantable sand band, and the reef width
+    /// the seabed can actually reach.
+    ///
+    /// Corals ride the seabed layer, which only travels `panRange * seabedRatio`
+    /// — a fraction of the full drag range. The old fixed 2000 pt canvas was far
+    /// wider than that, so anything planted past the seabed's reach sat
+    /// permanently off-screen. Existing frags are pulled back inside the new
+    /// bound rather than being stranded there.
+    public func updateFieldGeometry(viewportWidth: CGFloat, viewportHeight: CGFloat) {
+        // Recorded first: planting needs these even on the layout pass where the
+        // width has not settled yet.
+        seabedBlockWidth = viewportWidth * ParallaxMetrics.seabedWidthScale
+        seabedFallbackHeight = viewportHeight * 0.19
+
+        guard let canvas, viewportWidth > 0 else { return }
+        let width = Double(ParallaxMetrics.playableWidth(viewportWidth: viewportWidth))
+        guard abs(canvas.canvasWidth - width) > 0.5 else { return }
+
+        canvas.canvasWidth = width
+        for frag in canvas.coralFrags {
+            let inside = Physics.clampedDrop(
+                CGPoint(x: frag.xPos, y: frag.yPos),
+                canvasWidth: width
+            )
+            frag.xPos = inside.x
+        }
         save()
     }
 

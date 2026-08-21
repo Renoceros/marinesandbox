@@ -31,7 +31,7 @@ struct CoralGeometryTests {
         let rect = CoralGeometry.hitRect(for: coral(growth: 0.9, x: 500), seabedY: seabedY)
         #expect(abs(rect.midX - 500) < 1e-10)
         #expect(abs(rect.maxY - seabedY) < 1e-10)
-        #expect(abs(rect.width - 193.21) < 1e-2)
+        #expect(abs(rect.width - 96.61) < 1e-2)
     }
 
     @Test func hitRectLiftsSpriteAboveSeabedByYPos() {
@@ -43,7 +43,7 @@ struct CoralGeometryTests {
     @Test func hitTestFindsTappedCoral() {
         let corals = [coral(growth: 0.9)]
         // Center of the adult sprite whose base sits on the seabed.
-        #expect(CoralGeometry.hitTest(corals: corals, at: CGPoint(x: 500, y: seabedY - 121), seabedY: seabedY)?.id == corals[0].id)
+        #expect(CoralGeometry.hitTest(corals: corals, at: CGPoint(x: 500, y: seabedY - 60.83), seabedY: seabedY)?.id == corals[0].id)
         // Far outside the sprite.
         #expect(CoralGeometry.hitTest(corals: corals, at: CGPoint(x: 50, y: 50), seabedY: seabedY) == nil)
     }
@@ -51,12 +51,12 @@ struct CoralGeometryTests {
     @Test func hitTestIgnoresDeadCorals() {
         var dead = coral(growth: 0.9)
         dead.isDead = true
-        #expect(CoralGeometry.hitTest(corals: [dead], at: CGPoint(x: 500, y: seabedY - 121), seabedY: seabedY) == nil)
+        #expect(CoralGeometry.hitTest(corals: [dead], at: CGPoint(x: 500, y: seabedY - 60.83), seabedY: seabedY) == nil)
     }
 
     @Test func localPointNormalisesIntoGridSpace() {
         let c = coral(growth: 0.9, x: 500)
-        let center = CoralGeometry.localPoint(in: c, canvasPoint: CGPoint(x: 500, y: seabedY - 243.32 / 2), seabedY: seabedY)
+        let center = CoralGeometry.localPoint(in: c, canvasPoint: CGPoint(x: 500, y: seabedY - 121.66 / 2), seabedY: seabedY)
         #expect(center != nil)
         #expect(abs(center!.x - 0.5) < 1e-3)
         #expect(abs(center!.y - 0.5) < 1e-3)

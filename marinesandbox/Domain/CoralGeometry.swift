@@ -24,9 +24,9 @@ public enum CoralGeometry {
         }
     }
 
-    /// Footprints per growth stage, from the asset viewBoxes:
-    /// shiny frag 87.14×131.06 · gray frag 59.89×181.77 · toddler 106.67×159.16 ·
-    /// teen 162.56×193.60 · adult 193.21×243.32.
+    /// Footprints per growth stage, scaled to 50% for sandbox canvas balance:
+    /// shiny frag 43.57×65.53 · gray frag 29.95×90.89 · toddler 53.34×79.58 ·
+    /// teen 81.28×96.80 · adult 96.61×121.66.
     /// A *living* baby renders as the shiny (colored) fragment — planted life must
     /// read as alive (DEC-009). A dead baby renders as gray rubble (`Fragment1`).
     /// The teenager band interpolates between the toddler and teen sprites;
@@ -35,15 +35,15 @@ public enum CoralGeometry {
         switch coral.stage {
         case .baby:
             return coral.isDead
-                ? Footprint(assetName: "Fragment1", size: CGSize(width: 59.89, height: 181.77))
-                : Footprint(assetName: "ShinyFragment", size: CGSize(width: 87.14, height: 131.06))
+                ? Footprint(assetName: "Fragment1", size: CGSize(width: 29.95, height: 90.89))
+                : Footprint(assetName: "ShinyFragment", size: CGSize(width: 43.57, height: 65.53))
         case .teenager:
             // Interpolate within the band: early teen reads as toddler, late teen as teen.
             return coral.growthProgress < 0.5
-                ? Footprint(assetName: "CoralToddler", size: CGSize(width: 106.67, height: 159.16))
-                : Footprint(assetName: "CoralTeen", size: CGSize(width: 162.56, height: 193.60))
+                ? Footprint(assetName: "CoralToddler", size: CGSize(width: 53.34, height: 79.58))
+                : Footprint(assetName: "CoralTeen", size: CGSize(width: 81.28, height: 96.80))
         case .adult:
-            return Footprint(assetName: "CoralAdult", size: CGSize(width: 193.21, height: 243.32))
+            return Footprint(assetName: "CoralAdult", size: CGSize(width: 96.61, height: 121.66))
         }
     }
 

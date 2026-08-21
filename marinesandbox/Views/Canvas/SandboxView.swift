@@ -46,7 +46,7 @@ struct SandboxView: View {
     var body: some View {
         GeometryReader { geometry in
             if let viewModel {
-                let seabedY = geometry.size.height
+                let seabedY = geometry.size.height - 80
                 ZStack(alignment: .bottomLeading) {
                     ParallaxScrollView(scrollX: Binding(
                         get: { viewModel.scrollX },
@@ -184,21 +184,11 @@ struct SandboxView: View {
         assetName: String,
         footprint: CoralGeometry.Footprint
     ) -> some View {
-        if frag.isDead {
-            Image(assetName)
-                .resizable()
-                .frame(width: footprint.size.width, height: footprint.size.height)
-                .saturation(0)
-                .opacity(0.5)
-        } else {
-            LottieCoralView(
-                coralID: frag.id,
-                growthProgress: frag.growthProgress,
-                playbackProgress: viewModel.lottiePlaybackTargets[frag.id],
-                onPlaybackCompleted: { viewModel.completeLottiePlayback(for: frag.id) }
-            )
+        Image(assetName)
+            .resizable()
             .frame(width: footprint.size.width, height: footprint.size.height)
-        }
+            .saturation(frag.isDead ? 0 : 1)
+            .opacity(frag.isDead ? 0.5 : 1)
     }
 
     /// Pest dot with tap-to-smush and drag-to-flick (DEC-012). Position derived

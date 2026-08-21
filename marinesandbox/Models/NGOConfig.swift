@@ -37,6 +37,13 @@ public final class NGOConfig {
     /// (e.g. `["DrupellaSnail", "CrownOfThornsStarfish"]`).
     public var pestCatalog: [String]
 
+    /// Whether this config drives an exhibition (museum) session vs. the personal app
+    /// (DEC-031). Exhibition mode shows a **Fast Forward button** the visitor taps to
+    /// jump the reef ahead through growth stages, with no live auto-tick and no
+    /// offline catch-up. The personal app runs the 7-day real-time lifecycle with
+    /// graceful catch-up on launch.
+    public var isExhibitionMode: Bool
+
     /// Initializes a new NGOConfig instance.
     public init(
         regionName: String,
@@ -44,7 +51,8 @@ public final class NGOConfig {
         baselineTemperature: Double,
         runoffShockAllowed: Bool,
         heatwaveAllowed: Bool,
-        pestCatalog: [String]
+        pestCatalog: [String],
+        isExhibitionMode: Bool = false
     ) {
         self.regionName = regionName
         self.availableSpecies = availableSpecies
@@ -52,6 +60,7 @@ public final class NGOConfig {
         self.runoffShockAllowed = runoffShockAllowed
         self.heatwaveAllowed = heatwaveAllowed
         self.pestCatalog = pestCatalog
+        self.isExhibitionMode = isExhibitionMode
     }
 }
 
@@ -68,7 +77,8 @@ extension NGOConfig {
             baselineTemperature: 27.0,
             runoffShockAllowed: true,
             heatwaveAllowed: false, // DEC-025: do not flip without superseding that entry
-            pestCatalog: ["DrupellaSnail", "CrownOfThornsStarfish"]
+            pestCatalog: ["DrupellaSnail", "CrownOfThornsStarfish"],
+            isExhibitionMode: true // DEC-031: FF button, no live auto-tick, no catch-up
         )
     }
 }

@@ -38,7 +38,13 @@ public struct CoralState: Identifiable, Equatable, Sendable {
     public var yPos: Double
 
     /// `0.0` freshly planted fragment to `1.0` mature adult colony.
+    /// Accumulates *effective* healthy time, not wall time — algae and pest slowdown
+    /// modifiers (DEC-031) make a neglected coral take longer than 7 days to mature.
     public var growthProgress: Double
+
+    /// Wall-clock moment this fragment was planted (DEC-031). Anchors the 7-day
+    /// lifecycle and the per-coral age.
+    public var plantedAt: Date
 
     /// Spatial algae model. The scalar the maths uses is derived from it (DEC-018).
     public var coverage: AlgaeCoverage
@@ -58,6 +64,7 @@ public struct CoralState: Identifiable, Equatable, Sendable {
         xPos: Double = 0,
         yPos: Double = 0,
         growthProgress: Double = 0,
+        plantedAt: Date = Date(),
         coverage: AlgaeCoverage = AlgaeCoverage(),
         predatorDamage: Double = 0,
         activePredators: [String] = [],
@@ -69,6 +76,7 @@ public struct CoralState: Identifiable, Equatable, Sendable {
         self.xPos = xPos
         self.yPos = yPos
         self.growthProgress = growthProgress
+        self.plantedAt = plantedAt
         self.coverage = coverage
         self.predatorDamage = predatorDamage
         self.activePredators = activePredators

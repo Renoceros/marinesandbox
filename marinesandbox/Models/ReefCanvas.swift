@@ -32,7 +32,13 @@ public final class ReefCanvas {
     /// Whether the guided first plant (DEC-009/024) has been completed.
     /// Persisted so an interrupted cold open resumes the guide on next launch.
     public var guidedPlantDone: Bool
-    
+
+    /// Wall-clock timestamp of the last time the reef was visible (DEC-031).
+    /// On launch, the engine computes `now - lastSeenAt` and advances every coral
+    /// by that elapsed real time — graceful catch-up (growth + algae accrual, no
+    /// offline death). Updated whenever the Coral Screen disappears or the app backgrounds.
+    public var lastSeenAt: Date
+
     /// Initializes a new ReefCanvas instance.
     ///
     /// - Parameters:
@@ -46,12 +52,14 @@ public final class ReefCanvas {
         ngoRegion: String,
         canvasWidth: Double = 2000.0,
         coralFrags: [CoralFrag] = [],
-        guidedPlantDone: Bool = false
+        guidedPlantDone: Bool = false,
+        lastSeenAt: Date = Date()
     ) {
         self.id = id
         self.ngoRegion = ngoRegion
         self.canvasWidth = canvasWidth
         self.coralFrags = coralFrags
         self.guidedPlantDone = guidedPlantDone
+        self.lastSeenAt = lastSeenAt
     }
 }

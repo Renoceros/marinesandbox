@@ -31,7 +31,9 @@ struct SandboxView: View {
     /// Brief sparkle marker where a brush stroke cleared cells.
     @State private var sparkleAt: CGPoint?
 
-    /// The tick timer (DEC-027): one sim month every 5 s while this screen is visible.
+    /// The live tick timer (DEC-031): advances the reef by one refresh slice while this
+    /// screen is visible. Only active in the personal (non-exhibition) app — exhibition
+    /// mode drives growth through the Fast Forward button instead.
     private let ticker = Timer.publish(every: SandboxViewModel.tickInterval, on: .main, in: .common).autoconnect()
 
     struct FlyingPest: Equatable {
@@ -44,7 +46,7 @@ struct SandboxView: View {
     var body: some View {
         GeometryReader { geometry in
             if let viewModel {
-                let seabedY = geometry.size.height
+                let seabedY = geometry.size.height - 80
                 ZStack(alignment: .bottomLeading) {
                     ParallaxScrollView(scrollX: Binding(
                         get: { viewModel.scrollX },
@@ -84,11 +86,8 @@ struct SandboxView: View {
                         }
                     }
                 }
-                // Frozen in the playground: a live tick grows the coral, spawns
-                // pests on it and kills it mid-session, which makes the drag
-                // impossible to judge against a constant target.
                 .onReceive(ticker) { _ in
-                    guard !PlaygroundMode.isEnabled else { return }
+                    guard !viewModel.config.isExhibitionMode, !PlaygroundMode.isEnabled else { return }
                     viewModel.tickLive()
                 }
                 .onAppear {
@@ -96,8 +95,6 @@ struct SandboxView: View {
                         viewportWidth: geometry.size.width,
                         viewportHeight: geometry.size.height
                     )
-                    // Runs after the width is known so the coral can be centred
-                    // in the field rather than at the seeded xPos 200.
                     if PlaygroundMode.isEnabled {
                         viewModel.resetToSinglePlaygroundFrag()
                     }
@@ -146,11 +143,7 @@ struct SandboxView: View {
             let baseY = seabedY - (isLifted ? viewModel.liftedFragPosition.y : coral.yPos)
 
             ZStack {
-                Image(assetName)
-                    .resizable()
-                    .frame(width: footprint.size.width, height: footprint.size.height)
-                    .saturation(frag.isDead ? 0 : 1)
-                    .opacity(frag.isDead ? 0.5 : 1)
+                coralArtView(viewModel: viewModel, frag: frag, assetName: assetName, footprint: footprint)
                     .scaleEffect(isLifted ? 1.15 : 1.0)
                     .shadow(color: isLifted ? .white.opacity(0.6) : .clear, radius: 12)
                     .shadow(color: isSurvivor ? .yellow.opacity(0.8) : .clear, radius: 18)
@@ -182,6 +175,20 @@ struct SandboxView: View {
             .gesture(coralDrag(viewModel: viewModel, frag: frag, seabedY: seabedY))
             .onTapGesture { handleCoralTap(viewModel: viewModel, frag: frag) }
         }
+    }
+
+    @ViewBuilder
+    private func coralArtView(
+        viewModel: SandboxViewModel,
+        frag: CoralFrag,
+        assetName: String,
+        footprint: CoralGeometry.Footprint
+    ) -> some View {
+        Image(assetName)
+            .resizable()
+            .frame(width: footprint.size.width, height: footprint.size.height)
+            .saturation(frag.isDead ? 0 : 1)
+            .opacity(frag.isDead ? 0.5 : 1)
     }
 
     /// Pest dot with tap-to-smush and drag-to-flick (DEC-012). Position derived
@@ -360,17 +367,21 @@ struct SandboxView: View {
         VStack {
             HStack {
                 Spacer()
-                Button {
-                    viewModel.performFastForward()
-                } label: {
-                    Label("Fast Forward", systemImage: "forward.fill")
-                        .font(.callout.bold())
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 10)
-                        .background(.ultraThinMaterial, in: Capsule())
+                // DEC-031: the Fast Forward button is the exhibition progression
+                // mechanism (tap to jump stages). The personal app grows in real time.
+                if viewModel.config.isExhibitionMode {
+                    Button {
+                        viewModel.performFastForward()
+                    } label: {
+                        Label("Fast Forward", systemImage: "forward.fill")
+                            .font(.callout.bold())
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 10)
+                            .background(.ultraThinMaterial, in: Capsule())
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, 56) // root ignores safe area — keep clear of the status bar
                 }
-                .padding(.horizontal)
-                .padding(.top, 56) // root ignores safe area — keep clear of the status bar
             }
             Spacer()
             HStack(spacing: 12) {

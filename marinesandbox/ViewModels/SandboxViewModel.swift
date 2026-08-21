@@ -101,7 +101,7 @@ public final class SandboxViewModel {
             return
         }
 
-        let survivor = CoralFrag(species: "Acropora", xPos: 200, yPos: 0, growthProgress: 0.15)
+        let survivor = CoralFrag(species: "Acropora", xPos: 200, yPos: 0, growthProgress: 0.0)
         let canvas = ReefCanvas(ngoRegion: config.regionName, coralFrags: [survivor])
         modelContext.insert(canvas)
         self.canvas = canvas
@@ -360,7 +360,7 @@ extension SandboxViewModel {
                 species: "Acropora",
                 xPos: canvas.canvasWidth / 2,
                 yPos: 0,
-                growthProgress: 0.15
+                growthProgress: 0.0
             )
             modelContext.insert(frag)
             canvas.coralFrags.append(frag)

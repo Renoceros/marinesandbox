@@ -49,7 +49,7 @@ struct SandboxView: View {
     var body: some View {
         GeometryReader { geometry in
             if let viewModel {
-                let seabedY = geometry.size.height - 80
+                let seabedY = geometry.size.height
                 ZStack(alignment: .bottomLeading) {
                     ParallaxScrollView(scrollX: Binding(
                         get: { viewModel.scrollX },
@@ -187,11 +187,26 @@ struct SandboxView: View {
         assetName: String,
         footprint: CoralGeometry.Footprint
     ) -> some View {
-        Image(assetName)
-            .resizable()
+        if frag.isDead {
+            Image(assetName)
+                .resizable()
+                .frame(width: footprint.size.width, height: footprint.size.height)
+                .saturation(0)
+                .opacity(0.5)
+        } else {
+            // Before planting (e.g. cold open survivor frag), display at frame 0 (growthProgress: 0.0).
+            // Once planted, the simulation advances growthProgress, scrubbing the Lottie frames slowly.
+            let isUnplanted = (frag.id == viewModel.survivorFrag?.id && viewModel.guidedPlantPhase != .done)
+            let progress = isUnplanted ? 0.0 : frag.growthProgress
+
+            LottieCoralView(
+                coralID: frag.id,
+                growthProgress: progress,
+                playbackProgress: viewModel.lottiePlaybackTargets[frag.id],
+                onPlaybackCompleted: { viewModel.completeLottiePlayback(for: frag.id) }
+            )
             .frame(width: footprint.size.width, height: footprint.size.height)
-            .saturation(frag.isDead ? 0 : 1)
-            .opacity(frag.isDead ? 0.5 : 1)
+        }
     }
 
     /// Pest view using Snail vector asset with tap-to-smush height-squash and drag-to-flick (DEC-032, DEC-034).

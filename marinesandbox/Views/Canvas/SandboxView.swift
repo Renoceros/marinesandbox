@@ -53,33 +53,61 @@ struct SandboxView: View {
 
                     entityLayer(viewModel: viewModel, seabedY: seabedY)
 
-                    if viewModel.guidedPlantPhase == .awaitingPlant {
-                        guidePulse(viewModel: viewModel, seabedY: seabedY, viewportWidth: geometry.size.width)
-                    }
+                    // The whole care-loop UI is gated together: the playground is
+                    // a bare field, so every overlay that is not the reef itself
+                    // stays unbuilt until the flag goes back to `false`.
+                    if !PlaygroundMode.isEnabled {
+                        if viewModel.guidedPlantPhase == .awaitingPlant {
+                            guidePulse(viewModel: viewModel, seabedY: seabedY, viewportWidth: geometry.size.width)
+                        }
 
-                    toolOverlay(viewModel: viewModel)
+                        toolOverlay(viewModel: viewModel)
 
-                    if viewModel.isPlantingUnlocked {
-                        fragPalette(viewModel: viewModel, seabedY: seabedY)
-                    }
+                        if viewModel.isPlantingUnlocked {
+                            fragPalette(viewModel: viewModel, seabedY: seabedY)
+                        }
 
-                    if viewModel.showPestTooltip {
-                        pestTooltip(viewModel: viewModel)
-                    }
+                        if viewModel.showPestTooltip {
+                            pestTooltip(viewModel: viewModel)
+                        }
 
-                    if let sparkleAt {
-                        Image(systemName: "sparkle")
-                            .font(.title)
-                            .foregroundStyle(.white)
-                            .position(sparkleAt)
-                            .transition(.opacity)
-                    }
+                        if let sparkleAt {
+                            Image(systemName: "sparkle")
+                                .font(.title)
+                                .foregroundStyle(.white)
+                                .position(sparkleAt)
+                                .transition(.opacity)
+                        }
 
-                    if viewModel.pendingDiagnostic != nil {
-                        diagnosticCard(viewModel: viewModel)
+                        if viewModel.pendingDiagnostic != nil {
+                            diagnosticCard(viewModel: viewModel)
+                        }
                     }
                 }
-                .onReceive(ticker) { _ in viewModel.tickLive() }
+                // Frozen in the playground: a live tick grows the coral, spawns
+                // pests on it and kills it mid-session, which makes the drag
+                // impossible to judge against a constant target.
+                .onReceive(ticker) { _ in
+                    guard !PlaygroundMode.isEnabled else { return }
+                    viewModel.tickLive()
+                }
+                .onAppear {
+                    viewModel.updateFieldGeometry(
+                        viewportWidth: geometry.size.width,
+                        viewportHeight: geometry.size.height
+                    )
+                    // Runs after the width is known so the coral can be centred
+                    // in the field rather than at the seeded xPos 200.
+                    if PlaygroundMode.isEnabled {
+                        viewModel.resetToSinglePlaygroundFrag()
+                    }
+                }
+                .onChange(of: geometry.size) { _, size in
+                    viewModel.updateFieldGeometry(
+                        viewportWidth: size.width,
+                        viewportHeight: size.height
+                    )
+                }
             } else {
                 Color(hex: "3BAFED").ignoresSafeArea()
             }
@@ -98,6 +126,11 @@ struct SandboxView: View {
 
     @ViewBuilder
     private func entityLayer(viewModel: SandboxViewModel, seabedY: Double) -> some View {
+        // Corals are planted in the seabed layer, so they translate by the sand's
+        // own parallax ratio — not by the raw scroll offset. Using `scrollX`
+        // directly made the reef slide across the sand at five times its speed.
+        let seabedOffset = ParallaxMetrics.seabedOffset(scrollX: viewModel.scrollX)
+
         ForEach(viewModel.canvas?.coralFrags ?? [], id: \.id) { frag in
             let coral = frag.snapshotForInteraction
             let footprint = CoralGeometry.footprint(for: coral)
@@ -107,7 +140,7 @@ struct SandboxView: View {
             let isSurvivor = frag.id == viewModel.survivorFrag?.id
             let assetName = footprint.assetName
             let isLifted = viewModel.liftedFragID == frag.id
-            let screenX = (isLifted ? viewModel.liftedFragPosition.x : coral.xPos) + viewModel.scrollX
+            let screenX = (isLifted ? viewModel.liftedFragPosition.x : coral.xPos) + seabedOffset
             // yPos is height *above the seabed* — a lifted frag at y 0 sits on the sand,
             // not at the top of the screen.
             let baseY = seabedY - (isLifted ? viewModel.liftedFragPosition.y : coral.yPos)
@@ -137,12 +170,17 @@ struct SandboxView: View {
                     pestView(viewModel: viewModel, frag: frag, index: index, footprint: footprint)
                 }
             }
+            // Deliberately no `.animation(_:value:)` here. An explicit animation
+            // modifier overrides the ambient transaction for this view, and it
+            // reached `.position` regardless of where it sat in the chain — so
+            // every sink ran at its fixed response and `sinkResponse` never
+            // applied. Lift and settle are driven by `withAnimation` at the
+            // call sites instead.
             .frame(width: footprint.size.width, height: footprint.size.height)
             .contentShape(Rectangle())
             .position(x: screenX, y: baseY - footprint.size.height / 2)
             .gesture(coralDrag(viewModel: viewModel, frag: frag, seabedY: seabedY))
             .onTapGesture { handleCoralTap(viewModel: viewModel, frag: frag) }
-            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isLifted)
         }
     }
 
@@ -216,7 +254,7 @@ struct SandboxView: View {
             .phaseAnimator([0.6, 1.15]) { content, phase in
                 content.scaleEffect(phase).opacity(phase > 1 ? 0.6 : 1.0)
             }
-            .position(x: target.x + viewModel.scrollX, y: target.y)
+            .position(x: target.x + ParallaxMetrics.seabedOffset(scrollX: viewModel.scrollX), y: target.y)
             .onTapGesture { viewModel.autoPlantSurvivor(at: CGPoint(x: target.x, y: 0)) }
     }
 
@@ -229,9 +267,22 @@ struct SandboxView: View {
     private func coralDrag(viewModel: SandboxViewModel, frag: CoralFrag, seabedY: Double) -> some Gesture {
         DragGesture(minimumDistance: 6)
             .onChanged { value in
-                let canvas = CGPoint(x: value.location.x - viewModel.scrollX, y: value.location.y)
+                let seabedOffset = ParallaxMetrics.seabedOffset(scrollX: viewModel.scrollX)
+                let canvas = CGPoint(x: value.location.x - seabedOffset, y: value.location.y)
+                // Outside the playground only the guided first plant is liftable,
+                // so a planted coral is fixed where it sits. Here any coral picks
+                // up the moment a drag starts on it, and can be moved again and
+                // again.
+                if PlaygroundMode.isEnabled, viewModel.liftedFragID != frag.id {
+                    withAnimation(.spring(response: 0.3, dampingFraction: Physics.sinkDamping)) {
+                        viewModel.liftFrag(id: frag.id)
+                    }
+                }
                 if viewModel.liftedFragID == frag.id {
-                    viewModel.dragLiftedFrag(to: CGPoint(x: canvas.x, y: 0))
+                    // The frag follows the finger in 2D — including up into open
+                    // water. `yPos` is height *above* the seabed, so it is the
+                    // distance from the sand up to the touch, never negative.
+                    viewModel.dragLiftedFrag(to: CGPoint(x: canvas.x, y: liftHeight(of: value.location.y, seabedY: seabedY)))
                 } else if viewModel.selectedTool == .brush {
                     if let last = lastBrushPoint {
                         let cleared = viewModel.applyBrushSegment(from: last, to: canvas, seabedY: seabedY)
@@ -242,12 +293,58 @@ struct SandboxView: View {
             }
             .onEnded { _ in
                 if viewModel.liftedFragID == frag.id {
-                    withAnimation(.spring(response: 0.35, dampingFraction: 0.55)) {
-                        viewModel.plantLiftedFrag()
+                    // Released in open water, the frag sinks; the further it has to
+                    // fall, the longer the settle takes. The fall is measured to
+                    // where it will actually come to rest in the sand band — not
+                    // to the container floor, or nudging a coral a few points
+                    // within the band would get a full-length spring.
+                    let dropHeight = viewModel.liftedFragPosition.y
+                    let resting = viewModel.restingHeight(
+                        forDropHeight: dropHeight,
+                        atX: viewModel.liftedFragPosition.x
+                    )
+                    let response = Physics.sinkResponse(
+                        fallHeight: dropHeight - resting,
+                        viewportHeight: seabedY
+                    )
+
+                    // The descent animates view-model state, not the model: a
+                    // SwiftData write does not carry the transaction, which is
+                    // why sinking used to ignore this spring entirely.
+                    withAnimation(.spring(response: response, dampingFraction: Physics.sinkDamping)) {
+                        viewModel.dragLiftedFrag(
+                            to: CGPoint(x: viewModel.liftedFragPosition.x, y: resting)
+                        )
+                    }
+
+                    // Commit once it has visually arrived. The position already
+                    // matches, so only the lift scale and glow change here.
+                    DispatchQueue.main.asyncAfter(
+                        deadline: .now() + Physics.sinkSettleDuration(response: response)
+                    ) {
+                        withAnimation(.easeOut(duration: 0.2)) {
+                            viewModel.plantLiftedFrag()
+                        }
                     }
                 }
                 lastBrushPoint = nil
             }
+    }
+
+    /// Touch point converted to height above the seabed, clamped at the sand.
+    private func liftHeight(of screenY: Double, seabedY: Double) -> Double {
+        max(0, seabedY - screenY)
+    }
+
+    /// The settle a frag uses on its way down to the sand. Water is a fluid
+    /// material, so the spring is gentle and its duration scales with the drop
+    /// height — a release at the surface drifts, a release at ankle height just
+    /// beds in. The light overshoot reads as the frag settling into the sand.
+    private func sinkAnimation(fallHeight: Double, seabedY: Double) -> Animation {
+        .spring(
+            response: Physics.sinkResponse(fallHeight: fallHeight, viewportHeight: seabedY),
+            dampingFraction: Physics.sinkDamping
+        )
     }
 
     private func handleCoralTap(viewModel: SandboxViewModel, frag: CoralFrag) {
@@ -318,16 +415,38 @@ struct SandboxView: View {
                                 .onChanged { value in
                                     paletteDragSpecies = species
                                     viewModel.liftedFragPosition = CGPoint(
-                                        x: value.location.x - viewModel.scrollX,
-                                        y: 0
+                                        x: value.location.x - ParallaxMetrics.seabedOffset(scrollX: viewModel.scrollX),
+                                        y: liftHeight(of: value.location.y, seabedY: seabedY)
                                     )
                                 }
                                 .onEnded { value in
-                                    let drop = CGPoint(x: value.location.x - viewModel.scrollX, y: 0)
-                                    withAnimation(.spring(response: 0.35, dampingFraction: 0.55)) {
-                                        _ = viewModel.plantFrag(species: species, at: drop)
-                                    }
+                                    let fallHeight = liftHeight(of: value.location.y, seabedY: seabedY)
+                                    let drop = CGPoint(
+                                        x: value.location.x - ParallaxMetrics.seabedOffset(scrollX: viewModel.scrollX),
+                                        y: fallHeight
+                                    )
+                                    // Plant at the height it was released from, then settle
+                                    // it down to the sand on the next runloop pass. Inserting
+                                    // straight at y 0 would pop the frag onto the seabed with
+                                    // nothing to animate from.
+                                    //
+                                    // KNOWN GAP: `settleFrag` writes a SwiftData `@Model`
+                                    // property, and such a write does not carry a
+                                    // `withAnimation` transaction — so this descent snaps
+                                    // rather than sinking. The coral drag above works around
+                                    // it by animating view-model state and committing after;
+                                    // the palette drop needs the same treatment. Unreachable
+                                    // while `PlaygroundMode` hides the palette.
+                                    let planted = viewModel.plantFrag(species: species, at: drop)
                                     paletteDragSpecies = nil
+                                    if let planted {
+                                        let resting = viewModel.restingHeight(forDropHeight: fallHeight, atX: drop.x)
+                                        DispatchQueue.main.async {
+                                            withAnimation(sinkAnimation(fallHeight: fallHeight - resting, seabedY: seabedY)) {
+                                                viewModel.settleFrag(id: planted.id, fromDropHeight: fallHeight)
+                                            }
+                                        }
+                                    }
                                 }
                         )
                 }
@@ -341,7 +460,12 @@ struct SandboxView: View {
                     .resizable()
                     .frame(width: 45, height: 110)
                     .opacity(0.85)
-                    .position(x: viewModel.liftedFragPosition.x + viewModel.scrollX, y: seabedY - 130)
+                    // Tracks the finger in 2D like a lifted frag does, so the drag
+                    // preview and the sink that follows describe one continuous move.
+                    .position(
+                        x: viewModel.liftedFragPosition.x + ParallaxMetrics.seabedOffset(scrollX: viewModel.scrollX),
+                        y: seabedY - viewModel.liftedFragPosition.y - 55
+                    )
                     .allowsHitTesting(false)
             }
         }

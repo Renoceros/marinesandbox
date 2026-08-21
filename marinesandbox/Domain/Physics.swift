@@ -73,4 +73,42 @@ public enum Physics {
             y: max(point.y, 0)
         )
     }
+
+    // MARK: - Sink Settle
+
+    /// Spring response for a frag dropped just above the sand — quick enough to
+    /// feel like the drop simply took.
+    public static let sinkResponseFloor: Double = 1.00
+
+    /// Spring response for a frag released at the surface. Water is a fluid
+    /// material, so a long fall settles noticeably slower than the same fall
+    /// through air would.
+    public static let sinkResponseCap: Double = 2.20
+
+    /// Damping for the settle. High enough that the frag barely overshoots —
+    /// a slow drift through water should come to rest, not bounce.
+    public static let sinkDamping: Double = 0.88
+
+    /// Spring response for sinking a frag from `fallHeight` points above the
+    /// seabed, scaled by how far it actually has to fall.
+    ///
+    /// Motion travels further, so it takes longer — a frag released at the top
+    /// of the water should visibly drift down, while one let go at ankle height
+    /// should just settle. The value is clamped at both ends so a drop below the
+    /// sand or past the top of an overscrolled viewport still springs sanely.
+    public static func sinkResponse(fallHeight: Double, viewportHeight: Double) -> Double {
+        guard viewportHeight > 0 else { return sinkResponseCap }
+        let progress = min(max(fallHeight / viewportHeight, 0), 1)
+        return sinkResponseFloor + (sinkResponseCap - sinkResponseFloor) * progress
+    }
+
+    /// How long to wait before committing a settled frag to the model.
+    ///
+    /// A SwiftData `@Model` write does not carry a `withAnimation` transaction
+    /// to the views that depend on it, so the descent is animated on view-model
+    /// state and the model is written only once the frag has visually arrived.
+    /// Covers the spring's tail rather than cutting it off mid-flight.
+    public static func sinkSettleDuration(response: Double) -> Double {
+        response * 1.6
+    }
 }

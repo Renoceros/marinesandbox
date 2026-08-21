@@ -74,4 +74,46 @@ struct PhysicsTests {
         #expect(inside.x == 1000)
         #expect(inside.y == 0)
     }
+
+    // MARK: - Sink Settle (motion: fluid material, distance-scaled duration)
+
+    @Test func sinkFromTheSeabedSettlesAtTheFloorResponse() {
+        // Dropped with no height to fall, the settle should feel immediate.
+        #expect(Physics.sinkResponse(fallHeight: 0, viewportHeight: 800) == Physics.sinkResponseFloor)
+    }
+
+    @Test func sinkResponseGrowsWithFallHeight() {
+        let shallow = Physics.sinkResponse(fallHeight: 100, viewportHeight: 800)
+        let deep = Physics.sinkResponse(fallHeight: 600, viewportHeight: 800)
+        #expect(deep > shallow)
+    }
+
+    @Test func sinkFromTheSurfaceCapsAtTheSlowestResponse() {
+        // A drop at the very top of the water is the longest sink there is.
+        #expect(Physics.sinkResponse(fallHeight: 800, viewportHeight: 800) == Physics.sinkResponseCap)
+    }
+
+    @Test func sinkResponseClampsNonsenseInput() {
+        // Negative height (drop below the sand) and overscrolled height both
+        // resolve to the ends of the range rather than a wild spring.
+        #expect(Physics.sinkResponse(fallHeight: -200, viewportHeight: 800) == Physics.sinkResponseFloor)
+        #expect(Physics.sinkResponse(fallHeight: 5000, viewportHeight: 800) == Physics.sinkResponseCap)
+    }
+
+    @Test func sinkResponseSurvivesADegenerateViewport() {
+        // Guards a divide-by-zero before the first layout pass.
+        #expect(Physics.sinkResponse(fallHeight: 100, viewportHeight: 0) == Physics.sinkResponseCap)
+    }
+
+    @Test func settleDurationOutlastsTheSpringResponse() {
+        // The model write is committed once the frag has visually arrived, so
+        // this must cover the spring's tail rather than cut it off.
+        #expect(Physics.sinkSettleDuration(response: 1.0) > 1.0)
+    }
+
+    @Test func settleDurationScalesWithResponse() {
+        let slow = Physics.sinkSettleDuration(response: 1.2)
+        let quick = Physics.sinkSettleDuration(response: 0.55)
+        #expect(slow > quick)
+    }
 }

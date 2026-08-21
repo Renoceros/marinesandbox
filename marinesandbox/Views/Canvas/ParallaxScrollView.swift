@@ -4,7 +4,19 @@ import SwiftUI
 
 public struct ParallaxScrollView: View {
     @Binding var scrollX: CGFloat
-    @State private var dragOffset: CGFloat = 0.0 // Follows active user finger drag
+
+    // `scrollX` as it stood when the current drag began, or nil between drags.
+    //
+    // The live finger delta used to be a private `dragOffset` that only folded
+    // back into `scrollX` on release. That kept the parallax layers smooth but
+    // froze every *other* reader of `scrollX` — the corals above all — until the
+    // gesture ended, at which point they jumped. `scrollX` is written on every
+    // `onChanged` so all of them track the finger frame-by-frame.
+    //
+    // `DragGesture.translation` is cumulative from the gesture's start, so adding
+    // it to a `scrollX` we are ourselves mutating each frame would compound it.
+    // Anchoring to the start value keeps the arithmetic stable.
+    @State private var dragStartX: CGFloat?
     
     public init(scrollX: Binding<CGFloat>) {
         self._scrollX = scrollX
@@ -16,11 +28,12 @@ public struct ParallaxScrollView: View {
             let height = geometry.size.height
 
             // Shared drag range every layer's offset is scaled from (spec: scrollX in [-3.5*viewportWidth, 0])
-            let panRange = viewportWidth * 3.5
+            let panRange = ParallaxMetrics.panRange(viewportWidth: viewportWidth)
             let minScroll = -panRange
 
-            // Total accumulated horizontal offset (incorporates active drag translation)
-            let currentOffset = scrollX + dragOffset
+            // Total accumulated horizontal offset. `scrollX` is live during a drag,
+            // so this is the single value every layer and entity scales from.
+            let currentOffset = scrollX
 
             ZStack(alignment: .leading) {
                 // 1st Layer (Backmost): Linear gradient backdrop ignoring safe area
@@ -64,16 +77,19 @@ public struct ParallaxScrollView: View {
                     opacity: 0.8
                 )
 
-                // 4th Layer: Foreground Layer (Parallax Ratio: 1.00, Bottom-Aligned)
+                // 4th Layer: Foreground Layer — the seabed. Corals are planted *in*
+                // this layer, so its ratio lives in `ParallaxMetrics` where the
+                // entity layer reads the same value. Hardcoding a ratio here is
+                // what let the sand slide out from under the reef.
                 layerContainer(
                     viewportWidth: viewportWidth,
                     height: height,
-                    ratio: 1.00,
+                    ratio: ParallaxMetrics.seabedRatio,
                     panRange: panRange,
                     currentOffset: currentOffset,
                     layerName: "Foreground",
                     alignment: .bottom,
-                    widthScale: 1.5,
+                    widthScale: ParallaxMetrics.seabedWidthScale,
                     verticalOffset: 0
                 )
 
@@ -96,8 +112,16 @@ public struct ParallaxScrollView: View {
             .gesture(
                 DragGesture()
                     .onChanged { value in
+                        let anchor: CGFloat
+                        if let dragStartX {
+                            anchor = dragStartX
+                        } else {
+                            anchor = scrollX
+                            dragStartX = anchor
+                        }
+
                         // Past either edge, resist with rubber-banding instead of a hard stop
-                        let rawOffset = scrollX + value.translation.width
+                        let rawOffset = anchor + value.translation.width
                         let maxStretch = viewportWidth * 0.28
                         let resolvedOffset: CGFloat
                         if rawOffset > 0 {
@@ -107,12 +131,19 @@ public struct ParallaxScrollView: View {
                         } else {
                             resolvedOffset = rawOffset
                         }
-                        dragOffset = resolvedOffset - scrollX
+                        // Written every frame, not just on release, so the corals
+                        // stay glued to the world while the finger is still down.
+                        scrollX = resolvedOffset
                     }
                     .onEnded { value in
+                        // Inertia is projected from where the drag began, matching the
+                        // anchor `onChanged` used — `scrollX` has moved since then.
+                        let anchor = dragStartX ?? scrollX
+                        dragStartX = nil
+
                         // Calculate inertia using predictedEndTranslation
                         let predicted = value.predictedEndTranslation.width
-                        let targetX = scrollX + predicted
+                        let targetX = anchor + predicted
                         let clampedTarget = max(minScroll, min(0, targetX))
 
                         // Only the edges have anything to rubber-band against, so only
@@ -126,7 +157,6 @@ public struct ParallaxScrollView: View {
 
                         withAnimation(settleSpring) {
                             scrollX = clampedTarget
-                            dragOffset = 0.0
                         }
                     }
             )
@@ -206,18 +236,10 @@ public struct ParallaxScrollView: View {
     }
     
     // Returns a unique permutation of variant indices [0, 1, 2] per column
+    // Shared with the planting logic via `ParallaxMetrics`, so the renderer and
+    // the coral that lands on it can never disagree about which sand is where.
     private func getPermutation(col: Int) -> [Int] {
-        let permutations = [
-            [0, 1, 2], // Permutation 0
-            [0, 2, 1], // Permutation 1
-            [1, 0, 2], // Permutation 2
-            [1, 2, 0], // Permutation 3
-            [2, 0, 1], // Permutation 4
-            [2, 1, 0]  // Permutation 5
-        ]
-        
-        let hash = abs((col ^ 1001) &* 324159265) % 6
-        return permutations[hash]
+        ParallaxMetrics.permutation(col: col)
     }
     
     private func variantSlot(for layerName: String) -> Int {

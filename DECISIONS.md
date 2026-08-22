@@ -6,7 +6,7 @@ Single source of truth for **why** the Marine Sandbox is built the way it is. If
 
 1. **Who:** whoever makes or discovers the decision writes the entry. Not the PM's job alone.
 2. **When:** in the same PR as the change (see [CONTRIBUTING.md](CONTRIBUTING.md)). A PR that alters scope, architecture, or UX without a `DEC-` entry is incomplete.
-3. **IDs are sequential and permanent.** Next free ID: **DEC-037**. If two open PRs claim the same number, the one merged first keeps it and the other renumbers.
+3. **IDs are sequential and permanent.** Next free ID: **DEC-038**. If two open PRs claim the same number, the one merged first keeps it and the other renumbers.
 4. **Never rewrite an accepted entry.** To change a decision, add a new one and set the old entry's status to `Superseded by DEC-0XX`. The wrong turns are the valuable part of the record.
 5. **Cite the source** — commit hash, doc section, or transcript file — so anyone can trace it back.
 6. Decisions taken verbally in a meeting must land here before the branch merges, or they will be forgotten (this file exists because several already were).
@@ -43,7 +43,7 @@ Single source of truth for **why** the Marine Sandbox is built the way it is. If
 | DEC-014 | Continuous `xPos` coordinates, no grid | Accepted | TDD §2.3 |
 | DEC-015 | Fixed 3-segment parallax, not infinite tiling | Accepted | `dc631c5` |
 | DEC-016 | iOS 26.5 target, Swift 5 mode, zero third-party dependencies | Accepted | project settings, this session |
-| DEC-017 | Lottie via `lottie-spm` 4.6.1 for coral and pest art | Accepted (gated) | this session |
+| DEC-017 | Lottie via `lottie-spm` 4.6.1 for coral and pest art | Superseded by DEC-037 | this session |
 | DEC-018 | Layered Lottie compositions + coverage-grid mask for dirt | Accepted | this session |
 | DEC-019 | Art behind a `ReefArtProvider` seam | Accepted | this session |
 | DEC-020 | EcoEngine operates on value snapshots, not `@Model` classes | Accepted | this session |
@@ -63,6 +63,7 @@ Single source of truth for **why** the Marine Sandbox is built the way it is. If
 | DEC-034 | Off-screen snail wave spawning and height-squash smush interaction | Accepted | this session |
 | DEC-035 | Audio SFX and ambient ocean loop integration | Accepted | this session |
 | DEC-036 | Multi-species SVGs, NGO Config, and Shannon fauna visuals deferred | Accepted | this session |
+| DEC-037 | Official `dotlottie-ios` runtime (ThorVG engine) for DotLottie 2.0 | Accepted | this session |
 
 ---
 
@@ -186,7 +187,7 @@ Verified settings: deployment target **iOS 26.5**, Swift language mode **5.0**, 
 *Note:* synchronized groups mean **new `.swift` files on disk join the target automatically** — no `.pbxproj` edits, so no merge conflicts for source files. Adding a test target *does* require a `.pbxproj` change (see DEC-022).
 
 ### DEC-017 — Lottie via `lottie-spm` 4.6.1
-**Status:** Accepted (gated) · **Source:** this session
+**Status:** Superseded by DEC-037 · **Source:** this session
 
 *Gate:* a 10-coral render perf check must pass before final art assets are committed. If it fails, `SkeletonArtProvider` (DEC-019) carries the exhibition — we lose polish, not the product.
 
@@ -389,12 +390,42 @@ All 10 sound assets compiled in `Resources/Audio/` (`ambient_ocean_loop.wav`, `b
 
 *Consequence:* Audio service lifecycle is managed in the view model / view layer, auto-starting ambient loop on canvas appearance.
 
-### DEC-036 — Multi-species SVGs, NGO Config, and Shannon fauna visuals deferred
+### DEC-037 — Official `dotlottie-ios` runtime (ThorVG engine) for DotLottie 2.0
+**Status:** Accepted · **Source:** this session · **Supersedes:** DEC-017
+
+Adopt the official LottieFiles `dotlottie-ios` SDK (`https://github.com/LottieFiles/dotlottie-ios.git`), powered by the ThorVG vector rendering engine (Rust core), replacing `airbnb/lottie-spm`.
+
+*Why:* The project's coral lifecycle animations (`coral.lottie`, `coral_lh.lottie`) are authored in LottieFiles Creator using the **DotLottie 2.0** specification. Airbnb's `lottie-spm` is based on legacy Bodymovin (Lottie 1.0) and fails to resolve Lottie 2.0 track parent pointers (`tp: 2`) and slot themes (`t/pink.json`, `t/purple.json`, `t/yellow.json`), causing vector masks/splotches to render unconstrained across the canvas. `dotlottie-ios` supports DotLottie 2.0 track mattes, theme slots, and native frame scrubbing out of the box with faster load times and native SwiftUI components.
+
+*Consequence:* Xcode package dependency replaces `lottie-spm` with `dotlottie-ios`. `LottieCoralView.swift` imports `DotLottie` and uses `DotLottieAnimation`.
+
+### DEC-038 — Swift 6 Strict Concurrency and Modern Actor Isolation Standards
 **Status:** Accepted · **Source:** this session
 
-Multi-species SVG asset mapping (Brain, Elkhorn, Sponge, Table), external NGO configuration loading, and visual fauna silhouette spawning driven by the Shannon Index are deferred to the next sprint cycle. For this sprint, visual growth animation focuses on the Staghorn Lottie compositions (`coral.lottie`, `coral_lh.lottie`).
+All models, coordinators, and view models adhere strictly to Swift 6 strict concurrency and modern actor isolation standards:
+- Classes isolated to `@MainActor` (e.g. `SandboxViewModel`, `SeabedProfile`) declare static configuration constants and pure mathematical / diagnostic functions with `nonisolated static let` / `nonisolated static func`.
+- Default argument expressions across public actor-isolated methods reference nonisolated constants or literals to prevent cross-actor boundary evaluation conflicts.
+- Thread-safe domain types and DTOs conform to `Sendable`.
 
-*Why:* Allows the team to complete and polish the end-to-end "sponge cake" care loop (sponge cleaning, snail waves, audio, growth pacing) before broadening the taxonomic palette and external configuration layers.
+*Consequence:* Zero Swift 6 concurrency warnings or errors across the entire target.
+
+### DEC-039 — Modular Decomposition of SandboxViewModel and SandboxView
+**Status:** Accepted · **Source:** this session
+
+As gameplay features grew (cold-open rubble pile, pull-to-pop sponge bubble, off-screen crawling snails, teenage floating coral rewards, fast-forward boosts, and SwiftData persistence), `SandboxViewModel.swift` and `SandboxView.swift` exceeded 1,500 lines combined. To preserve maintainability, separation of concerns, and keep file sizes bounded (< 300 lines each):
+1. `SandboxViewModel` is decomposed into four focused files via extensions:
+   - `SandboxViewModel.swift`: Core class definition, state properties, SwiftData lifecycle, snapshot adapter (`ReefState`), and model interaction projection.
+   - `SandboxViewModel+Planting.swift`: Guided cold open phase progression, survivor frag lifting/dragging, rubble pile generation, ballistic rubble flicking, and resting seabed depth maths.
+   - `SandboxViewModel+CareLoop.swift`: Snail pest generation, off-screen crawling progression, pest removal/smush/flick, hit routing, algae brush clearing, and threat toggles.
+   - `SandboxViewModel+Simulation.swift`: Simulation step ticks, 10x countdown & 100x hold speed multipliers, 5-year Fast Forward jumps, teenage milestone floating frag spawns, and reflective diagnostic generation.
+2. `SandboxView` is decomposed into specialized SwiftUI canvas views:
+   - `SandboxView.swift`: Main viewport container, entity layer composition, gesture routing, and view lifecycle bindings.
+   - `RubblePileOverlayView.swift`: Cold open dead rubble pile rendering, flick gesture handling, floating instruction banners, and pulsing seabed target zones.
+   - `SandboxToolOverlayView.swift`: Top-leading iridescent sponge bubble (with pull-to-pop gesture and return spring), top-trailing 10x/100x speed controls, and cold open restart button.
+   - `SandboxPestView.swift`: Coral pest overlays with tap-to-smush squash and flick drag gesture, off-screen crawling snails, and one-time guided pest tooltips.
+   - `DiagnosticCardView.swift`: 5-year Fast Forward reflective diagnosis modal.
+
+*Consequence:* Max file length strictly kept below 300 lines across the entire canvas and view model layer. Swift 6 strict concurrency and MVVM+S architecture preserved.
 
 ---
 
@@ -425,6 +456,7 @@ Multi-species SVG asset mapping (Brain, Elkhorn, Sponge, Table), external NGO co
 | Single-playhead Lottie state mapping (TDD §3.2) | Superseded by DEC-018 *(pending ratification)* |
 | Plantation sub-zones (PRD, pre-`3f890aa`) | Superseded by DEC-006 |
 | Hard Reset in the gameplay canvas | Superseded by DEC-005 |
+| Airbnb `lottie-spm` runtime (DEC-017) | Superseded by DEC-037 — `dotlottie-ios` with ThorVG engine for DotLottie 2.0 track mattes and theming |
 | Passkeys for authentication | Rejected in DEC-011 — no reliable email for account mapping |
 | Real-world plot prediction / "virtual CCTV" | Rejected in DEC-001 — sets false expectations |
 | Numeric dashboards and sliders for reef state | Rejected in DEC-007 — clinical, and slow symbolic processing (PRD §3.3) |

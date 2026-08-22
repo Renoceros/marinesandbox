@@ -16,5 +16,5 @@ enum PlaygroundMode {
 
     /// `true` while the drag-and-drop field is being tuned. Flip to `false` to
     /// get the game back.
-    static let isEnabled = true
+    static let isEnabled = false
 }

@@ -296,8 +296,8 @@ public final class SandboxViewModel {
     /// Advances the reef by one live refresh slice of real time (DEC-031). Called by
     /// the view's timer while the Coral Screen is visible. Pest spawning is handled by
     /// `tickLive`, which wraps this.
-    public func tick() {
-        commit(EcoEngine.advance(state: snapshot(), threats: threats, elapsed: Self.tickInterval, allowDeath: true))
+    public func tick(elapsed: TimeInterval = tickInterval) {
+        commit(EcoEngine.advance(state: snapshot(), threats: threats, elapsed: elapsed, allowDeath: true))
     }
 
     /// Dismisses the Diagnostic Card after the user reads it (Kolb: reflection → experimentation).

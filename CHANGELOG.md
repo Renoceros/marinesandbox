@@ -17,11 +17,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The pro
 ## [Unreleased]
 
 ### Added
+- Modularized architecture for `SandboxViewModel` and `SandboxView` into bounded files (< 300 lines each) under `marinesandbox/ViewModels/` and `marinesandbox/Views/Canvas/` (DEC-039):
+  - `SandboxViewModel+Planting.swift`: Guided cold open phase progression, frag lifting/dragging, rubble pile generation, and ballistic rubble flicking.
+  - `SandboxViewModel+CareLoop.swift`: Snail pest generation, off-screen crawling progression, pest removal/smush/flick, hit routing, algae brush clearing, and threat toggles.
+  - `SandboxViewModel+Simulation.swift`: Simulation step ticks, 10x countdown & 100x hold speed multipliers, 5-year Fast Forward jumps, teenage milestone floating frag spawns, and reflective diagnostic generation.
+  - `RubblePileOverlayView.swift`: Cold open dead rubble pile rendering, flick gesture handling, floating instruction banners, and pulsing seabed target zones.
+  - `SandboxToolOverlayView.swift`: Top-leading iridescent sponge bubble (with pull-to-pop gesture and return spring), top-trailing 10x/100x speed controls, and cold open restart button.
+  - `SandboxPestView.swift`: Coral pest overlays with tap-to-smush squash and flick drag gesture, off-screen crawling snails, and one-time guided pest tooltips.
+  - `DiagnosticCardView.swift`: 5-year Fast Forward reflective diagnosis modal.
 - 10 interaction SFX and ambient ocean audio assets in `Resources/Audio/` (`ambient_ocean_loop.wav`, `brush_swipe.wav`, `sparkle_clean.wav`, `frag_lift.wav`, `frag_plant.wav`, `pest_smush.wav`, `pest_flick.wav`, `pest_splash.wav`, `plant_reject.wav`, `threat_warning.wav`) (DEC-035).
 - Dedicated SVG vector assets for Sponge tool (`Tool/Sponge.imageset/sponge.svg`), Snail enemy (`Enemy/Snail.imageset/snail.svg`), and decorative Icing elements (`Icing/RockBG`, `Icing/RockFG`, `Icing/Seaweed`).
 - Official `dotlottie-ios` runtime (ThorVG engine) and `LottieCoralView` renderer for paired 60-frame DotLottie 2.0 lifecycle assets: supporting Lottie 2.0 track mattes, theme slots, and continuous frame scrubbing from `growthProgress` (DEC-037, supersedes DEC-017).
 
 ### Changed
+- Refactored `SandboxViewModel.swift` and `SandboxView.swift` to compose modular extensions and specialized SwiftUI views, preserving strict MVVM+S and Swift 6 concurrency compliance (DEC-039).
 - Standardized entire codebase for Swift 6 strict concurrency: marked static configuration constants and diagnostic helpers as `nonisolated`, eliminated actor boundary leakage across default argument evaluations, and verified Sendable conformance across domain models (DEC-038).
 - Simplified tool interaction model to a single Sponge cleaning tool (`Tool/Sponge.imageset`) with default bare-hand snail smushing (DEC-032).
 - Non-lethal pest tuning: pest infestation slows growth rate but does not cause coral death/mortality (DEC-033).

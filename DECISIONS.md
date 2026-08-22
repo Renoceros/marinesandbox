@@ -409,6 +409,24 @@ All models, coordinators, and view models adhere strictly to Swift 6 strict conc
 
 *Consequence:* Zero Swift 6 concurrency warnings or errors across the entire target.
 
+### DEC-039 — Modular Decomposition of SandboxViewModel and SandboxView
+**Status:** Accepted · **Source:** this session
+
+As gameplay features grew (cold-open rubble pile, pull-to-pop sponge bubble, off-screen crawling snails, teenage floating coral rewards, fast-forward boosts, and SwiftData persistence), `SandboxViewModel.swift` and `SandboxView.swift` exceeded 1,500 lines combined. To preserve maintainability, separation of concerns, and keep file sizes bounded (< 300 lines each):
+1. `SandboxViewModel` is decomposed into four focused files via extensions:
+   - `SandboxViewModel.swift`: Core class definition, state properties, SwiftData lifecycle, snapshot adapter (`ReefState`), and model interaction projection.
+   - `SandboxViewModel+Planting.swift`: Guided cold open phase progression, survivor frag lifting/dragging, rubble pile generation, ballistic rubble flicking, and resting seabed depth maths.
+   - `SandboxViewModel+CareLoop.swift`: Snail pest generation, off-screen crawling progression, pest removal/smush/flick, hit routing, algae brush clearing, and threat toggles.
+   - `SandboxViewModel+Simulation.swift`: Simulation step ticks, 10x countdown & 100x hold speed multipliers, 5-year Fast Forward jumps, teenage milestone floating frag spawns, and reflective diagnostic generation.
+2. `SandboxView` is decomposed into specialized SwiftUI canvas views:
+   - `SandboxView.swift`: Main viewport container, entity layer composition, gesture routing, and view lifecycle bindings.
+   - `RubblePileOverlayView.swift`: Cold open dead rubble pile rendering, flick gesture handling, floating instruction banners, and pulsing seabed target zones.
+   - `SandboxToolOverlayView.swift`: Top-leading iridescent sponge bubble (with pull-to-pop gesture and return spring), top-trailing 10x/100x speed controls, and cold open restart button.
+   - `SandboxPestView.swift`: Coral pest overlays with tap-to-smush squash and flick drag gesture, off-screen crawling snails, and one-time guided pest tooltips.
+   - `DiagnosticCardView.swift`: 5-year Fast Forward reflective diagnosis modal.
+
+*Consequence:* Max file length strictly kept below 300 lines across the entire canvas and view model layer. Swift 6 strict concurrency and MVVM+S architecture preserved.
+
 ---
 
 ## Technical Debt Register

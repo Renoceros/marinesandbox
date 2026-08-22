@@ -399,6 +399,16 @@ Adopt the official LottieFiles `dotlottie-ios` SDK (`https://github.com/LottieFi
 
 *Consequence:* Xcode package dependency replaces `lottie-spm` with `dotlottie-ios`. `LottieCoralView.swift` imports `DotLottie` and uses `DotLottieAnimation`.
 
+### DEC-038 — Swift 6 Strict Concurrency and Modern Actor Isolation Standards
+**Status:** Accepted · **Source:** this session
+
+All models, coordinators, and view models adhere strictly to Swift 6 strict concurrency and modern actor isolation standards:
+- Classes isolated to `@MainActor` (e.g. `SandboxViewModel`, `SeabedProfile`) declare static configuration constants and pure mathematical / diagnostic functions with `nonisolated static let` / `nonisolated static func`.
+- Default argument expressions across public actor-isolated methods reference nonisolated constants or literals to prevent cross-actor boundary evaluation conflicts.
+- Thread-safe domain types and DTOs conform to `Sendable`.
+
+*Consequence:* Zero Swift 6 concurrency warnings or errors across the entire target.
+
 ---
 
 ## Technical Debt Register

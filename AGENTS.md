@@ -15,7 +15,7 @@ Decisions made in meetings must be written to `DECISIONS.md` before the branch m
 
 | Item | Value |
 | --- | --- |
-| Platform | iOS **26.5** deployment target, Xcode 26.6, Swift **5.0** language mode |
+| Platform | iOS **26.5** deployment target, Xcode 26.6, Swift **6.0** strict concurrency mode (DEC-038) |
 | Stack | SwiftUI + SwiftData, MVVM+S (see TDD §2) |
 | Dependencies | `dotlottie-ios` (ThorVG runtime; DEC-037) |
 | Test target | **None** (see DEC-022) |

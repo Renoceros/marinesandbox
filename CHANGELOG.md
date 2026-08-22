@@ -22,6 +22,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The pro
 - Official `dotlottie-ios` runtime (ThorVG engine) and `LottieCoralView` renderer for paired 60-frame DotLottie 2.0 lifecycle assets: supporting Lottie 2.0 track mattes, theme slots, and continuous frame scrubbing from `growthProgress` (DEC-037, supersedes DEC-017).
 
 ### Changed
+- Standardized entire codebase for Swift 6 strict concurrency: marked static configuration constants and diagnostic helpers as `nonisolated`, eliminated actor boundary leakage across default argument evaluations, and verified Sendable conformance across domain models (DEC-038).
 - Simplified tool interaction model to a single Sponge cleaning tool (`Tool/Sponge.imageset`) with default bare-hand snail smushing (DEC-032).
 - Non-lethal pest tuning: pest infestation slows growth rate but does not cause coral death/mortality (DEC-033).
 - Redesigned snail enemy spawning to randomized off-screen waves crawling toward corals, with height-squash smush feedback (DEC-034).

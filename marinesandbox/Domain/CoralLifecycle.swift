@@ -7,26 +7,38 @@ public enum CoralLifecycle {
 
         public var assetName: String {
             switch self {
-            case .left: "coral_lh"
-            case .right: "coral"
+            case .left: "staghorn_coral_lh"
+            case .right: "staghorn_coral_rh"
             }
         }
     }
-
-    public static let fragmentFrame: Double = 0
-    public static let babyFrame: Double = 15
-    public static let toddlerFrame: Double = 30
-    public static let teenagerFrame: Double = 45
-    public static let adultFrame: Double = 59
 
     public static let babyEnd = 0.25
     public static let toddlerEnd = 0.50
     public static let teenagerEnd = 0.75
     public static let adultEnd = 1.0
 
-    public static func frame(for growthProgress: Double) -> Double {
+    public static func assetName(species: String, id: UUID) -> String {
+        switch species {
+        case "BrainCoral":
+            return "brain_coral"
+        default:
+            return orientation(for: id).assetName
+        }
+    }
+
+    public static func totalFrames(species: String) -> Double {
+        switch species {
+        case "BrainCoral":
+            return 599.0
+        default:
+            return 59.0
+        }
+    }
+
+    public static func frame(for growthProgress: Double, species: String) -> Double {
         let progress = min(max(growthProgress, 0), adultEnd)
-        return progress * adultFrame
+        return progress * totalFrames(species: species)
     }
 
     public static func nextPhaseProgress(after growthProgress: Double) -> Double {

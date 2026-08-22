@@ -4,6 +4,7 @@ import SwiftUI
 
 struct LottieCoralView: UIViewRepresentable {
     let coralID: UUID
+    let species: String
     let growthProgress: Double
     let playbackProgress: Double?
     let onPlaybackCompleted: () -> Void
@@ -23,6 +24,7 @@ struct LottieCoralView: UIViewRepresentable {
 
     func makeCoordinator() -> Coordinator {
         Coordinator(
+            species: species,
             theme: CoralLifecycle.theme(for: coralID),
             growthProgress: growthProgress,
             onPlaybackCompleted: onPlaybackCompleted
@@ -30,9 +32,9 @@ struct LottieCoralView: UIViewRepresentable {
     }
 
     func makeUIView(context: Context) -> DotLottieAnimationView {
-        let orientation = CoralLifecycle.orientation(for: coralID)
+        let assetName = CoralLifecycle.assetName(species: species, id: coralID)
         let theme = CoralLifecycle.theme(for: coralID)
-        let targetFrame = Float(CoralLifecycle.frame(for: growthProgress))
+        let targetFrame = Float(CoralLifecycle.frame(for: growthProgress, species: species))
 
         let config = AnimationConfig(
             autoplay: false,
@@ -41,11 +43,11 @@ struct LottieCoralView: UIViewRepresentable {
         )
 
         let dotLottie: DotLottieAnimation
-        if let url = Self.findLottieURL(name: orientation.assetName),
+        if let url = Self.findLottieURL(name: assetName),
            let data = try? Data(contentsOf: url) {
             dotLottie = DotLottieAnimation(dotLottieData: data, config: config)
         } else {
-            dotLottie = DotLottieAnimation(fileName: orientation.assetName, config: config)
+            dotLottie = DotLottieAnimation(fileName: assetName, config: config)
         }
 
         let playerView: DotLottieAnimationView = dotLottie.view()
@@ -55,15 +57,17 @@ struct LottieCoralView: UIViewRepresentable {
         context.coordinator.dotLottie = dotLottie
         context.coordinator.targetFrame = targetFrame
         context.coordinator.theme = theme
+        context.coordinator.species = species
         dotLottie.subscribe(observer: context.coordinator)
 
         return playerView
     }
 
     func updateUIView(_ uiView: DotLottieAnimationView, context: Context) {
-        let targetFrame = Float(CoralLifecycle.frame(for: growthProgress))
+        let targetFrame = Float(CoralLifecycle.frame(for: growthProgress, species: species))
         let theme = CoralLifecycle.theme(for: coralID)
         context.coordinator.targetFrame = targetFrame
+        context.coordinator.species = species
 
         guard let dotLottie = context.coordinator.dotLottie else { return }
 
@@ -73,7 +77,7 @@ struct LottieCoralView: UIViewRepresentable {
         }
 
         if let playbackProgress {
-            let endFrame = Float(CoralLifecycle.frame(for: playbackProgress))
+            let endFrame = Float(CoralLifecycle.frame(for: playbackProgress, species: species))
             guard context.coordinator.activePlaybackEnd != endFrame else { return }
             context.coordinator.activePlaybackEnd = endFrame
             let current = dotLottie.currentFrame()
@@ -87,14 +91,16 @@ struct LottieCoralView: UIViewRepresentable {
 
     final class Coordinator: NSObject, Observer {
         weak var dotLottie: DotLottieAnimation?
+        var species: String
         var theme: String
         var targetFrame: Float
         var activePlaybackEnd: Float?
         let onPlaybackCompleted: () -> Void
 
-        init(theme: String, growthProgress: Double, onPlaybackCompleted: @escaping () -> Void) {
+        init(species: String, theme: String, growthProgress: Double, onPlaybackCompleted: @escaping () -> Void) {
+            self.species = species
             self.theme = theme
-            self.targetFrame = Float(CoralLifecycle.frame(for: growthProgress))
+            self.targetFrame = Float(CoralLifecycle.frame(for: growthProgress, species: species))
             self.onPlaybackCompleted = onPlaybackCompleted
             super.init()
         }

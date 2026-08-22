@@ -25,13 +25,25 @@ public enum CoralGeometry {
     }
 
     /// Footprints per growth stage, matching the 2x canvas rubble balance:
-    /// shiny frag 88×132 · dead rubble 72×108 · toddler 110×160 ·
-    /// teen 165×195 · adult 195×245.
-    /// A *living* baby renders as the shiny fragment — planted life must
-    /// read as alive (DEC-009). A dead baby renders as gray rubble (`Fragment1`).
-    /// The teenager band interpolates between the toddler and teen sprites;
-    /// adults use the adult sprite.
+    /// BrainCoral (dome/boulder): 88×88 · 125×125 · 170×170 · 215×215.
+    /// Staghorn (branching): 88×132 · 110×160 · 165×195 · 195×245.
+    /// A living baby renders with shiny fragment asset; dead renders as gray rubble (`Fragment1`).
     public static func footprint(for coral: CoralState) -> Footprint {
+        if coral.species == "BrainCoral" {
+            switch coral.stage {
+            case .baby:
+                return coral.isDead
+                    ? Footprint(assetName: "Fragment1", size: CGSize(width: 72.0, height: 108.0))
+                    : Footprint(assetName: "ShinyFragment", size: CGSize(width: 88.0, height: 88.0))
+            case .teenager:
+                return coral.growthProgress < 0.5
+                    ? Footprint(assetName: "BrainCoralToddler", size: CGSize(width: 125.0, height: 125.0))
+                    : Footprint(assetName: "BrainCoralTeen", size: CGSize(width: 170.0, height: 170.0))
+            case .adult:
+                return Footprint(assetName: "BrainCoralAdult", size: CGSize(width: 215.0, height: 215.0))
+            }
+        }
+
         switch coral.stage {
         case .baby:
             return coral.isDead

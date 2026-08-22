@@ -427,6 +427,25 @@ As gameplay features grew (cold-open rubble pile, pull-to-pop sponge bubble, off
 
 *Consequence:* Max file length strictly kept below 300 lines across the entire canvas and view model layer. Swift 6 strict concurrency and MVVM+S architecture preserved.
 
+### DEC-040 — Multi-Species DotLottie Assets and Species-Specific Growth Scaling
+**Status:** Accepted · **Source:** this session
+
+Integrated multi-species DotLottie 2.0 assets and species-specific growth rate scaling:
+1. **Brain Coral (`brain_coral.lottie`):**
+   - 20.0s / 600 frames at 30 FPS (`0 ... 599`).
+   - Slower calcification rate: `EcoEngine.speciesGrowthRateMultiplier` scales growth increment by `0.10x` (10x slower than branching staghorn).
+   - Quarter developmental stages mapped across 600 frames: Baby/Frag (0), Toddler (150), Teenager (300), Adult (450), Mature Adult (599).
+   - Dome/mound footprint geometry: $88\times 88$ pt up to $215\times 215$ pt.
+2. **Staghorn Coral (`staghorn_coral_lh.lottie` / `staghorn_coral_rh.lottie`):**
+   - 2.0s / 60 frames at 30 FPS (`0 ... 59`), baseline 1.0x growth rate.
+   - Quarter developmental stages mapped across 60 frames: Baby/Frag (0), Toddler (15), Teenager (30), Adult (45), Mature Adult (59).
+   - Branching footprint geometry: $88\times 132$ pt up to $195\times 245$ pt.
+3. **Theming & Orientation:**
+   - Both species support `pink`, `purple`, and `yellow` DotLottie Theme IDs across color slots (`splotches`, `base`, `shadow`, `highlight`), resolved deterministically from UUID bytes and activated on player load.
+   - Dragging is locked once reaching the Toddler phase (`growthProgress >= 0.25`).
+
+*Consequence:* True multi-species biological heterogeneity reflected visually and numerically.
+
 ---
 
 ## Technical Debt Register

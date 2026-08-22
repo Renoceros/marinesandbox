@@ -17,6 +17,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The pro
 ## [Unreleased]
 
 ### Added
+- Multi-species DotLottie 2.0 asset support with `brain_coral.lottie` (20.0s / 600 frames at 30 FPS) and renamed `staghorn_coral_lh.lottie` / `staghorn_coral_rh.lottie` (2.0s / 60 frames at 30 FPS) (DEC-040).
+- Species-specific growth rate scaling in `EcoEngine` (`0.10x` multiplier for slow-calcifying massive brain coral) (DEC-040).
 - Modularized architecture for `SandboxViewModel` and `SandboxView` into bounded files (< 300 lines each) under `marinesandbox/ViewModels/` and `marinesandbox/Views/Canvas/` (DEC-039):
   - `SandboxViewModel+Planting.swift`: Guided cold open phase progression, frag lifting/dragging, rubble pile generation, and ballistic rubble flicking.
   - `SandboxViewModel+CareLoop.swift`: Snail pest generation, off-screen crawling progression, pest removal/smush/flick, hit routing, algae brush clearing, and threat toggles.
@@ -30,6 +32,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The pro
 - Official `dotlottie-ios` runtime (ThorVG engine) and `LottieCoralView` renderer for paired 60-frame DotLottie 2.0 lifecycle assets: supporting Lottie 2.0 track mattes, theme slots, and continuous frame scrubbing from `growthProgress` (DEC-037, supersedes DEC-017).
 
 ### Changed
+- Scaled coral footprints to 2x canvas proportions with species-aware geometry (`BrainCoral` dome vs `StaghornCoral` branching) and locked dragging upon reaching the toddler stage (DEC-040).
 - Refactored `SandboxViewModel.swift` and `SandboxView.swift` to compose modular extensions and specialized SwiftUI views, preserving strict MVVM+S and Swift 6 concurrency compliance (DEC-039).
 - Standardized entire codebase for Swift 6 strict concurrency: marked static configuration constants and diagnostic helpers as `nonisolated`, eliminated actor boundary leakage across default argument evaluations, and verified Sendable conformance across domain models (DEC-038).
 - Simplified tool interaction model to a single Sponge cleaning tool (`Tool/Sponge.imageset`) with default bare-hand snail smushing (DEC-032).

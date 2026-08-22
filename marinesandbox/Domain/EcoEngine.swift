@@ -68,6 +68,16 @@ public enum EcoEngine {
     /// per second. Twice the per-snail damage so one wrasse neutralizes ~2 snails.
     public static let basePredatorControlRatePerSecond: Double = basePredatorDamageRatePerSecond * 2.0
 
+    /// Growth rate multiplier per species. Massive brain corals grow ~10x slower than branching staghorn corals.
+    public static func speciesGrowthRateMultiplier(species: String) -> Double {
+        switch species {
+        case "BrainCoral":
+            return 0.10
+        default:
+            return 1.00
+        }
+    }
+
     /// Modulates how strongly the Shannon Index ($H$) impacts fish recruitment.
     /// Higher values increase the efficiency multiplier of recruited helper fish.
     public static let beta: Double = 0.5
@@ -116,10 +126,11 @@ public enum EcoEngine {
         for index in state.corals.indices {
             guard !state.corals[index].isDead else { continue }
 
-            // --- A. GROWTH (slowed by algae + pest, DEC-031) ---
+            // --- A. GROWTH (slowed by algae + pest, DEC-031, species growth rate) ---
+            let speciesMultiplier = speciesGrowthRateMultiplier(species: state.corals[index].species)
             let algaeSmotherModifier = max(0.0, 1.0 - state.corals[index].algaePercentage)
             let predatorModifier = max(0.0, 1.0 - state.corals[index].predatorDamage)
-            let growthIncrement = healthyGrowthRatePerSecond * elapsed * algaeSmotherModifier * predatorModifier
+            let growthIncrement = healthyGrowthRatePerSecond * elapsed * algaeSmotherModifier * predatorModifier * speciesMultiplier
             state.corals[index].growthProgress = min(1.0, state.corals[index].growthProgress + growthIncrement)
 
             // --- B. ALGAE VS. GRAZER DYNAMICS (spatial grid, DEC-018) ---

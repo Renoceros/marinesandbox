@@ -296,8 +296,9 @@ public final class SandboxViewModel {
     /// Advances the reef by one live refresh slice of real time (DEC-031). Called by
     /// the view's timer while the Coral Screen is visible. Pest spawning is handled by
     /// `tickLive`, which wraps this.
-    public func tick(elapsed: TimeInterval = tickInterval) {
-        commit(EcoEngine.advance(state: snapshot(), threats: threats, elapsed: elapsed, allowDeath: true))
+    public func tick(elapsed: TimeInterval? = nil) {
+        let span = elapsed ?? Self.tickInterval
+        commit(EcoEngine.advance(state: snapshot(), threats: threats, elapsed: span, allowDeath: true))
     }
 
     /// Dismisses the Diagnostic Card after the user reads it (Kolb: reflection → experimentation).
@@ -319,18 +320,18 @@ extension SandboxViewModel {
     /// Live refresh slice in real seconds (DEC-031). The live tick advances the reef
     /// by this much wall time per fire — a small slice so Lottie growth scrubbing stays
     /// smooth. Retune here after floor-testing.
-    public nonisolated static let tickInterval: TimeInterval = 1.0
+    public static let tickInterval: TimeInterval = 1.0
 
     /// Exhibition Fast Forward jump in real seconds (DEC-031). One tap advances every
     /// coral by this much wall time — roughly one growth stage per tap on a healthy
     /// coral (7-day maturation ÷ 3 stages ≈ 2.3 days). Retune here.
-    public nonisolated static let fastForwardInterval: TimeInterval = 2 * 24 * 60 * 60
+    public static let fastForwardInterval: TimeInterval = 2 * 24 * 60 * 60
 
     /// Pest spawn probability per second per eligible coral (DEC-028, retuned for
     /// real-time pacing under DEC-031). Targets ~1 pest event per ~12 h on a vulnerable
     /// coral. Rolled against `elapsed` so it scales with the tick slice or FF jump.
-    public nonisolated static let pestSpawnChancePerSecond: Double = 1.0 / (12 * 60 * 60)
-    public nonisolated static let pestCapPerCoral = 2
+    public static let pestSpawnChancePerSecond: Double = 1.0 / (12 * 60 * 60)
+    public static let pestCapPerCoral = 2
 
     // MARK: Guided First Plant (DEC-009, DEC-024)
 
@@ -653,7 +654,7 @@ extension SandboxViewModel {
 
     /// Builds the card's message from the dominant change. No numbers — the card
     /// is a visual/plain-language reflection, not a dashboard (DEC-007).
-    public nonisolated static func diagnose(before: ReefState, after: ReefState) -> String {
+    static func diagnose(before: ReefState, after: ReefState) -> String {
         let beforeLiving = before.livingCorals
         let afterLiving = after.livingCorals
         let deaths = beforeLiving.count - afterLiving.count
@@ -685,12 +686,13 @@ extension SandboxViewModel {
     /// survivor frag is planted, nothing grows, accrues algae, spawns pests, or
     /// dies. The tutorial must be safe — a coral that can die before the player
     /// has learned to care for it teaches the wrong lesson.
-    public func tickLive(dt: TimeInterval = tickInterval) {
+    public func tickLive(dt: TimeInterval? = nil) {
+        let step = dt ?? Self.tickInterval
         if fastForwardRemainingSeconds > 0 {
-            fastForwardRemainingSeconds = max(0, fastForwardRemainingSeconds - dt)
+            fastForwardRemainingSeconds = max(0, fastForwardRemainingSeconds - step)
         }
         guard canvas?.guidedPlantDone == true else { return }
-        let scaledElapsed = dt * effectiveSimMultiplier * 30.0
+        let scaledElapsed = step * effectiveSimMultiplier * 30.0
         tick(elapsed: scaledElapsed)
         spawnPestsIfNeeded(elapsed: scaledElapsed)
     }

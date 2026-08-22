@@ -19,7 +19,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The pro
 ### Added
 - 10 interaction SFX and ambient ocean audio assets in `Resources/Audio/` (`ambient_ocean_loop.wav`, `brush_swipe.wav`, `sparkle_clean.wav`, `frag_lift.wav`, `frag_plant.wav`, `pest_smush.wav`, `pest_flick.wav`, `pest_splash.wav`, `plant_reject.wav`, `threat_warning.wav`) (DEC-035).
 - Dedicated SVG vector assets for Sponge tool (`Tool/Sponge.imageset/sponge.svg`), Snail enemy (`Enemy/Snail.imageset/snail.svg`), and decorative Icing elements (`Icing/RockBG`, `Icing/RockFG`, `Icing/Seaweed`).
-- Lottie 4.6.1 runtime and a `LottieCoralView` renderer for the paired 60-frame coral lifecycle assets: living corals deterministically select a left/right orientation from their UUID and scrub their full lifecycle timeline from `growthProgress` (DEC-017, DEC-018, DEC-031).
+- Official `dotlottie-ios` runtime (ThorVG engine) and `LottieCoralView` renderer for paired 60-frame DotLottie 2.0 lifecycle assets: supporting Lottie 2.0 track mattes, theme slots, and continuous frame scrubbing from `growthProgress` (DEC-037, supersedes DEC-017).
 
 ### Changed
 - Simplified tool interaction model to a single Sponge cleaning tool (`Tool/Sponge.imageset`) with default bare-hand snail smushing (DEC-032).

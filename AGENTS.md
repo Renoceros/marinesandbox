@@ -17,7 +17,7 @@ Decisions made in meetings must be written to `DECISIONS.md` before the branch m
 | --- | --- |
 | Platform | iOS **26.5** deployment target, Xcode 26.6, Swift **5.0** language mode |
 | Stack | SwiftUI + SwiftData, MVVM+S (see TDD §2) |
-| Dependencies | `lottie-spm` **4.6.1** (Lottie runtime; DEC-017) |
+| Dependencies | `dotlottie-ios` (ThorVG runtime; DEC-037) |
 | Test target | **None** (see DEC-022) |
 | Bundle / team | `com.molamola.marinesandbox` / `N8Y7P4HS74` |
 | Devices | iPhone + iPad family, though the parallax spec targets iPhone 17 |

@@ -57,6 +57,9 @@ public final class SandboxViewModel {
     /// Dead rubble pieces covering the survivor fragment in the cold open (DEC-009).
     public var rubblePieces: [RubblePiece] = []
 
+    /// Off-screen snails actively crawling toward a coral (DEC-034).
+    public var crawlingSnails: [CrawlingSnail] = []
+
     /// True when the player has cleared enough rubble to expose the living survivor frag.
     public var isSurvivorUncovered: Bool {
         rubblePieces.isEmpty || rubblePieces.filter { !$0.isCleared }.count <= 1
@@ -91,6 +94,28 @@ public final class SandboxViewModel {
         if active {
             AudioPlayerService.shared.playSFX("frag_lift")
         }
+    }
+
+    /// Resets the canvas back to the cold open state with unplanted survivor frag and rubble.
+    public func resetToColdOpen() {
+        guard let canvas else { return }
+        canvas.guidedPlantDone = false
+        liftedFragID = nil
+        rubblePieces.removeAll()
+        crawlingSnails.removeAll()
+        for frag in canvas.coralFrags { modelContext.delete(frag) }
+        canvas.coralFrags.removeAll()
+
+        let survivor = CoralFrag(
+            species: "Acropora",
+            xPos: canvas.canvasWidth / 2,
+            yPos: 0,
+            growthProgress: 0.0
+        )
+        modelContext.insert(survivor)
+        canvas.coralFrags.append(survivor)
+        setupRubblePileIfNeeded()
+        save()
     }
 
     /// Set when the first pest ever spawns; the view shows the one-time tooltip (DEC-012).
@@ -578,30 +603,63 @@ extension SandboxViewModel {
         return brushStroke(from: localStart, to: localEnd, on: frag.id)
     }
 
-    // MARK: Pests (DEC-028, DEC-012)
+    // MARK: Pests (DEC-028, DEC-012, DEC-034)
 
-    /// Spawns Drupella snails on eligible corals, scaled by the elapsed span (DEC-028,
-    /// retuned for real-time pacing under DEC-031). Each living Baby/Teenager coral
-    /// with spare pest capacity rolls against `pestSpawnChancePerSecond × elapsed`.
-    /// Adults are spared — their recruited wrasses keep them clean (PRD §3.2).
+    /// Spawns Drupella snails crawling from off-screen margins toward eligible corals (DEC-034).
     public func spawnPestsIfNeeded(
         elapsed: TimeInterval,
         random: Double = Double.random(in: 0...1)
     ) {
         guard let canvas, elapsed > 0 else { return }
-        let chance = min(1.0, Self.pestSpawnChancePerSecond * elapsed)
-        var spawned = false
+        let chance = min(1.0, Self.pestSpawnChancePerSecond * elapsed * 2.0)
         for frag in canvas.coralFrags {
-            guard !frag.isDead, frag.isBaby || frag.isTeenager,
-                  frag.activePredators.count < Self.pestCapPerCoral,
-                  random < chance else { continue }
-            if frag.activePredators.isEmpty && !canvas.coralFrags.contains(where: { !$0.activePredators.isEmpty }) {
+            guard !frag.isDead, frag.isBaby || frag.isTeenager else { continue }
+            let existingCount = frag.activePredators.count + crawlingSnails.filter({ $0.targetFragID == frag.id }).count
+            guard existingCount < Self.pestCapPerCoral, random < chance else { continue }
+
+            let fromLeft = Bool.random()
+            let startX = fromLeft ? max(20.0, frag.xPos - 350.0) : min(canvas.canvasWidth - 20.0, frag.xPos + 350.0)
+            let snail = CrawlingSnail(
+                targetFragID: frag.id,
+                startX: startX,
+                targetX: frag.xPos,
+                targetY: frag.yPos
+            )
+            crawlingSnails.append(snail)
+            if frag.activePredators.isEmpty && crawlingSnails.count == 1 {
                 showPestTooltip = true
             }
-            frag.activePredators.append("DrupellaSnail")
-            spawned = true
         }
-        if spawned { save() }
+    }
+
+    /// Advances crawling snails along the seabed into their target corals.
+    public func advanceCrawlingSnails(dt: TimeInterval) {
+        guard let canvas else { return }
+        var arrivedIndices: [Int] = []
+        for i in crawlingSnails.indices {
+            crawlingSnails[i].progress += dt / 3.0
+            let p = min(1.0, crawlingSnails[i].progress)
+            crawlingSnails[i].currentX = crawlingSnails[i].startX + (crawlingSnails[i].targetX - crawlingSnails[i].startX) * p
+            if p >= 1.0 {
+                crawlingSnails[i].isArrived = true
+                if let frag = canvas.coralFrags.first(where: { $0.id == crawlingSnails[i].targetFragID }) {
+                    if frag.activePredators.count < Self.pestCapPerCoral {
+                        frag.activePredators.append("DrupellaSnail")
+                    }
+                }
+                arrivedIndices.append(i)
+            }
+        }
+        if !arrivedIndices.isEmpty {
+            crawlingSnails.removeAll(where: { $0.isArrived })
+            save()
+        }
+    }
+
+    /// Removes a crawling snail before it attaches to the coral (tap/flick).
+    public func removeCrawlingSnail(id: UUID) {
+        crawlingSnails.removeAll(where: { $0.id == id })
+        AudioPlayerService.shared.playSFX("pest_smush")
     }
 
     public func dismissPestTooltip() {
@@ -692,9 +750,15 @@ extension SandboxViewModel {
             fastForwardRemainingSeconds = max(0, fastForwardRemainingSeconds - step)
         }
         guard canvas?.guidedPlantDone == true else { return }
-        let scaledElapsed = step * effectiveSimMultiplier * 30.0
+        // Tuned simulation speed:
+        // Base growth: ~20 mins for full adult lifecycle
+        // 10x Fast Forward: 30s advances ~25% (1 full stage)
+        // 100x Hold: advances ~1.0 per 1.5s
+        let simSpeedMultiplier = effectiveSimMultiplier * 4500.0
+        let scaledElapsed = step * simSpeedMultiplier
         tick(elapsed: scaledElapsed)
-        spawnPestsIfNeeded(elapsed: scaledElapsed)
+        spawnPestsIfNeeded(elapsed: step)
+        advanceCrawlingSnails(dt: step)
     }
 }
 

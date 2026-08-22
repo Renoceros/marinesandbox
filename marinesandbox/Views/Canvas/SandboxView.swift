@@ -25,8 +25,12 @@ struct SandboxView: View {
     /// A pest being flung off-screen (drives the throw animation, then removal).
     @State private var flyingPest: FlyingPest?
 
-    /// Species being dragged out of the frag palette (nil when not dragging).
-    @State private var paletteDragSpecies: String?
+    /// Sponge bubble drag & pop animation states (DEC-032).
+    @State private var spongeOffset: CGSize = .zero
+    @State private var isSpongeDragging: Bool = false
+    @State private var isBubblePopped: Bool = false
+    @State private var popScale: CGFloat = 1.0
+    @State private var popOpacity: Double = 0.0
 
     /// Brief sparkle marker where a brush stroke cleared cells.
     @State private var sparkleAt: CGPoint?
@@ -71,11 +75,7 @@ struct SandboxView: View {
                             coldOpenInstruction(text: "Drop the fragment onto the seabed!")
                         }
 
-                        toolOverlay(viewModel: viewModel)
-
-                        if viewModel.isPlantingUnlocked {
-                            fragPalette(viewModel: viewModel, seabedY: seabedY)
-                        }
+                        toolOverlay(viewModel: viewModel, seabedY: seabedY)
 
                         if viewModel.showPestTooltip {
                             pestTooltip(viewModel: viewModel)
@@ -181,7 +181,9 @@ struct SandboxView: View {
             .contentShape(Rectangle())
             .position(x: screenX, y: baseY - footprint.size.height / 2)
             .gesture(
-                (isSurvivor && !viewModel.isSurvivorUncovered)
+                // Only unplanted fragment during cold open is draggable.
+                // Once planted and once growing (growthProgress > 0), where it lands is where it grows!
+                (isSurvivor && !viewModel.isSurvivorUncovered) || (frag.growthProgress > 0)
                     ? nil
                     : coralDrag(viewModel: viewModel, frag: frag, seabedY: seabedY)
             )
@@ -190,6 +192,22 @@ struct SandboxView: View {
                     handleCoralTap(viewModel: viewModel, frag: frag)
                 }
             }
+        }
+
+        // Crawling Snails sliding from off-screen margins (DEC-034)
+        ForEach(viewModel.crawlingSnails) { snail in
+            let snailX = snail.currentX + seabedOffset
+            let snailY = seabedY - snail.targetY - 14
+
+            Image("Snail")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 32, height: 32)
+                .position(x: snailX, y: snailY)
+                .shadow(color: .black.opacity(0.4), radius: 4)
+                .onTapGesture {
+                    viewModel.removeCrawlingSnail(id: snail.id)
+                }
         }
 
         if let canvas = viewModel.canvas, !canvas.guidedPlantDone, let survivor = viewModel.survivorFrag {
@@ -468,31 +486,140 @@ struct SandboxView: View {
         }
     }
 
-    // MARK: - Tool Overlay (DEC-007, DEC-032: on-canvas Sponge tool)
+    // MARK: - Tool Overlay (DEC-007, DEC-032: on-canvas Sponge bubble tool)
 
     @ViewBuilder
-    private func toolOverlay(viewModel: SandboxViewModel) -> some View {
+    private func toolOverlay(viewModel: SandboxViewModel, seabedY: Double) -> some View {
         VStack {
-            HStack(spacing: 10) {
+            HStack(alignment: .top, spacing: 10) {
+                // Top-Leading: Sponge in a Bubble (DEC-032)
+                spongeBubbleView(viewModel: viewModel, seabedY: seabedY)
+
                 Spacer()
 
-                // 10x Fast Forward Speed (30s timer countdown)
-                fastForwardButton(viewModel: viewModel)
+                // Top-Trailing: Reset & Speed Controls
+                HStack(spacing: 8) {
+                    Button {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            viewModel.resetToColdOpen()
+                        }
+                    } label: {
+                        Image(systemName: "arrow.counterclockwise")
+                            .font(.subheadline.bold())
+                            .foregroundStyle(.white.opacity(0.85))
+                            .padding(8)
+                            .background(Circle().fill(Color.black.opacity(0.45)))
+                    }
+                    .accessibilityLabel("Reset to cold open")
 
-                // 100x Debug Speed (Press and Hold)
-                debugSpeedButton(viewModel: viewModel)
+                    // 10x Fast Forward Speed (30s timer countdown)
+                    fastForwardButton(viewModel: viewModel)
+
+                    // 100x Debug Speed (Press and Hold)
+                    debugSpeedButton(viewModel: viewModel)
+                }
             }
             .padding(.horizontal, 16)
             .padding(.top, 56) // clear safe area status bar
 
             Spacer()
-
-            HStack(spacing: 12) {
-                spongeToolButton(viewModel: viewModel)
-            }
-            .padding(.bottom, 12)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    @ViewBuilder
+    private func spongeBubbleView(viewModel: SandboxViewModel, seabedY: Double) -> some View {
+        ZStack {
+            // Bubble encapsulation (visible when not popped)
+            if !isBubblePopped {
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                Color.cyan.opacity(0.45),
+                                Color.blue.opacity(0.2),
+                                Color.white.opacity(0.6)
+                            ],
+                            center: .topLeading,
+                            startRadius: 4,
+                            endRadius: 36
+                        )
+                    )
+                    .frame(width: 62, height: 62)
+                    .overlay(
+                        Circle()
+                            .stroke(
+                                LinearGradient(
+                                    colors: [.white.opacity(0.9), .cyan.opacity(0.6), .white.opacity(0.2)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 2
+                            )
+                    )
+                    .shadow(color: .cyan.opacity(0.5), radius: 10)
+                    .transition(.scale.combined(with: .opacity))
+            } else if popOpacity > 0 {
+                // Poof/Pop expanding ring feedback
+                Circle()
+                    .stroke(Color.white.opacity(popOpacity), lineWidth: 2)
+                    .scaleEffect(popScale)
+                    .frame(width: 62, height: 62)
+            }
+
+            // The Sponge itself
+            Image("Sponge")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 42, height: 42)
+                .scaleEffect(isSpongeDragging ? 1.2 : 1.0)
+                .shadow(color: isSpongeDragging ? .cyan.opacity(0.8) : .clear, radius: 12)
+                .offset(spongeOffset)
+                .gesture(
+                    DragGesture(minimumDistance: 0)
+                        .onChanged { value in
+                            if !isSpongeDragging {
+                                isSpongeDragging = true
+                                isBubblePopped = true
+                                AudioPlayerService.shared.playSFX("pest_splash")
+                                popScale = 1.0
+                                popOpacity = 0.8
+                                withAnimation(.easeOut(duration: 0.3)) {
+                                    popScale = 1.6
+                                    popOpacity = 0.0
+                                }
+                            }
+                            spongeOffset = value.translation
+
+                            // Scrub algae under current touch
+                            let seabedOffset = ParallaxMetrics.seabedOffset(scrollX: viewModel.scrollX)
+                            let touchLocation = CGPoint(x: 48 + value.translation.width, y: 88 + value.translation.height)
+                            let canvasPoint = CGPoint(x: touchLocation.x - seabedOffset, y: touchLocation.y)
+
+                            if let last = lastBrushPoint {
+                                let cleared = viewModel.applyBrushSegment(from: last, to: canvasPoint, seabedY: seabedY)
+                                if !cleared.isEmpty { sparkleAt = touchLocation }
+                            }
+                            lastBrushPoint = canvasPoint
+                        }
+                        .onEnded { _ in
+                            lastBrushPoint = nil
+                            withAnimation(.spring(response: 0.45, dampingFraction: 0.72)) {
+                                spongeOffset = .zero
+                            }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                                AudioPlayerService.shared.playSFX("sparkle_clean")
+                                withAnimation(.spring(response: 0.35, dampingFraction: 0.65)) {
+                                    isBubblePopped = false
+                                    isSpongeDragging = false
+                                    popScale = 0.6
+                                    popOpacity = 0.7
+                                }
+                            }
+                        }
+                )
+        }
+        .frame(width: 64, height: 64)
     }
 
     private func fastForwardButton(viewModel: SandboxViewModel) -> some View {
@@ -563,105 +690,6 @@ struct SandboxView: View {
                 }
         )
         .accessibilityLabel("Hold for 100x debug speed")
-    }
-
-    private func spongeToolButton(viewModel: SandboxViewModel) -> some View {
-        let isSelected = viewModel.selectedTool == .sponge
-        return Button {
-            withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
-                viewModel.selectedTool = isSelected ? nil : .sponge
-            }
-        } label: {
-            ZStack {
-                Circle()
-                    .fill(isSelected ? Color.white.opacity(0.95) : Color.black.opacity(0.4))
-                    .frame(width: 58, height: 58)
-                    .overlay(
-                        Circle()
-                            .stroke(isSelected ? Color.cyan : Color.white.opacity(0.3), lineWidth: isSelected ? 2.5 : 1)
-                    )
-                    .shadow(color: isSelected ? Color.cyan.opacity(0.6) : .clear, radius: 8)
-
-                Image("Sponge")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 36, height: 36)
-                    .scaleEffect(isSelected ? 1.1 : 1.0)
-            }
-        }
-        .accessibilityLabel("Sponge cleaning tool")
-    }
-
-    // MARK: - Frag Palette (DEC-029)
-
-    @ViewBuilder
-    private func fragPalette(viewModel: SandboxViewModel, seabedY: Double) -> some View {
-        HStack(spacing: 16) {
-            ForEach(viewModel.config.availableSpecies, id: \.self) { species in
-                Image("Fragment1")
-                    .resizable()
-                    .frame(width: 34, height: 80)
-                    .padding(8)
-                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
-                    .overlay(
-                        Text(species).font(.caption2).foregroundStyle(.white).offset(y: 52)
-                    )
-                    .gesture(
-                        DragGesture(minimumDistance: 0)
-                            .onChanged { value in
-                                paletteDragSpecies = species
-                                viewModel.liftedFragPosition = CGPoint(
-                                    x: value.location.x - ParallaxMetrics.seabedOffset(scrollX: viewModel.scrollX),
-                                    y: liftHeight(of: value.location.y, seabedY: seabedY)
-                                )
-                            }
-                            .onEnded { value in
-                                let fallHeight = liftHeight(of: value.location.y, seabedY: seabedY)
-                                let drop = CGPoint(
-                                    x: value.location.x - ParallaxMetrics.seabedOffset(scrollX: viewModel.scrollX),
-                                    y: fallHeight
-                                )
-                                // Plant at the height it was released from, then settle
-                                // it down to the sand on the next runloop pass. Inserting
-                                // straight at y 0 would pop the frag onto the seabed with
-                                // nothing to animate from.
-                                //
-                                // KNOWN GAP: `settleFrag` writes a SwiftData `@Model`
-                                // property, and such a write does not carry a
-                                // `withAnimation` transaction — so this descent snaps
-                                // rather than sinking. The coral drag above works around
-                                // it by animating view-model state and committing after;
-                                // the palette drop needs the same treatment. Unreachable
-                                // while `PlaygroundMode` hides the palette.
-                                let planted = viewModel.plantFrag(species: species, at: drop)
-                                paletteDragSpecies = nil
-                                if let planted {
-                                    let resting = viewModel.restingHeight(forDropHeight: fallHeight, atX: drop.x)
-                                    DispatchQueue.main.async {
-                                        withAnimation(sinkAnimation(fallHeight: fallHeight - resting, seabedY: seabedY)) {
-                                            viewModel.settleFrag(id: planted.id, fromDropHeight: fallHeight)
-                                        }
-                                    }
-                                }
-                            }
-                    )
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.bottom, 76)
-
-        // Drag preview follows the finger.
-        if paletteDragSpecies != nil {
-            Image("Fragment1")
-                .resizable()
-                .frame(width: 45, height: 110)
-                .opacity(0.85)
-                .position(
-                    x: viewModel.liftedFragPosition.x + ParallaxMetrics.seabedOffset(scrollX: viewModel.scrollX),
-                    y: seabedY - viewModel.liftedFragPosition.y - 55
-                )
-                .allowsHitTesting(false)
-        }
     }
 
     // MARK: - Pest Tooltip (DEC-012: one-time)

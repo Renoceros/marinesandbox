@@ -41,4 +41,9 @@ public enum CoralLifecycle {
     public static func orientation(for id: UUID) -> Orientation {
         id.uuid.0.isMultiple(of: 2) ? .left : .right
     }
+
+    public static func theme(for id: UUID) -> String {
+        let themes = ["pink", "purple", "yellow"]
+        return themes[Int(id.uuid.1) % themes.count]
+    }
 }

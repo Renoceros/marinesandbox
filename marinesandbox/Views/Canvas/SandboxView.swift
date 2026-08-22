@@ -113,6 +113,7 @@ struct SandboxView: View {
             }
         }
         .ignoresSafeArea()
+        .defersSystemGestures(on: .bottom)
         .onAppear {
             if viewModel == nil {
                 let vm = SandboxViewModel(modelContext: modelContext)

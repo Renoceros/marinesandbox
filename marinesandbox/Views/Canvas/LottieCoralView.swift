@@ -1,4 +1,5 @@
-import Lottie
+import DotLottie
+import DotLottiePlayer
 import SwiftUI
 
 struct LottieCoralView: UIViewRepresentable {
@@ -21,73 +22,101 @@ struct LottieCoralView: UIViewRepresentable {
     }
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(frame: CoralLifecycle.frame(for: growthProgress))
-    }
-
-    func makeUIView(context: Context) -> LottieAnimationView {
-        let orientation = CoralLifecycle.orientation(for: coralID)
-        let animationView = LottieAnimationView(
-            configuration: LottieConfiguration(renderingEngine: .mainThread)
+        Coordinator(
+            growthProgress: growthProgress,
+            onPlaybackCompleted: onPlaybackCompleted
         )
-        animationView.contentMode = .scaleAspectFit
-        animationView.backgroundBehavior = .pauseAndRestore
-        animationView.isAccessibilityElement = false
+    }
 
-        if let url = Self.findLottieURL(name: orientation.assetName) {
-            DotLottieFile.loadedFrom(url: url) { result in
-                guard case .success(let file) = result else { return }
-                animationView.loadAnimation(from: file)
-                context.coordinator.isLoaded = true
-                let targetFrame = context.coordinator.frame
-                animationView.currentFrame = AnimationFrameTime(targetFrame)
-                context.coordinator.displayedFrame = targetFrame
-            }
+    func makeUIView(context: Context) -> DotLottieAnimationView {
+        let orientation = CoralLifecycle.orientation(for: coralID)
+        let theme = CoralLifecycle.theme(for: coralID)
+        let targetFrame = Float(CoralLifecycle.frame(for: growthProgress))
+
+        let config = AnimationConfig(
+            autoplay: false,
+            loop: false,
+            themeId: theme
+        )
+
+        let dotLottie: DotLottieAnimation
+        if let url = Self.findLottieURL(name: orientation.assetName),
+           let data = try? Data(contentsOf: url) {
+            dotLottie = DotLottieAnimation(dotLottieData: data, config: config)
         } else {
-            DotLottieFile.named(orientation.assetName, bundle: .main) { result in
-                guard case .success(let file) = result else { return }
-                animationView.loadAnimation(from: file)
-                context.coordinator.isLoaded = true
-                let targetFrame = context.coordinator.frame
-                animationView.currentFrame = AnimationFrameTime(targetFrame)
-                context.coordinator.displayedFrame = targetFrame
+            dotLottie = DotLottieAnimation(fileName: orientation.assetName, config: config)
+        }
+
+        let playerView: DotLottieAnimationView = dotLottie.view()
+        playerView.contentMode = .scaleAspectFit
+        playerView.isAccessibilityElement = false
+
+        context.coordinator.dotLottie = dotLottie
+        context.coordinator.targetFrame = targetFrame
+        dotLottie.subscribe(observer: context.coordinator)
+
+        return playerView
+    }
+
+    func updateUIView(_ uiView: DotLottieAnimationView, context: Context) {
+        let targetFrame = Float(CoralLifecycle.frame(for: growthProgress))
+        context.coordinator.targetFrame = targetFrame
+
+        guard let dotLottie = context.coordinator.dotLottie else { return }
+
+        if let playbackProgress {
+            let endFrame = Float(CoralLifecycle.frame(for: playbackProgress))
+            guard context.coordinator.activePlaybackEnd != endFrame else { return }
+            context.coordinator.activePlaybackEnd = endFrame
+            let current = dotLottie.currentFrame()
+            dotLottie.setSegments(segments: (current, endFrame))
+            _ = dotLottie.play()
+        } else {
+            context.coordinator.activePlaybackEnd = nil
+            _ = dotLottie.setFrame(frame: targetFrame)
+        }
+    }
+
+    final class Coordinator: NSObject, Observer {
+        weak var dotLottie: DotLottieAnimation?
+        var targetFrame: Float
+        var activePlaybackEnd: Float?
+        let onPlaybackCompleted: () -> Void
+
+        init(growthProgress: Double, onPlaybackCompleted: @escaping () -> Void) {
+            self.targetFrame = Float(CoralLifecycle.frame(for: growthProgress))
+            self.onPlaybackCompleted = onPlaybackCompleted
+            super.init()
+        }
+
+        func onLoad() {
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                _ = self.dotLottie?.setFrame(frame: self.targetFrame)
             }
         }
 
-        return animationView
-    }
+        func onLoadError() {}
+        func onPlay() {}
+        func onPause() {}
+        func onStop() {}
+        func onFrame(frameNo: Float) {}
+        func onRender(frameNo: Float) {}
+        func onLoop(loopCount: UInt32) {}
 
-    func updateUIView(_ animationView: LottieAnimationView, context: Context) {
-        let frame = CoralLifecycle.frame(for: growthProgress)
-        context.coordinator.frame = frame
-        guard context.coordinator.isLoaded else { return }
-        guard let playbackProgress else {
-            animationView.currentFrame = AnimationFrameTime(frame)
-            context.coordinator.displayedFrame = frame
-            return
+        func onComplete() {
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                if self.activePlaybackEnd != nil {
+                    self.activePlaybackEnd = nil
+                    self.onPlaybackCompleted()
+                }
+            }
         }
-        let targetFrame = CoralLifecycle.frame(for: playbackProgress)
-        guard context.coordinator.playbackTarget != targetFrame else { return }
-        context.coordinator.playbackTarget = targetFrame
-        animationView.play(
-            fromFrame: AnimationFrameTime(context.coordinator.displayedFrame),
-            toFrame: AnimationFrameTime(targetFrame)
-        ) { finished in
-            guard finished else { return }
-            context.coordinator.displayedFrame = targetFrame
-            context.coordinator.playbackTarget = nil
-            onPlaybackCompleted()
-        }
-    }
 
-    final class Coordinator {
-        var frame: Double
-        var displayedFrame: Double
-        var playbackTarget: Double?
-        var isLoaded = false
-
-        init(frame: Double) {
-            self.frame = frame
-            displayedFrame = frame
-        }
+        func onTransition(previousState: String, newState: String) {}
+        func onStateEntered(enteringState: String) {}
+        func onStateExit(leavingState: String) {}
+        func onMessage(message: String) {}
     }
 }

@@ -427,6 +427,7 @@ struct SandboxView: View {
                 .padding(.top, 56)
             Spacer()
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .transition(.opacity)
     }
 
@@ -491,6 +492,7 @@ struct SandboxView: View {
             }
             .padding(.bottom, 12)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private func fastForwardButton(viewModel: SandboxViewModel) -> some View {

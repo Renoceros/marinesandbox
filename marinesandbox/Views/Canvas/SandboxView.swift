@@ -151,9 +151,9 @@ struct SandboxView: View {
             .contentShape(Rectangle())
             .position(x: screenX, y: baseY - footprint.size.height / 2)
             .gesture(
-                // Only unplanted/floating fragments (growthProgress == 0 or high in water) are draggable.
-                // Once settled on the seabed and growing (growthProgress > 0), where they land is where they grow!
-                (isSurvivor && !viewModel.isSurvivorUncovered) || (frag.growthProgress > 0 && frag.yPos < 60)
+                // Corals are movable only during the fragment/baby stage (growthProgress < 0.25) when uncovered.
+                // Once a coral matures to the toddler phase (growthProgress >= 0.25), it becomes firmly rooted and cannot be moved!
+                (isSurvivor && !viewModel.isSurvivorUncovered) || (frag.growthProgress >= 0.25)
                     ? nil
                     : coralDrag(viewModel: viewModel, frag: frag, seabedY: seabedY)
             )

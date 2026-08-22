@@ -23,6 +23,7 @@ struct LottieCoralView: UIViewRepresentable {
 
     func makeCoordinator() -> Coordinator {
         Coordinator(
+            theme: CoralLifecycle.theme(for: coralID),
             growthProgress: growthProgress,
             onPlaybackCompleted: onPlaybackCompleted
         )
@@ -53,6 +54,7 @@ struct LottieCoralView: UIViewRepresentable {
 
         context.coordinator.dotLottie = dotLottie
         context.coordinator.targetFrame = targetFrame
+        context.coordinator.theme = theme
         dotLottie.subscribe(observer: context.coordinator)
 
         return playerView
@@ -60,9 +62,15 @@ struct LottieCoralView: UIViewRepresentable {
 
     func updateUIView(_ uiView: DotLottieAnimationView, context: Context) {
         let targetFrame = Float(CoralLifecycle.frame(for: growthProgress))
+        let theme = CoralLifecycle.theme(for: coralID)
         context.coordinator.targetFrame = targetFrame
 
         guard let dotLottie = context.coordinator.dotLottie else { return }
+
+        if context.coordinator.theme != theme {
+            context.coordinator.theme = theme
+            _ = dotLottie.setTheme(theme)
+        }
 
         if let playbackProgress {
             let endFrame = Float(CoralLifecycle.frame(for: playbackProgress))
@@ -79,11 +87,13 @@ struct LottieCoralView: UIViewRepresentable {
 
     final class Coordinator: NSObject, Observer {
         weak var dotLottie: DotLottieAnimation?
+        var theme: String
         var targetFrame: Float
         var activePlaybackEnd: Float?
         let onPlaybackCompleted: () -> Void
 
-        init(growthProgress: Double, onPlaybackCompleted: @escaping () -> Void) {
+        init(theme: String, growthProgress: Double, onPlaybackCompleted: @escaping () -> Void) {
+            self.theme = theme
             self.targetFrame = Float(CoralLifecycle.frame(for: growthProgress))
             self.onPlaybackCompleted = onPlaybackCompleted
             super.init()
@@ -92,6 +102,9 @@ struct LottieCoralView: UIViewRepresentable {
         func onLoad() {
             DispatchQueue.main.async { [weak self] in
                 guard let self else { return }
+                if !self.theme.isEmpty {
+                    _ = self.dotLottie?.setTheme(self.theme)
+                }
                 _ = self.dotLottie?.setFrame(frame: self.targetFrame)
             }
         }

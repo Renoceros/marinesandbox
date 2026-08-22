@@ -24,10 +24,10 @@ public enum CoralGeometry {
         }
     }
 
-    /// Footprints per growth stage, scaled to 50% for sandbox canvas balance:
-    /// shiny frag 43.57×65.53 · gray frag 29.95×90.89 · toddler 53.34×79.58 ·
-    /// teen 81.28×96.80 · adult 96.61×121.66.
-    /// A *living* baby renders as the shiny (colored) fragment — planted life must
+    /// Footprints per growth stage, matching the 2x canvas rubble balance:
+    /// shiny frag 88×132 · dead rubble 72×108 · toddler 110×160 ·
+    /// teen 165×195 · adult 195×245.
+    /// A *living* baby renders as the shiny fragment — planted life must
     /// read as alive (DEC-009). A dead baby renders as gray rubble (`Fragment1`).
     /// The teenager band interpolates between the toddler and teen sprites;
     /// adults use the adult sprite.
@@ -35,15 +35,15 @@ public enum CoralGeometry {
         switch coral.stage {
         case .baby:
             return coral.isDead
-                ? Footprint(assetName: "Fragment1", size: CGSize(width: 29.95, height: 90.89))
-                : Footprint(assetName: "ShinyFragment", size: CGSize(width: 43.57, height: 65.53))
+                ? Footprint(assetName: "Fragment1", size: CGSize(width: 72.0, height: 108.0))
+                : Footprint(assetName: "ShinyFragment", size: CGSize(width: 88.0, height: 132.0))
         case .teenager:
             // Interpolate within the band: early teen reads as toddler, late teen as teen.
             return coral.growthProgress < 0.5
-                ? Footprint(assetName: "CoralToddler", size: CGSize(width: 53.34, height: 79.58))
-                : Footprint(assetName: "CoralTeen", size: CGSize(width: 81.28, height: 96.80))
+                ? Footprint(assetName: "CoralToddler", size: CGSize(width: 110.0, height: 160.0))
+                : Footprint(assetName: "CoralTeen", size: CGSize(width: 165.0, height: 195.0))
         case .adult:
-            return Footprint(assetName: "CoralAdult", size: CGSize(width: 96.61, height: 121.66))
+            return Footprint(assetName: "CoralAdult", size: CGSize(width: 195.0, height: 245.0))
         }
     }
 

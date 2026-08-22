@@ -39,13 +39,15 @@ public enum CoralLifecycle {
     }
 
     public static func orientation(for id: UUID) -> Orientation {
-        let hash = abs(id.hashValue)
-        return hash % 2 == 0 ? .left : .right
+        let u = id.uuid
+        let sum = Int(u.0) ^ Int(u.2) ^ Int(u.4) ^ Int(u.6) ^ Int(u.8) ^ Int(u.10) ^ Int(u.12) ^ Int(u.14)
+        return sum % 2 == 0 ? .left : .right
     }
 
     public static func theme(for id: UUID) -> String {
         let themes = ["pink", "purple", "yellow"]
-        let hash = abs(id.hashValue ^ (id.hashValue >> 8))
-        return themes[hash % themes.count]
+        let u = id.uuid
+        let sum = Int(u.1) ^ Int(u.3) ^ Int(u.5) ^ Int(u.7) ^ Int(u.9) ^ Int(u.11) ^ Int(u.13) ^ Int(u.15)
+        return themes[abs(sum) % themes.count]
     }
 }

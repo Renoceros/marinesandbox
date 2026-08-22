@@ -30,10 +30,10 @@ public final class SandboxViewModel {
     public var scrollX: CGFloat = 0.0
 
     /// The active canvas, loaded from (or created in) SwiftData.
-    public private(set) var canvas: ReefCanvas?
+    public internal(set) var canvas: ReefCanvas?
 
     /// The regional config driving this session's threats. Exhibition: Bali (DEC-003).
-    public private(set) var config: NGOConfig
+    public internal(set) var config: NGOConfig
 
     /// The currently selected care tool (`nil` represents default bare-hand mode, DEC-032).
     public var selectedTool: Tool? = nil
@@ -71,15 +71,15 @@ public final class SandboxViewModel {
     public var showPestTooltip = false
 
     /// Width of one seabed artwork block.
-    public private(set) var seabedBlockWidth: CGFloat = 0
+    public internal(set) var seabedBlockWidth: CGFloat = 0
 
     /// Fallback sand height used only before the artwork can be measured.
-    public private(set) var seabedFallbackHeight: CGFloat = 0
+    public internal(set) var seabedFallbackHeight: CGFloat = 0
 
     let modelContext: ModelContext
 
     /// Session threat state, derived from the config (DEC-025).
-    public private(set) var threats: ThreatVector
+    public internal(set) var threats: ThreatVector
 
     public init(modelContext: ModelContext, config: NGOConfig = .exhibitionBali) {
         self.modelContext = modelContext

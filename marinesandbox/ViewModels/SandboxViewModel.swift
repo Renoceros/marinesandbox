@@ -96,6 +96,9 @@ public final class SandboxViewModel {
         }
     }
 
+    /// Corals that have already yielded a new floating fragment upon reaching teenage.
+    public var rewardedTeenageCoralIDs: Set<UUID> = []
+
     /// Resets the canvas back to the cold open state with unplanted survivor frag and rubble.
     public func resetToColdOpen() {
         guard let canvas else { return }
@@ -103,13 +106,14 @@ public final class SandboxViewModel {
         liftedFragID = nil
         rubblePieces.removeAll()
         crawlingSnails.removeAll()
+        rewardedTeenageCoralIDs.removeAll()
         for frag in canvas.coralFrags { modelContext.delete(frag) }
         canvas.coralFrags.removeAll()
 
         let survivor = CoralFrag(
             species: "Acropora",
-            xPos: canvas.canvasWidth / 2,
-            yPos: 0,
+            xPos: 120,
+            yPos: 35,
             growthProgress: 0.0
         )
         modelContext.insert(survivor)
@@ -166,7 +170,7 @@ public final class SandboxViewModel {
             return
         }
 
-        let survivor = CoralFrag(species: "Acropora", xPos: 200, yPos: 0, growthProgress: 0.0)
+        let survivor = CoralFrag(species: "Acropora", xPos: 120, yPos: 35, growthProgress: 0.0)
         let canvas = ReefCanvas(ngoRegion: config.regionName, coralFrags: [survivor])
         modelContext.insert(canvas)
         self.canvas = canvas
@@ -380,12 +384,12 @@ extension SandboxViewModel {
         }
         if rubblePieces.isEmpty {
             rubblePieces = [
-                RubblePiece(assetName: "Fragment1", offset: CGPoint(x: -18, y: 12), rotation: -18),
-                RubblePiece(assetName: "Fragment2", offset: CGPoint(x: 22, y: -8), rotation: 28),
-                RubblePiece(assetName: "Fragment3", offset: CGPoint(x: -8, y: -22), rotation: -10),
-                RubblePiece(assetName: "Fragment4", offset: CGPoint(x: 18, y: 18), rotation: 36),
-                RubblePiece(assetName: "Fragment1", offset: CGPoint(x: 2, y: 6), rotation: 8),
-                RubblePiece(assetName: "Fragment2", offset: CGPoint(x: -24, y: -10), rotation: -30)
+                RubblePiece(assetName: "Fragment1", offset: CGPoint(x: -36, y: -24), rotation: -18),
+                RubblePiece(assetName: "Fragment2", offset: CGPoint(x: 44, y: -16), rotation: 28),
+                RubblePiece(assetName: "Fragment3", offset: CGPoint(x: -16, y: -48), rotation: -10),
+                RubblePiece(assetName: "Fragment4", offset: CGPoint(x: 36, y: 32), rotation: 36),
+                RubblePiece(assetName: "Fragment1", offset: CGPoint(x: 4, y: -12), rotation: 8),
+                RubblePiece(assetName: "Fragment2", offset: CGPoint(x: -48, y: 16), rotation: -30)
             ]
         }
     }
@@ -701,8 +705,35 @@ extension SandboxViewModel {
         commit(outcome)
         lottiePlaybackTargets = Dictionary(uniqueKeysWithValues: outcome.corals.map { ($0.id, $0.growthProgress) })
         spawnPestsIfNeeded(elapsed: Self.fastForwardInterval)
+        checkTeenageSpawns()
         pendingDiagnostic = outcome
         diagnosticMessage = Self.diagnose(before: before, after: outcome)
+    }
+
+    /// Spawns a new random living coral fragment floating in open water whenever a coral reaches Teenage phase.
+    public func checkTeenageSpawns() {
+        guard let canvas, canvas.guidedPlantDone else { return }
+        for frag in canvas.coralFrags {
+            guard !frag.isDead, (frag.isTeenager || frag.isAdult), !rewardedTeenageCoralIDs.contains(frag.id) else { continue }
+            rewardedTeenageCoralIDs.insert(frag.id)
+
+            let allSpecies = config.availableSpecies.isEmpty
+                ? ["Acropora", "BrainCoral", "ElkhornCoral", "SpongeCoral", "StaghornCoral", "TableCoral"]
+                : config.availableSpecies
+            let species = allSpecies.randomElement() ?? "Acropora"
+
+            let spawnX = min(max(80.0, frag.xPos + Double.random(in: -140...140)), canvas.canvasWidth - 80.0)
+            let floatingFrag = CoralFrag(
+                species: species,
+                xPos: spawnX,
+                yPos: 240.0, // floats high in open water
+                growthProgress: 0.0
+            )
+            modelContext.insert(floatingFrag)
+            canvas.coralFrags.append(floatingFrag)
+            AudioPlayerService.shared.playSFX("sparkle_clean")
+        }
+        save()
     }
 
     public func dismissDiagnosticCard() {
@@ -759,6 +790,7 @@ extension SandboxViewModel {
         tick(elapsed: scaledElapsed)
         spawnPestsIfNeeded(elapsed: step)
         advanceCrawlingSnails(dt: step)
+        checkTeenageSpawns()
     }
 }
 

@@ -170,9 +170,9 @@ struct SandboxView: View {
             .contentShape(Rectangle())
             .position(x: screenX, y: baseY - footprint.size.height / 2)
             .gesture(
-                // Only unplanted fragment during cold open is draggable.
-                // Once planted and once growing (guidedPlantDone and growthProgress > 0), where it lands is where it grows!
-                (isSurvivor && !viewModel.isSurvivorUncovered) || (viewModel.guidedPlantPhase == .done && frag.growthProgress > 0)
+                // Only unplanted/floating fragments (growthProgress == 0 or high in water) are draggable.
+                // Once settled on the seabed and growing (growthProgress > 0), where they land is where they grow!
+                (isSurvivor && !viewModel.isSurvivorUncovered) || (frag.growthProgress > 0 && frag.yPos < 60)
                     ? nil
                     : coralDrag(viewModel: viewModel, frag: frag, seabedY: seabedY)
             )
@@ -440,7 +440,7 @@ struct SandboxView: View {
         seabedOffset: Double
     ) -> some View {
         let baseX = survivor.xPos + seabedOffset
-        let baseY = seabedY - survivor.yPos - 20
+        let baseY = seabedY - survivor.yPos - 35
 
         ForEach(viewModel.rubblePieces) { rubble in
             if !rubble.isCleared {
@@ -450,7 +450,7 @@ struct SandboxView: View {
                 Image(rubble.assetName)
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 36, height: 54)
+                    .frame(width: 72, height: 108)
                     .rotationEffect(.degrees(rubble.rotation))
                     .opacity(rubble.isFlicked ? 0.0 : 0.95)
                     .animation(.easeOut(duration: 0.45), value: rubble.isFlicked)

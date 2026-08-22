@@ -32,9 +32,6 @@ struct SandboxView: View {
     @State private var popScale: CGFloat = 1.0
     @State private var popOpacity: Double = 0.0
 
-    /// Brief sparkle marker where a brush stroke cleared cells.
-    @State private var sparkleAt: CGPoint?
-
     /// Pests currently executing their vertical squash & fade-out smush animation (DEC-034).
     @State private var smushedPestIDs: Set<String> = []
 
@@ -79,14 +76,6 @@ struct SandboxView: View {
 
                         if viewModel.showPestTooltip {
                             pestTooltip(viewModel: viewModel)
-                        }
-
-                        if let sparkleAt {
-                            Image(systemName: "sparkle")
-                                .font(.title)
-                                .foregroundStyle(.white)
-                                .position(sparkleAt)
-                                .transition(.opacity)
                         }
 
                         if viewModel.pendingDiagnostic != nil {
@@ -182,8 +171,8 @@ struct SandboxView: View {
             .position(x: screenX, y: baseY - footprint.size.height / 2)
             .gesture(
                 // Only unplanted fragment during cold open is draggable.
-                // Once planted and once growing (growthProgress > 0), where it lands is where it grows!
-                (isSurvivor && !viewModel.isSurvivorUncovered) || (frag.growthProgress > 0)
+                // Once planted and once growing (guidedPlantDone and growthProgress > 0), where it lands is where it grows!
+                (isSurvivor && !viewModel.isSurvivorUncovered) || (viewModel.guidedPlantPhase == .done && frag.growthProgress > 0)
                     ? nil
                     : coralDrag(viewModel: viewModel, frag: frag, seabedY: seabedY)
             )
@@ -337,28 +326,22 @@ struct SandboxView: View {
     /// `minimumDistance: 6` keeps taps free for `onTapGesture` — a zero-distance
     /// drag would swallow them and the guided plant's tap-to-lift would never fire.
     private func coralDrag(viewModel: SandboxViewModel, frag: CoralFrag, seabedY: Double) -> some Gesture {
-        DragGesture(minimumDistance: 6)
+        DragGesture(minimumDistance: 4)
             .onChanged { value in
                 let seabedOffset = ParallaxMetrics.seabedOffset(scrollX: viewModel.scrollX)
                 let canvas = CGPoint(x: value.location.x - seabedOffset, y: value.location.y)
-                // Outside the playground only the guided first plant is liftable,
-                // so a planted coral is fixed where it sits. Here any coral picks
-                // up the moment a drag starts on it, and can be moved again and
-                // again.
-                if PlaygroundMode.isEnabled, viewModel.liftedFragID != frag.id {
+
+                if viewModel.liftedFragID != frag.id {
                     withAnimation(.spring(response: 0.3, dampingFraction: Physics.sinkDamping)) {
                         viewModel.liftFrag(id: frag.id)
                     }
                 }
                 if viewModel.liftedFragID == frag.id {
-                    // The frag follows the finger in 2D — including up into open
-                    // water. `yPos` is height *above* the seabed, so it is the
-                    // distance from the sand up to the touch, never negative.
+                    // The frag follows the finger in 2D — including up into open water.
                     viewModel.dragLiftedFrag(to: CGPoint(x: canvas.x, y: liftHeight(of: value.location.y, seabedY: seabedY)))
                 } else if viewModel.selectedTool == .sponge {
                     if let last = lastBrushPoint {
-                        let cleared = viewModel.applyBrushSegment(from: last, to: canvas, seabedY: seabedY)
-                        if !cleared.isEmpty { sparkleAt = value.location }
+                        _ = viewModel.applyBrushSegment(from: last, to: canvas, seabedY: seabedY)
                     }
                     lastBrushPoint = canvas
                 }
@@ -597,8 +580,7 @@ struct SandboxView: View {
                             let canvasPoint = CGPoint(x: touchLocation.x - seabedOffset, y: touchLocation.y)
 
                             if let last = lastBrushPoint {
-                                let cleared = viewModel.applyBrushSegment(from: last, to: canvasPoint, seabedY: seabedY)
-                                if !cleared.isEmpty { sparkleAt = touchLocation }
+                                _ = viewModel.applyBrushSegment(from: last, to: canvasPoint, seabedY: seabedY)
                             }
                             lastBrushPoint = canvasPoint
                         }

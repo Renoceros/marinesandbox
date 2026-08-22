@@ -195,18 +195,6 @@ struct SandboxView: View {
         if let canvas = viewModel.canvas, !canvas.guidedPlantDone, let survivor = viewModel.survivorFrag {
             rubblePileLayer(viewModel: viewModel, survivor: survivor, seabedY: seabedY, seabedOffset: seabedOffset)
         }
-            // Deliberately no `.animation(_:value:)` here. An explicit animation
-            // modifier overrides the ambient transaction for this view, and it
-            // reached `.position` regardless of where it sat in the chain — so
-            // every sink ran at its fixed response and `sinkResponse` never
-            // applied. Lift and settle are driven by `withAnimation` at the
-            // call sites instead.
-            .frame(width: footprint.size.width, height: footprint.size.height)
-            .contentShape(Rectangle())
-            .position(x: screenX, y: baseY - footprint.size.height / 2)
-            .gesture(coralDrag(viewModel: viewModel, frag: frag, seabedY: seabedY))
-            .onTapGesture { handleCoralTap(viewModel: viewModel, frag: frag) }
-        }
     }
 
     @ViewBuilder
@@ -509,7 +497,7 @@ struct SandboxView: View {
         let isActive = viewModel.isFastForward10xActive
         return Button {
             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                viewModel.activate10xFastForward(30.0)
+                viewModel.activate10xFastForward(duration: 30.0)
             }
         } label: {
             HStack(spacing: 6) {

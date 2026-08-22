@@ -62,8 +62,13 @@ struct SandboxView: View {
                     // a bare field, so every overlay that is not the reef itself
                     // stays unbuilt until the flag goes back to `false`.
                     if !PlaygroundMode.isEnabled {
-                        if viewModel.guidedPlantPhase == .awaitingPlant {
+                        if viewModel.guidedPlantPhase == .awaitingRubbleClear {
+                            coldOpenInstruction(text: "Flick away the dead rubble to uncover the living coral!")
+                        } else if viewModel.guidedPlantPhase == .awaitingFragTap {
+                            coldOpenInstruction(text: "Drag the living fragment onto the sand to plant it!")
+                        } else if viewModel.guidedPlantPhase == .awaitingPlant {
                             guidePulse(viewModel: viewModel, seabedY: seabedY, viewportWidth: geometry.size.width)
+                            coldOpenInstruction(text: "Drop the fragment onto the seabed!")
                         }
 
                         toolOverlay(viewModel: viewModel)
@@ -90,10 +95,11 @@ struct SandboxView: View {
                     }
                 }
                 .onReceive(ticker) { _ in
-                    guard !viewModel.config.isExhibitionMode, !PlaygroundMode.isEnabled else { return }
+                    guard !PlaygroundMode.isEnabled else { return }
                     viewModel.tickLive()
                 }
                 .onAppear {
+                    AudioPlayerService.shared.startAmbientLoop()
                     viewModel.updateFieldGeometry(
                         viewportWidth: geometry.size.width,
                         viewportHeight: geometry.size.height
@@ -101,6 +107,9 @@ struct SandboxView: View {
                     if PlaygroundMode.isEnabled {
                         viewModel.resetToSinglePlaygroundFrag()
                     }
+                }
+                .onDisappear {
+                    AudioPlayerService.shared.stopAmbientLoop()
                 }
                 .onChange(of: geometry.size) { _, size in
                     viewModel.updateFieldGeometry(
@@ -115,6 +124,7 @@ struct SandboxView: View {
         .ignoresSafeArea()
         .defersSystemGestures(on: .bottom)
         .onAppear {
+            AudioPlayerService.shared.startAmbientLoop()
             if viewModel == nil {
                 let vm = SandboxViewModel(modelContext: modelContext)
                 vm.loadOrCreateCanvas()
@@ -150,7 +160,7 @@ struct SandboxView: View {
                 coralArtView(viewModel: viewModel, frag: frag, assetName: assetName, footprint: footprint)
                     .scaleEffect(isLifted ? 1.15 : 1.0)
                     .shadow(color: isLifted ? .white.opacity(0.6) : .clear, radius: 12)
-                    .shadow(color: isSurvivor ? .yellow.opacity(0.8) : .clear, radius: 18)
+                    .shadow(color: (isSurvivor && viewModel.isSurvivorUncovered) ? .yellow.opacity(0.9) : .clear, radius: 20)
 
                 // Mid-fi algae overlay: brown haze over the coral, opacity tracks
                 // the derived coverage (DEC-018 grid; per-cell mask comes with art).
@@ -167,6 +177,24 @@ struct SandboxView: View {
                     pestView(viewModel: viewModel, frag: frag, index: index, footprint: footprint)
                 }
             }
+            .frame(width: footprint.size.width, height: footprint.size.height)
+            .contentShape(Rectangle())
+            .position(x: screenX, y: baseY - footprint.size.height / 2)
+            .gesture(
+                (isSurvivor && !viewModel.isSurvivorUncovered)
+                    ? nil
+                    : coralDrag(viewModel: viewModel, frag: frag, seabedY: seabedY)
+            )
+            .onTapGesture {
+                if !isSurvivor || viewModel.isSurvivorUncovered {
+                    handleCoralTap(viewModel: viewModel, frag: frag)
+                }
+            }
+        }
+
+        if let canvas = viewModel.canvas, !canvas.guidedPlantDone, let survivor = viewModel.survivorFrag {
+            rubblePileLayer(viewModel: viewModel, survivor: survivor, seabedY: seabedY, seabedOffset: seabedOffset)
+        }
             // Deliberately no `.animation(_:value:)` here. An explicit animation
             // modifier overrides the ambient transaction for this view, and it
             // reached `.position` regardless of where it sat in the chain — so
@@ -391,35 +419,160 @@ struct SandboxView: View {
         }
     }
 
+    // MARK: - Cold Open & Rubble Layer (DEC-009)
+
+    @ViewBuilder
+    private func coldOpenInstruction(text: String) -> some View {
+        VStack {
+            Text(text)
+                .font(.subheadline.bold())
+                .foregroundStyle(.white)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(
+                    Capsule()
+                        .fill(Color.black.opacity(0.65))
+                        .overlay(Capsule().stroke(Color.white.opacity(0.3), lineWidth: 1))
+                )
+                .shadow(color: .black.opacity(0.4), radius: 6)
+                .padding(.top, 56)
+            Spacer()
+        }
+        .transition(.opacity)
+    }
+
+    @ViewBuilder
+    private func rubblePileLayer(
+        viewModel: SandboxViewModel,
+        survivor: CoralFrag,
+        seabedY: Double,
+        seabedOffset: Double
+    ) -> some View {
+        let baseX = survivor.xPos + seabedOffset
+        let baseY = seabedY - survivor.yPos - 20
+
+        ForEach(viewModel.rubblePieces) { rubble in
+            if !rubble.isCleared {
+                let pieceX = baseX + (rubble.isFlicked ? rubble.flickTargetOffset.x : rubble.offset.x)
+                let pieceY = baseY + (rubble.isFlicked ? rubble.flickTargetOffset.y : rubble.offset.y)
+
+                Image(rubble.assetName)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 36, height: 54)
+                    .rotationEffect(.degrees(rubble.rotation))
+                    .opacity(rubble.isFlicked ? 0.0 : 0.95)
+                    .animation(.easeOut(duration: 0.45), value: rubble.isFlicked)
+                    .position(x: pieceX, y: pieceY)
+                    .gesture(
+                        DragGesture(minimumDistance: 3)
+                            .onEnded { value in
+                                let velocity = CGPoint(
+                                    x: value.predictedEndLocation.x - value.location.x,
+                                    y: value.predictedEndLocation.y - value.location.y
+                                )
+                                viewModel.flickRubble(id: rubble.id, velocity: velocity)
+                            }
+                    )
+            }
+        }
+    }
+
     // MARK: - Tool Overlay (DEC-007, DEC-032: on-canvas Sponge tool)
 
     @ViewBuilder
     private func toolOverlay(viewModel: SandboxViewModel) -> some View {
         VStack {
-            HStack {
+            HStack(spacing: 10) {
                 Spacer()
-                // DEC-031: the Fast Forward button is the exhibition progression
-                // mechanism (tap to jump stages). The personal app grows in real time.
-                if viewModel.config.isExhibitionMode {
-                    Button {
-                        viewModel.performFastForward()
-                    } label: {
-                        Label("Fast Forward", systemImage: "forward.fill")
-                            .font(.callout.bold())
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 10)
-                            .background(.ultraThinMaterial, in: Capsule())
-                    }
-                    .padding(.horizontal)
-                    .padding(.top, 56) // root ignores safe area — keep clear of the status bar
-                }
+
+                // 10x Fast Forward Speed (30s timer countdown)
+                fastForwardButton(viewModel: viewModel)
+
+                // 100x Debug Speed (Press and Hold)
+                debugSpeedButton(viewModel: viewModel)
             }
+            .padding(.horizontal, 16)
+            .padding(.top, 56) // clear safe area status bar
+
             Spacer()
+
             HStack(spacing: 12) {
                 spongeToolButton(viewModel: viewModel)
             }
             .padding(.bottom, 12)
         }
+    }
+
+    private func fastForwardButton(viewModel: SandboxViewModel) -> some View {
+        let isActive = viewModel.isFastForward10xActive
+        return Button {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                viewModel.activate10xFastForward(30.0)
+            }
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "forward.fill")
+                    .font(.subheadline.bold())
+                if isActive {
+                    Text("10x \(Int(ceil(viewModel.fastForwardRemainingSeconds)))s")
+                        .font(.callout.monospacedDigit().bold())
+                } else {
+                    Text("10x FF")
+                        .font(.callout.bold())
+                }
+            }
+            .foregroundStyle(isActive ? .cyan : .white)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .background(
+                Capsule()
+                    .fill(isActive ? Color.black.opacity(0.8) : Color.black.opacity(0.45))
+                    .overlay(
+                        Capsule()
+                            .stroke(isActive ? Color.cyan : Color.white.opacity(0.3), lineWidth: isActive ? 2 : 1)
+                    )
+            )
+            .shadow(color: isActive ? Color.cyan.opacity(0.6) : .clear, radius: 8)
+        }
+        .accessibilityLabel("10x Fast Forward speed for 30 seconds")
+    }
+
+    private func debugSpeedButton(viewModel: SandboxViewModel) -> some View {
+        let isActive = viewModel.isDebug100xActive
+        return HStack(spacing: 4) {
+            Image(systemName: "bolt.fill")
+                .font(.subheadline.bold())
+            Text("100x")
+                .font(.callout.bold())
+        }
+        .foregroundStyle(isActive ? .orange : .white.opacity(0.9))
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(
+            Capsule()
+                .fill(isActive ? Color.orange.opacity(0.35) : Color.black.opacity(0.45))
+                .overlay(
+                    Capsule()
+                        .stroke(isActive ? Color.orange : Color.white.opacity(0.3), lineWidth: isActive ? 2 : 1)
+                )
+        )
+        .shadow(color: isActive ? Color.orange.opacity(0.8) : .clear, radius: 8)
+        .scaleEffect(isActive ? 1.08 : 1.0)
+        .animation(.spring(response: 0.2, dampingFraction: 0.6), value: isActive)
+        .gesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in
+                    if !viewModel.isDebug100xActive {
+                        viewModel.setDebug100xActive(true)
+                    }
+                }
+                .onEnded { _ in
+                    viewModel.setDebug100xActive(false)
+                }
+        )
+        .accessibilityLabel("Hold for 100x debug speed")
     }
 
     private func spongeToolButton(viewModel: SandboxViewModel) -> some View {

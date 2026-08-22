@@ -54,6 +54,45 @@ public final class SandboxViewModel {
     /// Where the lifted frag is, in canvas coordinates (drives the drag preview).
     public var liftedFragPosition: CGPoint = .zero
 
+    /// Dead rubble pieces covering the survivor fragment in the cold open (DEC-009).
+    public var rubblePieces: [RubblePiece] = []
+
+    /// True when the player has cleared enough rubble to expose the living survivor frag.
+    public var isSurvivorUncovered: Bool {
+        rubblePieces.isEmpty || rubblePieces.filter { !$0.isCleared }.count <= 1
+    }
+
+    /// Remaining seconds on the 10x speed up boost timer (30s duration).
+    public var fastForwardRemainingSeconds: Double = 0.0
+
+    /// True when debug 100x speed hold button is actively pressed.
+    public var isDebug100xActive: Bool = false
+
+    /// True when 10x fast forward boost is currently active.
+    public var isFastForward10xActive: Bool { fastForwardRemainingSeconds > 0 }
+
+    /// Current effective simulation speed multiplier.
+    public var effectiveSimMultiplier: Double {
+        if isDebug100xActive { return 100.0 }
+        if fastForwardRemainingSeconds > 0 { return 10.0 }
+        return 1.0
+    }
+
+    /// Activates the 10x simulation speed boost for the given duration (default: 30s).
+    public func activate10xFastForward(duration: Double = 30.0) {
+        fastForwardRemainingSeconds = duration
+        AudioPlayerService.shared.playSFX("sparkle_clean")
+    }
+
+    /// Sets whether debug 100x speed hold is active.
+    public func setDebug100xActive(_ active: Bool) {
+        guard isDebug100xActive != active else { return }
+        isDebug100xActive = active
+        if active {
+            AudioPlayerService.shared.playSFX("frag_lift")
+        }
+    }
+
     /// Set when the first pest ever spawns; the view shows the one-time tooltip (DEC-012).
     public var showPestTooltip = false
 
@@ -97,6 +136,7 @@ public final class SandboxViewModel {
         let descriptor = FetchDescriptor<ReefCanvas>()
         if let existing = try? modelContext.fetch(descriptor).first {
             canvas = existing
+            setupRubblePileIfNeeded()
             runCatchUpIfNeeded()
             return
         }
@@ -105,6 +145,7 @@ public final class SandboxViewModel {
         let canvas = ReefCanvas(ngoRegion: config.regionName, coralFrags: [survivor])
         modelContext.insert(canvas)
         self.canvas = canvas
+        setupRubblePileIfNeeded()
         save()
     }
 
@@ -295,12 +336,55 @@ extension SandboxViewModel {
 
     /// Phase of the guided cold open, for the view's highlight/pulse states.
     public enum GuidedPlantPhase {
-        /// Nothing highlighted; waiting for the user to tap the survivor frag.
+        /// Rubble is covering the survivor frag; user must flick rubble away.
+        case awaitingRubbleClear
+        /// Rubble cleared; waiting for the user to tap and lift the survivor frag.
         case awaitingFragTap
         /// Frag lifted; the seabed target zone is pulsing.
         case awaitingPlant
         /// Planted. The steady-state care loop begins.
         case done
+    }
+
+    /// Sets up the initial rubble pile covering the survivor fragment if not yet planted.
+    public func setupRubblePileIfNeeded() {
+        guard let canvas, !canvas.guidedPlantDone else {
+            rubblePieces.removeAll()
+            return
+        }
+        if rubblePieces.isEmpty {
+            rubblePieces = [
+                RubblePiece(assetName: "Fragment1", offset: CGPoint(x: -18, y: 12), rotation: -18),
+                RubblePiece(assetName: "Fragment2", offset: CGPoint(x: 22, y: -8), rotation: 28),
+                RubblePiece(assetName: "Fragment3", offset: CGPoint(x: -8, y: -22), rotation: -10),
+                RubblePiece(assetName: "Fragment4", offset: CGPoint(x: 18, y: 18), rotation: 36),
+                RubblePiece(assetName: "Fragment1", offset: CGPoint(x: 2, y: 6), rotation: 8),
+                RubblePiece(assetName: "Fragment2", offset: CGPoint(x: -24, y: -10), rotation: -30)
+            ]
+        }
+    }
+
+    /// Flicks a dead rubble piece off-screen with velocity and sound feedback.
+    public func flickRubble(id: UUID, velocity: CGPoint) {
+        guard let index = rubblePieces.firstIndex(where: { $0.id == id }) else { return }
+        AudioPlayerService.shared.playSFX("pest_flick")
+        let speed = max(Physics.flickThreshold, (velocity.x * velocity.x + velocity.y * velocity.y).squareRoot())
+        let normalized = speed > 0 ? CGPoint(x: velocity.x / speed, y: velocity.y / speed) : CGPoint(x: 0, y: -1)
+        let throwDist = 600.0
+        rubblePieces[index].isFlicked = true
+        rubblePieces[index].flickTargetOffset = CGPoint(
+            x: rubblePieces[index].offset.x + normalized.x * throwDist,
+            y: rubblePieces[index].offset.y + normalized.y * throwDist
+        )
+        rubblePieces[index].rotation += Double.random(in: 180...360) * (normalized.x >= 0 ? 1 : -1)
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) { [weak self] in
+            guard let self, let idx = self.rubblePieces.firstIndex(where: { $0.id == id }) else { return }
+            self.rubblePieces[idx].isCleared = true
+            if self.isSurvivorUncovered {
+                AudioPlayerService.shared.playSFX("sparkle_clean")
+            }
+        }
     }
 
     /// The survivor frag from the cold open (nil once the guide is done or if absent).
@@ -313,6 +397,7 @@ extension SandboxViewModel {
     /// open resumes correctly on relaunch.
     public var guidedPlantPhase: GuidedPlantPhase {
         if canvas?.guidedPlantDone == true { return .done }
+        if !isSurvivorUncovered { return .awaitingRubbleClear }
         return liftedFragID == nil ? .awaitingFragTap : .awaitingPlant
     }
 
@@ -331,6 +416,7 @@ extension SandboxViewModel {
         guard let frag = canvas?.coralFrags.first(where: { $0.id == id }) else { return }
         liftedFragID = id
         liftedFragPosition = CGPoint(x: frag.xPos, y: frag.yPos)
+        AudioPlayerService.shared.playSFX("frag_lift")
     }
 
     /// Clears the reef down to one healthy coral in the middle of the field.
@@ -347,6 +433,7 @@ extension SandboxViewModel {
         // guided plant is marked done.
         canvas.guidedPlantDone = true
         liftedFragID = nil
+        rubblePieces.removeAll()
         showPestTooltip = false
 
         let isAlreadyCleanField = canvas.coralFrags.count == 1
@@ -384,6 +471,8 @@ extension SandboxViewModel {
         frag.yPos = restingHeight(forDropHeight: liftedFragPosition.y, atX: drop.x)
         canvas.guidedPlantDone = true
         liftedFragID = nil
+        rubblePieces.removeAll()
+        AudioPlayerService.shared.playSFX("frag_plant")
         save()
     }
 
@@ -596,10 +685,14 @@ extension SandboxViewModel {
     /// survivor frag is planted, nothing grows, accrues algae, spawns pests, or
     /// dies. The tutorial must be safe — a coral that can die before the player
     /// has learned to care for it teaches the wrong lesson.
-    public func tickLive() {
+    public func tickLive(dt: TimeInterval = tickInterval) {
+        if fastForwardRemainingSeconds > 0 {
+            fastForwardRemainingSeconds = max(0, fastForwardRemainingSeconds - dt)
+        }
         guard canvas?.guidedPlantDone == true else { return }
-        tick()
-        spawnPestsIfNeeded(elapsed: Self.tickInterval)
+        let scaledElapsed = dt * effectiveSimMultiplier * 30.0
+        tick(elapsed: scaledElapsed)
+        spawnPestsIfNeeded(elapsed: scaledElapsed)
     }
 }
 

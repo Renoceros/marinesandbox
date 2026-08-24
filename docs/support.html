@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reefora Support — Interactive Marine Sandbox</title>
+  <style>
+    :root {
+      --bg: #0b1926;
+      --card-bg: #132738;
+      --accent: #2dd4bf;
+      --accent-glow: rgba(45, 212, 191, 0.2);
+      --text: #f0fdfa;
+      --muted: #94a3b8;
+      --border: #1e3a52;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 40px 20px;
+    }
+    .container {
+      max-width: 760px;
+      margin: 0 auto;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .logo-badge {
+      display: inline-block;
+      padding: 8px 18px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 16px;
+      box-shadow: 0 0 16px var(--accent-glow);
+    }
+    h1 {
+      font-size: 2.4rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+    p.subtitle {
+      color: var(--muted);
+      font-size: 1.1rem;
+    }
+    .nav-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .nav-tabs a {
+      text-decoration: none;
+      padding: 10px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+    .nav-tabs a.active {
+      background: var(--accent);
+      color: #0b1926;
+    }
+    .nav-tabs a:not(.active) {
+      background: var(--card-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    h2 {
+      color: var(--accent);
+      font-size: 1.4rem;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+    h3 {
+      font-size: 1.1rem;
+      margin: 20px 0 8px;
+      color: var(--text);
+    }
+    p, ul {
+      margin-bottom: 16px;
+      color: #cbd5e1;
+    }
+    ul {
+      padding-left: 24px;
+    }
+    li {
+      margin-bottom: 6px;
+    }
+    .contact-box {
+      background: rgba(45, 212, 191, 0.05);
+      border: 1px dashed var(--accent);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+    .btn {
+      display: inline-block;
+      background: var(--accent);
+      color: #0b1926;
+      font-weight: 600;
+      padding: 12px 28px;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+    .btn:hover {
+      opacity: 0.9;
+    }
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-top: 48px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo-badge">Reefora Support</div>
+      <h1>App Support & Contact</h1>
+      <p class="subtitle">We're here to help with your Reefora experience</p>
+    </header>
+
+    <div class="nav-tabs">
+      <a href="support.html" class="active">Support & FAQ</a>
+      <a href="privacy.html">Privacy Policy</a>
+    </div>
+
+    <div class="card">
+      <h2>Get in Touch</h2>
+      <p>Have questions, feedback, bug reports, or feature requests? Reach out directly to our team:</p>
+      
+      <div class="contact-box">
+        <p><strong>Email Support:</strong> <a href="mailto:support@renoceros.com?subject=Reefora%20App%20Support" style="color: var(--accent); text-decoration: none;">support@renoceros.com</a></p>
+        <p><strong>Response Time:</strong> We typically reply within 24–48 business hours.</p>
+      </div>
+
+      <a href="mailto:support@renoceros.com?subject=Reefora%20App%20Support" class="btn">Send Support Email</a>
+    </div>
+
+    <div class="card">
+      <h2>Frequently Asked Questions & Troubleshooting</h2>
+      
+      <h3>How do I care for my coral?</h3>
+      <p>Corals need clean sunlight and protection from pests to thrive. Use the sponge tool to swipe away green algae smothering the coral branches, and tap or flick away predatory snails.</p>
+
+      <h3>How does Fast Forward work?</h3>
+      <p>Tapping the 10x Fast Forward button in the top right accelerates time for 30 seconds so you can watch your corals advance through their biological growth stages and evaluate ecological balance.</p>
+
+      <h3>Does Reefora require an internet connection?</h3>
+      <p>No. Reefora works 100% offline. All simulation physics, ecology models, and sandbox state run locally on your device without needing cellular or Wi-Fi connectivity.</p>
+
+      <h3>How do I restart the sandbox?</h3>
+      <p>You can tap the restart icon in the top right toolbar at any time to reset the sandbox back to the initial cold-open survivor fragment.</p>
+    </div>
+
+    <footer>
+      &copy; 2026 Reefora. All rights reserved.
+    </footer>
+  </div>
+</body>
+</html>

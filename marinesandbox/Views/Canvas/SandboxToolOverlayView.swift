@@ -123,7 +123,7 @@ struct SpongeBubbleView: View {
                                 spongeOffset = .zero
                             }
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-                                AudioPlayerService.shared.playSFX("sparkle_clean")
+                                AudioPlayerService.shared.playSFX("tool_switch")
                                 withAnimation(.spring(response: 0.35, dampingFraction: 0.65)) {
                                     isBubblePopped = false
                                     isSpongeDragging = false

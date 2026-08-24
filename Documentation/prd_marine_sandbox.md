@@ -1,16 +1,16 @@
-# Product Requirements Document (PRD): Interactive Marine Sandbox
+# Product Requirements Document (PRD): Reefora (formerly Interactive Marine Sandbox)
 
-**Document Version:** v1.3  
+**Document Version:** v1.4  
 **Status:** Approved (Updated for 2-Week MVP Scope)  
 
-> **Decisions live in [`DECISIONS.md`](../DECISIONS.md).** Where this document and the decision register disagree, the register wins. Currently superseded here: §4.2 onboarding routing (DEC-008). Amended: §1.5/§4.6 bleaching scope — engine-supported but dormant in the exhibition build (DEC-010, resolved by DEC-025).
+> **Decisions live in [`DECISIONS.md`](../DECISIONS.md).** Where this document and the decision register disagree, the register wins. Currently superseded here: §4.2 onboarding routing (DEC-008). Amended: §1.5/§4.6 bleaching scope — engine-supported but dormant in the exhibition build (DEC-010, resolved by DEC-025). Official app name: **Reefora** (DEC-041).
 
 ---
 
 ## 1. Executive Summary & Vision
 
 ### 1.1. Context
-This document defines the product requirements for the **Interactive Marine Sandbox**, a mobile educational application designed for high school students (specifically International Baccalaureate students participating in Environmental Systems and Societies or CAS service programs) who have completed a field-based marine conservation workshop.
+This document defines the product requirements for **Reefora** (formerly Interactive Marine Sandbox), a mobile educational application designed for high school students (specifically International Baccalaureate students participating in Environmental Systems and Societies or CAS service programs) who have completed a field-based marine conservation workshop.
 
 ### 1.2. Problem Statement
 Field-based marine conservation programs (e.g., Living Seas in Bali) generate strong emotional and physical connections to marine ecosystems while students are on-site. However, once students return home, this engagement drops off due to a lack of active, ongoing tools. Traditional educational follow-ups are passive (social media updates, email newsletters) and fail to capture the interactive, decision-based nature of real-world conservation.

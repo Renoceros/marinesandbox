@@ -1,8 +1,8 @@
-# User Workflow: Interactive Marine Sandbox (End-to-End)
+# User Workflow: Reefora (formerly Interactive Marine Sandbox) (End-to-End)
 
-**Document Version:** v1.0
-**Status:** Approved (Supersedes PRD §4.2 Location Selection routing)
-**Source Decisions:** Team-Discussion-12Aug (dead-rubble start, one survivor frag, tap-then-drag planting, single care screen) + PRD v1.3 + TDD v1.3
+**Document Version:** v1.1
+**Status:** Approved (Supersedes PRD §4.2 Location Selection routing; Official app name: **Reefora** DEC-041)
+**Source Decisions:** Team-Discussion-12Aug (dead-rubble start, one survivor frag, tap-then-drag planting, single care screen) + PRD v1.4 + TDD v1.4
 
 ---
 

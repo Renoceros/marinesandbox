@@ -106,7 +106,14 @@ public final class SandboxViewModel {
             return
         }
 
-        let survivor = CoralFrag(species: "Acropora", xPos: 120, yPos: 35, growthProgress: 0.0)
+        let survivor = CoralFrag(
+            id: UUID(uuidString: "00000000-0000-0000-0000-000000000000") ?? UUID(),
+            species: "Acropora",
+            xPos: 120,
+            yPos: 35,
+            isPlanted: false,
+            growthProgress: 0.0
+        )
         let canvas = ReefCanvas(ngoRegion: config.regionName, coralFrags: [survivor])
         modelContext.insert(canvas)
         self.canvas = canvas
@@ -144,6 +151,8 @@ public final class SandboxViewModel {
                 species: frag.species,
                 xPos: frag.xPos,
                 yPos: frag.yPos,
+                isPlanted: frag.isPlanted,
+                colorTheme: frag.colorTheme,
                 growthProgress: frag.growthProgress,
                 plantedAt: frag.plantedAt,
                 coverage: AlgaeCoverage(cells: frag.algaeCells),
@@ -170,6 +179,8 @@ public final class SandboxViewModel {
                 frag.species = coral.species
                 frag.xPos = coral.xPos
                 frag.yPos = coral.yPos
+                frag.isPlanted = coral.isPlanted
+                frag.colorTheme = coral.colorTheme
                 frag.growthProgress = coral.growthProgress
                 frag.plantedAt = coral.plantedAt
                 frag.algaeCells = coral.coverage.cells
@@ -183,6 +194,8 @@ public final class SandboxViewModel {
                     species: coral.species,
                     xPos: coral.xPos,
                     yPos: coral.yPos,
+                    isPlanted: coral.isPlanted,
+                    colorTheme: coral.colorTheme,
                     growthProgress: coral.growthProgress,
                     plantedAt: coral.plantedAt,
                     algaeCells: coral.coverage.cells,
@@ -233,6 +246,8 @@ extension CoralFrag {
             species: species,
             xPos: xPos,
             yPos: yPos,
+            isPlanted: isPlanted,
+            colorTheme: colorTheme,
             growthProgress: growthProgress,
             plantedAt: plantedAt,
             coverage: AlgaeCoverage(cells: algaeCells),

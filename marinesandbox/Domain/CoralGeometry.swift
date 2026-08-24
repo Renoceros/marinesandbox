@@ -90,4 +90,17 @@ public enum CoralGeometry {
             y: (canvasPoint.y - rect.minY) / rect.height
         )
     }
+
+    /// Determines whether a coral rests inside the seabed sand hitbox / surface.
+    /// Replaces hardcoded Y-threshold checks with dynamic geometric / planted state verification.
+    public static func isCoralInSeabedHitbox(
+        coral: CoralState,
+        seabedSurfaceHeight: Double? = nil,
+        tolerance: Double = 20.0
+    ) -> Bool {
+        if let surface = seabedSurfaceHeight {
+            return coral.isPlanted && coral.yPos <= (surface + tolerance)
+        }
+        return coral.isPlanted
+    }
 }

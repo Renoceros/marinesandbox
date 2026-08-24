@@ -1,4 +1,4 @@
-# 🌊 Interactive Marine Sandbox
+# 🌊 Reefora (formerly Marine Sandbox)
 
 An entertainment-first, implicitly educational iOS sandbox where you plant corals, brush off algae, and let a living reef grow under your fingertips. Built for high-school conservation-workshop alumni who want to keep playing with the ecosystem after they fly home — not read another newsletter about it.
 
@@ -10,26 +10,26 @@ An entertainment-first, implicitly educational iOS sandbox where you plant coral
 
 A two-screen, SwiftUI + SwiftData app for iPhone and iPad (targeting iPhone 17). You land on a single coral survivor in a dead rubble field, plant your first frag, and enter a tactile care loop:
 
-- **Brush** algae off corals, stroke by stroke, with sparkle feedback.
+- **Brush** algae off corals with the iridescent sponge tool, stroke by stroke, with sparkle feedback.
 - **Plant** new fragments anywhere along the continuous foreground.
 - **Smush & flick** Drupella snails before they graze your reef to rubble.
-- **Fast Forward** the simulation and read a plain-language diagnostic card of what happened.
-- **Unlock** a frag palette once your first coral reaches teenager stage.
+- **Fast Forward** the simulation (10x boost & 100x debug turbo) and read a plain-language diagnostic card of what happened.
+- **Unlock** new coral species (Staghorn, Brain Coral) as your living reef expands.
 
 Beneath the polish runs a pure, unit-tested `EcoEngine`: Shannon diversity, herbivore/predator recruitment scaled by biodiversity, algae overgrowth, pest damage, and (dormant, post-MVP) thermal bleaching. Threat vectors in the Bali/Living Seas exhibition preset never exceed 30 °C, so bleaching is parked for a future "prestige restart" loop ([DEC-025](DECISIONS.md#dec-025)).
 
 ## Why it exists
 
-Field conservation programs (e.g. Living Seas, Bali) create strong emotional bonds on-site — and then engagement collapses the moment students go home. Passive follow-ups (emails, social posts) can't match the hands-on, decision-driven nature of real restoration. Marine Sandbox closes that gap with a toy-box reef you *want* to open recreationally, where the ecology is learned by feel, not by reading. See the [PRD](Documentation/prd_marine_sandbox.md) for the full vision and the "Maximia" persona.
+Field conservation programs (e.g. Living Seas, Bali) create strong emotional bonds on-site — and then engagement collapses the moment students go home. Passive follow-ups (emails, social posts) can't match the hands-on, decision-driven nature of real restoration. **Reefora** closes that gap with a toy-box reef you *want* to open recreationally, where the ecology is learned by feel, not by reading. See the [PRD](Documentation/prd_marine_sandbox.md) for the full vision and the "Maximia" persona.
 
 ## Tech stack
 
 | | |
 | --- | --- |
-| Platform | iOS 26.5, Xcode 26.6, Swift 5.0 language mode |
+| Platform | iOS 26.5, Xcode 26.6, Swift 6.0 strict concurrency mode (DEC-038) |
 | UI | SwiftUI, MVVM+S |
 | Persistence | SwiftData |
-| Dependencies | [`lottie-spm` 4.6.1](https://github.com/airbnb/lottie-spm) for coral lifecycle rendering (DEC-017). |
+| Dependencies | `dotlottie-ios` (ThorVG runtime; DEC-037) |
 | Tests | Domain layer, via a sidecar SPM package ([DEC-022](DECISIONS.md#dec-022)) |
 | Bundle | `com.molamola.marinesandbox` |
 

@@ -123,20 +123,41 @@ public enum EcoEngine {
         let herbivoreRecruitment = Double(herbivoreCount) * (1.0 + beta * H)
         let predatorRecruitment = Double(predatorCount) * (1.0 + beta * H)
 
+        // Calculate spatial crowding per living coral on the seabed
+        let seabedCorals = Array(state.corals.enumerated().filter { !$0.element.isDead && CoralGeometry.isCoralInSeabedHitbox(coral: $0.element) })
+        var crowdingFactors = [Double](repeating: 0.0, count: state.corals.count)
+
+        for (idxA, item1) in seabedCorals.enumerated() {
+            for item2 in seabedCorals.dropFirst(idxA + 1) {
+                let dx = abs(item1.element.xPos - item2.element.xPos)
+                if dx < 80.0 {
+                    let intensity = (80.0 - dx) / 80.0
+                    crowdingFactors[item1.offset] += intensity
+                    crowdingFactors[item2.offset] += intensity
+                }
+            }
+        }
+
         for index in state.corals.indices {
             guard !state.corals[index].isDead else { continue }
+            // Only corals that rest within the seabed hitbox calcify, grow, and interact with algae
+            guard CoralGeometry.isCoralInSeabedHitbox(coral: state.corals[index]) else { continue }
 
-            // --- A. GROWTH (slowed by algae + pest, DEC-031, species growth rate) ---
+            let crowding = min(1.0, crowdingFactors[index])
+            let crowdingGrowthModifier = max(0.4, 1.0 - 0.4 * crowding)
+
+            // --- A. GROWTH (slowed by algae, pest, species rate, and crowding competition) ---
             let speciesMultiplier = speciesGrowthRateMultiplier(species: state.corals[index].species)
             let algaeSmotherModifier = max(0.0, 1.0 - state.corals[index].algaePercentage)
             let predatorModifier = max(0.0, 1.0 - state.corals[index].predatorDamage)
-            let growthIncrement = healthyGrowthRatePerSecond * elapsed * algaeSmotherModifier * predatorModifier * speciesMultiplier
+            let growthIncrement = healthyGrowthRatePerSecond * elapsed * algaeSmotherModifier * predatorModifier * speciesMultiplier * crowdingGrowthModifier
             state.corals[index].growthProgress = min(1.0, state.corals[index].growthProgress + growthIncrement)
 
             // --- B. ALGAE VS. GRAZER DYNAMICS (spatial grid, DEC-018) ---
             let nutrientInflow = threats.agriculturalRunoff ? 2.5 : 1.0
             let vulnerable = state.corals[index].isBaby || state.corals[index].isTeenager
-            let baseAlgaeRate = (vulnerable ? baseAlgaeGrowthRatePerSecond * 1.5 : baseAlgaeGrowthRatePerSecond) * nutrientInflow
+            let crowdingAlgaeRate = 1.0 + 0.4 * crowding
+            let baseAlgaeRate = (vulnerable ? baseAlgaeGrowthRatePerSecond * 1.5 : baseAlgaeGrowthRatePerSecond) * nutrientInflow * crowdingAlgaeRate
             state.corals[index].coverage.grow(by: baseAlgaeRate * elapsed)
             state.corals[index].coverage.graze(by: herbivoreRecruitment * baseGrazingRatePerSecond * elapsed)
 

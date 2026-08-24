@@ -44,13 +44,8 @@ struct SandboxView: View {
                     entityLayer(viewModel: viewModel, seabedY: seabedY)
 
                     if !PlaygroundMode.isEnabled {
-                        if viewModel.guidedPlantPhase == .awaitingRubbleClear {
-                            ColdOpenInstructionView(text: "Flick away the dead rubble to uncover the living coral!")
-                        } else if viewModel.guidedPlantPhase == .awaitingFragTap {
-                            ColdOpenInstructionView(text: "Drag the living fragment onto the sand to plant it!")
-                        } else if viewModel.guidedPlantPhase == .awaitingPlant {
+                        if viewModel.guidedPlantPhase == .awaitingPlant {
                             GuidePulseView(viewModel: viewModel, seabedY: seabedY, viewportWidth: geometry.size.width)
-                            ColdOpenInstructionView(text: "Drop the fragment onto the seabed!")
                         }
 
                         SandboxToolOverlayView(
@@ -117,15 +112,27 @@ struct SandboxView: View {
             let coral = frag.snapshotForInteraction
             let footprint = CoralGeometry.footprint(for: coral)
             let isSurvivor = frag.id == viewModel.survivorFrag?.id
-            let assetName = footprint.assetName
             let isLifted = viewModel.liftedFragID == frag.id
+            let isFloating = (!frag.isPlanted && !isLifted)
+            let assetName = footprint.assetName
             let screenX = (isLifted ? viewModel.liftedFragPosition.x : coral.xPos) + seabedOffset
             let baseY = seabedY - (isLifted ? viewModel.liftedFragPosition.y : coral.yPos)
 
-            ZStack {
+            ZStack(alignment: .bottom) {
+                if isFloating {
+                    Circle()
+                        .fill(RadialGradient(
+                            colors: [Color.cyan.opacity(0.4), Color.clear],
+                            center: .center,
+                            startRadius: 5,
+                            endRadius: 50
+                        ))
+                        .frame(width: 100, height: 100)
+                }
+
                 coralArtView(viewModel: viewModel, frag: frag, assetName: assetName, footprint: footprint)
                     .scaleEffect(isLifted ? 1.15 : 1.0)
-                    .shadow(color: isLifted ? .white.opacity(0.6) : .clear, radius: 12)
+                    .shadow(color: isLifted ? .white.opacity(0.6) : (isFloating ? .cyan.opacity(0.85) : .clear), radius: isFloating ? 16 : 12)
                     .shadow(color: (isSurvivor && viewModel.isSurvivorUncovered) ? .yellow.opacity(0.9) : .clear, radius: 20)
 
                 if !frag.isDead && frag.algaePercentage > 0.02 {
@@ -147,7 +154,7 @@ struct SandboxView: View {
                     )
                 }
             }
-            .frame(width: footprint.size.width, height: footprint.size.height)
+            .frame(width: footprint.size.width, height: footprint.size.height, alignment: .bottom)
             .contentShape(Rectangle())
             .position(x: screenX, y: baseY - footprint.size.height / 2)
             .gesture(
@@ -194,7 +201,8 @@ struct SandboxView: View {
         if frag.isDead {
             Image(assetName)
                 .resizable()
-                .frame(width: footprint.size.width, height: footprint.size.height)
+                .scaledToFit()
+                .frame(width: footprint.size.width, height: footprint.size.height, alignment: .bottom)
                 .saturation(0)
                 .opacity(0.5)
         } else {
@@ -204,11 +212,12 @@ struct SandboxView: View {
             LottieCoralView(
                 coralID: frag.id,
                 species: frag.species,
+                colorTheme: frag.colorTheme,
                 growthProgress: progress,
                 playbackProgress: viewModel.lottiePlaybackTargets[frag.id],
                 onPlaybackCompleted: { viewModel.completeLottiePlayback(for: frag.id) }
             )
-            .frame(width: footprint.size.width, height: footprint.size.height)
+            .frame(width: footprint.size.width, height: footprint.size.height, alignment: .bottom)
         }
     }
 
@@ -252,11 +261,17 @@ struct SandboxView: View {
                         )
                     }
 
+                    let fallDistance = max(0, dropHeight - resting)
+                    let hitGroundDelay = fallDistance < 30 ? 0.01 : min(0.08, fallDistance / 1500.0)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + hitGroundDelay) {
+                        AudioPlayerService.shared.playSFX("frag_plant")
+                    }
+
                     DispatchQueue.main.asyncAfter(
                         deadline: .now() + Physics.sinkSettleDuration(response: response)
                     ) {
                         withAnimation(.easeOut(duration: 0.2)) {
-                            viewModel.plantLiftedFrag()
+                            viewModel.plantLiftedFrag(playSound: false)
                         }
                     }
                 }
@@ -271,6 +286,11 @@ struct SandboxView: View {
     private func handleCoralTap(viewModel: SandboxViewModel, frag: CoralFrag) {
         if viewModel.guidedPlantPhase == .awaitingFragTap, frag.id == viewModel.survivorFrag?.id {
             viewModel.liftSurvivorFrag()
+            return
+        }
+        if !frag.activePredators.isEmpty {
+            _ = viewModel.smushPest(frag.activePredators[0], on: frag.id)
+            return
         }
     }
 }

@@ -64,6 +64,11 @@ Single source of truth for **why** the Marine Sandbox is built the way it is. If
 | DEC-035 | Audio SFX and ambient ocean loop integration | Accepted | this session |
 | DEC-036 | Multi-species SVGs, NGO Config, and Shannon fauna visuals deferred | Accepted | this session |
 | DEC-037 | Official `dotlottie-ios` runtime (ThorVG engine) for DotLottie 2.0 | Accepted | this session |
+| DEC-038 | Swift 6 strict concurrency migration | Accepted | this session |
+| DEC-039 | Modularization of SandboxViewModel and SandboxView | Accepted | this session |
+| DEC-040 | Multi-species DotLottie 2.0 assets and species-specific growth scaling | Accepted | this session |
+| DEC-041 | Official App Name: Reefora (formerly Marine Sandbox) | Accepted | this session |
+| DEC-042 | Explicit ColorTheme & Seabed Hitbox State Gating | Accepted | this session |
 
 ---
 
@@ -445,6 +450,25 @@ Integrated multi-species DotLottie 2.0 assets and species-specific growth rate s
    - Dragging is locked once reaching the Toddler phase (`growthProgress >= 0.25`).
 
 *Consequence:* True multi-species biological heterogeneity reflected visually and numerically.
+
+### DEC-041 — Official App Name: Reefora (formerly Marine Sandbox)
+**Status:** Accepted · **Source:** this session
+
+The official product name for the application is established as **Reefora** (formerly Interactive Marine Sandbox / Marine Sandbox).
+- **Rationale:** "Reefora" blends *Reef* (coral restoration core) and *Flora/Fauna/Agora* (living biodiversity gathering space), presenting a unique, memorable, and modern identity suited for exhibition showcase, App Store discovery, and conservation education.
+- **Consequence:** Documentation, PRD, TDD, and project overviews are updated with the official product name. The underlying repository, package bundle (`com.molamola.marinesandbox`), and target names remain stable to avoid refactoring churn.
+
+### DEC-042 — Explicit ColorTheme, Dynamic Seabed Hitbox Gating, & Haptic Feedback
+**Status:** Accepted · **Source:** this session
+
+1. **Explicit ColorTheme Model Property:**
+   - Adds `colorTheme: String` directly onto `CoralFrag` (`@Model`) and `CoralState` (defaulting to `"default"` Blue), replacing implicit runtime UUID-hashing.
+   - Eliminates asynchronous ThorVG theme-loading color flicker between baby fragments and advancing frames.
+2. **Dynamic Seabed Hitbox Gating:**
+   - Adds `isPlanted: Bool` and `CoralGeometry.isCoralInSeabedHitbox` to gate coral growth, algae accrual, and pest targeting strictly to fragments grounded on the physical sand silhouette. Unplanted floating fragments remain stationary in open water with zero growth/damage until planted.
+3. **Pest Touch Area & Haptic Feedback:**
+   - Snail tap/flick gestures use `.highPriorityGesture` with enlarged $52\times52\,\text{pt}$ touch boundaries.
+   - Adds `HapticService.swift` providing UIKit tactile feedback for snail smushing (`.medium`), snail flicking (`.rigid`), coral planting (`.success`), and tool switching (`.selectionChanged`).
 
 ---
 

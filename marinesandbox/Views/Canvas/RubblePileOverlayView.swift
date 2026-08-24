@@ -25,6 +25,10 @@ struct RubblePileOverlayView: View {
                     .frame(width: 72, height: 108)
                     .rotationEffect(.degrees(rubble.rotation))
                     .opacity(rubble.isFlicked ? 0.0 : 0.95)
+                    .phaseAnimator([0.0, 0.6, 0.0]) { content, phase in
+                        content
+                            .shadow(color: Color.white.opacity(rubble.isFlicked ? 0 : phase), radius: 10)
+                    }
                     .animation(.easeOut(duration: 0.45), value: rubble.isFlicked)
                     .position(x: pieceX, y: pieceY)
                     .gesture(

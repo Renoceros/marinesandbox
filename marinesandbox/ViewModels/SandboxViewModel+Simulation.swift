@@ -28,7 +28,7 @@ extension SandboxViewModel {
     /// Activates the 10x simulation speed boost for the given duration (default: 30s).
     public func activate10xFastForward(duration: Double = 30.0) {
         fastForwardRemainingSeconds = duration
-        AudioPlayerService.shared.playSFX("sparkle_clean")
+        AudioPlayerService.shared.playSFX("tool_switch")
     }
 
     /// Sets whether debug 100x speed hold is active.
@@ -82,29 +82,44 @@ extension SandboxViewModel {
         }
         commit(outcome)
         lottiePlaybackTargets = Dictionary(uniqueKeysWithValues: outcome.corals.map { ($0.id, $0.growthProgress) })
-        spawnPestsIfNeeded(elapsed: Self.fastForwardInterval)
+        if let canvas {
+            for frag in canvas.coralFrags where !frag.isDead && (frag.isBaby || frag.isTeenager) {
+                if frag.activePredators.count < Self.pestCapPerCoral && Double.random(in: 0...1) < 0.6 {
+                    frag.activePredators.append("DrupellaSnail")
+                }
+            }
+        }
         checkTeenageSpawns()
         pendingDiagnostic = outcome
         diagnosticMessage = Self.diagnose(before: before, after: outcome)
     }
 
-    /// Spawns a new random living coral fragment floating in open water whenever a coral reaches Teenage phase.
+    /// Spawns a new living coral fragment floating in open water whenever a coral reaches Teenage phase.
+    /// In early gameplay, rewards Staghorn corals; unlocks Brain Coral after 5+ living Staghorns are planted.
     public func checkTeenageSpawns() {
         guard let canvas, canvas.guidedPlantDone else { return }
         for frag in canvas.coralFrags {
             guard !frag.isDead, (frag.isTeenager || frag.isAdult), !rewardedTeenageCoralIDs.contains(frag.id) else { continue }
             rewardedTeenageCoralIDs.insert(frag.id)
 
-            let allSpecies = config.availableSpecies.isEmpty
-                ? ["Acropora", "BrainCoral", "ElkhornCoral", "SpongeCoral", "StaghornCoral", "TableCoral"]
-                : config.availableSpecies
-            let species = allSpecies.randomElement() ?? "Acropora"
+            let staghornCount = canvas.coralFrags.filter { !$0.isDead && ($0.species == "Acropora" || $0.species == "StaghornCoral") }.count
+            let species: String
+            let theme: String
+            if staghornCount >= 5 && Double.random(in: 0...1) < 0.45 {
+                species = "BrainCoral"
+                theme = CoralLifecycle.randomTheme()
+            } else {
+                species = "Acropora"
+                theme = "default"
+            }
 
             let spawnX = min(max(80.0, frag.xPos + Double.random(in: -140...140)), canvas.canvasWidth - 80.0)
             let floatingFrag = CoralFrag(
                 species: species,
                 xPos: spawnX,
-                yPos: 240.0,
+                yPos: 380.0,
+                isPlanted: false,
+                colorTheme: theme,
                 growthProgress: 0.0
             )
             modelContext.insert(floatingFrag)

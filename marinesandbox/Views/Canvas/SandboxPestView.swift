@@ -34,15 +34,20 @@ struct PestOverlayView: View {
         Image("Snail")
             .resizable()
             .scaledToFit()
-            .frame(width: 32, height: 32)
-            .scaleEffect(x: isSmushed ? 1.35 : 1.0, y: isSmushed ? 0.2 : 1.0, anchor: .bottom)
+            .frame(width: 36, height: 36)
+            .scaleEffect(x: isSmushed ? 1.4 : 1.0, y: isSmushed ? 0.2 : 1.0, anchor: .bottom)
             .opacity(isSmushed ? 0.0 : (isFlying ? 0.9 : 1.0))
+            .frame(width: 52, height: 52)
+            .contentShape(Rectangle())
             .position(x: local.x * footprint.size.width, y: local.y * footprint.size.height)
             .offset(isFlying ? flyOffset(for: flyingPest) : .zero)
-            .onTapGesture {
-                handlePestTap(fragID: frag.id, index: index)
-            }
-            .gesture(
+            .highPriorityGesture(
+                TapGesture()
+                    .onEnded {
+                        handlePestTap(fragID: frag.id, index: index)
+                    }
+            )
+            .highPriorityGesture(
                 DragGesture(minimumDistance: 4)
                     .onEnded { value in
                         let velocity = CGPoint(x: value.velocity.width, y: value.velocity.height)
@@ -60,7 +65,7 @@ struct PestOverlayView: View {
                             flyingPest = FlyingPest(fragID: frag.id, pestIndex: index, start: .zero, velocity: velocity)
                         }
                         DispatchQueue.main.asyncAfter(deadline: .now() + min(flight, 0.8)) {
-                            _ = viewModel.removePest(at: index, on: frag.id)
+                            _ = viewModel.flickPest("DrupellaSnail", velocity: velocity, on: frag.id)
                             flyingPest = nil
                             viewModel.dismissPestTooltip()
                         }
@@ -76,7 +81,7 @@ struct PestOverlayView: View {
         }
         viewModel.dismissPestTooltip()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-            _ = viewModel.removePest(at: index, on: fragID)
+            _ = viewModel.smushPest("DrupellaSnail", on: fragID)
             smushedPestIDs.remove(key)
         }
     }
@@ -102,12 +107,17 @@ struct CrawlingSnailView: View {
         Image("Snail")
             .resizable()
             .scaledToFit()
-            .frame(width: 32, height: 32)
+            .frame(width: 36, height: 36)
+            .frame(width: 52, height: 52)
+            .contentShape(Rectangle())
             .position(x: snailX, y: snailY)
             .shadow(color: .black.opacity(0.4), radius: 4)
-            .onTapGesture {
-                viewModel.removeCrawlingSnail(id: snail.id)
-            }
+            .highPriorityGesture(
+                TapGesture()
+                    .onEnded {
+                        viewModel.removeCrawlingSnail(id: snail.id)
+                    }
+            )
     }
 }
 

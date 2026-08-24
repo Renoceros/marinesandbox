@@ -1,9 +1,9 @@
-# Technical Design Document (TDD): Interactive Marine Sandbox (iOS)
+# Technical Design Document (TDD): Reefora (formerly Interactive Marine Sandbox) (iOS)
 
-**Document Version:** v1.3  
+**Document Version:** v1.4  
 **Status:** Directory Architecture & Backlog Defined (Updated for 2-Week MVP Scope)  
 
-> **Decisions live in [`DECISIONS.md`](../DECISIONS.md).** Where this document and the decision register disagree, the register wins. Superseded sections here are flagged inline.
+> **Decisions live in [`DECISIONS.md`](../DECISIONS.md).** Where this document and the decision register disagree, the register wins. Official app name: **Reefora** (DEC-041). Superseded sections here are flagged inline.
 
 ---
 

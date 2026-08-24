@@ -34,6 +34,12 @@ public final class CoralFrag {
     /// Supports vertical placement for species like fan corals perched on boulders or vertical reef walls.
     public var yPos: Double
 
+    /// Whether this fragment is planted in the seabed (true) or unplanted / drifting in open water (false).
+    public var isPlanted: Bool = true
+
+    /// The visual DotLottie color theme identifier (e.g. `"default"`, `"pink"`, `"purple"`, `"yellow"`).
+    public var colorTheme: String = "default"
+
     /// Ratio representing coral growth, from `0.0` (freshly planted fragment) to `1.0` (mature adult colony).
     /// Accumulates *effective* healthy time, not wall time — algae and pest slowdown
     /// modifiers (DEC-031) make a neglected coral take longer than 7 days to mature.
@@ -88,6 +94,8 @@ public final class CoralFrag {
         species: String,
         xPos: Double = 0.0,
         yPos: Double = 0.0,
+        isPlanted: Bool = true,
+        colorTheme: String = "default",
         growthProgress: Double = 0.0,
         plantedAt: Date = Date(),
         algaeCells: [Float] = [],
@@ -100,6 +108,8 @@ public final class CoralFrag {
         self.species = species
         self.xPos = xPos
         self.yPos = yPos
+        self.isPlanted = isPlanted
+        self.colorTheme = colorTheme
         self.growthProgress = growthProgress
         self.plantedAt = plantedAt
         self.algaeCells = algaeCells

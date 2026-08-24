@@ -56,10 +56,17 @@ public enum CoralLifecycle {
         return sum % 2 == 0 ? .left : .right
     }
 
+    public static let supportedThemes = ["default", "pink", "purple", "yellow"]
+
+    /// Returns a random theme from the supported themes (useful for milestone reward spawns).
+    public static func randomTheme() -> String {
+        supportedThemes.randomElement() ?? "default"
+    }
+
+    /// Legacy UUID-based fallback (prefers explicit coral.colorTheme).
     public static func theme(for id: UUID) -> String {
-        let themes = ["pink", "purple", "yellow"]
         let u = id.uuid
         let sum = Int(u.1) ^ Int(u.3) ^ Int(u.5) ^ Int(u.7) ^ Int(u.9) ^ Int(u.11) ^ Int(u.13) ^ Int(u.15)
-        return themes[abs(sum) % themes.count]
+        return supportedThemes[abs(sum) % supportedThemes.count]
     }
 }

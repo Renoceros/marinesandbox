@@ -20,9 +20,16 @@ public final class AudioPlayerService: @unchecked Sendable {
     }
 
     private static func findAudioURL(name: String, ext: String = "wav") -> URL? {
-        if let url = Bundle.main.url(forResource: name, withExtension: ext) { return url }
-        if let url = Bundle.main.url(forResource: name, withExtension: ext, subdirectory: "Audio") { return url }
-        if let url = Bundle.main.url(forResource: name, withExtension: ext, subdirectory: "Resources/Audio") { return url }
+        let candidateNames = [
+            name,
+            name.replacingOccurrences(of: "sparkles", with: "sparkle"),
+            name.replacingOccurrences(of: "sparkle", with: "sparkles")
+        ]
+        for cand in candidateNames {
+            if let url = Bundle.main.url(forResource: cand, withExtension: ext) { return url }
+            if let url = Bundle.main.url(forResource: cand, withExtension: ext, subdirectory: "Audio") { return url }
+            if let url = Bundle.main.url(forResource: cand, withExtension: ext, subdirectory: "Resources/Audio") { return url }
+        }
         return nil
     }
 
@@ -31,7 +38,7 @@ public final class AudioPlayerService: @unchecked Sendable {
         guard let url = Self.findAudioURL(name: "ambient_ocean_loop") else { return }
         ambientPlayer = try? AVAudioPlayer(contentsOf: url)
         ambientPlayer?.numberOfLoops = -1
-        ambientPlayer?.volume = 0.30
+        ambientPlayer?.volume = 0.22
         ambientPlayer?.prepareToPlay()
         ambientPlayer?.play()
     }
@@ -41,10 +48,26 @@ public final class AudioPlayerService: @unchecked Sendable {
         ambientPlayer = nil
     }
 
-    public func playSFX(_ name: String, volume: Float = 0.8) {
+    public func playSFX(_ name: String, volume: Float? = nil) {
         guard let url = Self.findAudioURL(name: name) else { return }
+        let defaultVolume: Float = {
+            switch name {
+            case "brush_swipe": return 0.50
+            case "frag_lift": return 0.70
+            case "frag_plant": return 0.85
+            case "sparkle_clean", "sparkles_clean": return 0.75
+            case "pest_smush": return 0.80
+            case "pest_flick": return 0.75
+            case "pest_splash": return 0.65
+            case "tool_switch": return 0.60
+            case "threat_warning": return 0.60
+            case "plant_reject": return 0.70
+            default: return 0.75
+            }
+        }()
+
         if let player = try? AVAudioPlayer(contentsOf: url) {
-            player.volume = volume
+            player.volume = volume ?? defaultVolume
             player.prepareToPlay()
             player.play()
             sfxPlayers[name] = player

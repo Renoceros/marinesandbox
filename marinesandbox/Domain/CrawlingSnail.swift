@@ -12,6 +12,8 @@ public struct CrawlingSnail: Identifiable, Sendable {
     public var progress: Double // 0.0 -> 1.0
     public var isArrived: Bool
 
+    public var isMovingLeft: Bool { startX > targetX }
+
     public init(
         id: UUID = UUID(),
         targetFragID: UUID,

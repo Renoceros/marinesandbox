@@ -125,10 +125,16 @@ extension SandboxViewModel {
 
     /// Plants a frag on the seabed at a canvas-space point (DEC-024: direct planting).
     @discardableResult
-    public func plantFrag(species: String, at point: CGPoint, colorTheme: String = "default") -> CoralFrag? {
+    public func plantFrag(species: String, at point: CGPoint, colorTheme: String? = nil) -> CoralFrag? {
         guard let canvas, config.availableSpecies.contains(species) else { return nil }
         let drop = Physics.clampedDrop(point, canvasWidth: canvas.canvasWidth)
-        let frag = CoralFrag(species: species, xPos: drop.x, yPos: drop.y, isPlanted: true, colorTheme: colorTheme)
+        let frag = CoralFrag(
+            species: species,
+            xPos: drop.x,
+            yPos: drop.y,
+            isPlanted: true,
+            colorTheme: colorTheme ?? CoralLifecycle.randomTheme()
+        )
         modelContext.insert(frag)
         canvas.coralFrags.append(frag)
         save()

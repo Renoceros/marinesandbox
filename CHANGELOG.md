@@ -35,6 +35,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The pro
 - Official `dotlottie-ios` runtime (ThorVG engine) and `LottieCoralView` renderer for paired 60-frame DotLottie 2.0 lifecycle assets: supporting Lottie 2.0 track mattes, theme slots, and continuous frame scrubbing from `growthProgress` (DEC-037, supersedes DEC-017).
 
 ### Fixed
+- Persist a randomized DotLottie theme for normal planted and reward coral fragments; the cold-open survivor remains default Blue.
+- Mirror right-origin crawling snails while they travel left, and let them be flicked off-screen with the existing audio and rigid haptic feedback.
+- Play the threat warning once for every spawned crawling-snail wave and when a coral enters algae danger (>=75%), rather than repeatedly every tick.
+- Bottom-align DotLottie player content so Brain Coral expands upward from its model-space seabed anchor rather than visually growing from its centre.
+- Update lifecycle and geometry tests for species-specific DotLottie frame counts and current Staghorn footprints.
 - Fixed snail touch interactions with high-priority tap/drag gestures and enlarged 52x52pt hit target areas, preventing coral container drag gestures from swallowing snail taps.
 - Gated snail spawns to established planted corals (>= 20% growth) so players can watch newly placed fragments take root before pests attack.
 - Eliminated planting sound delay on touchdown and aligned brush swipe audio triggers during care loop cleaning.

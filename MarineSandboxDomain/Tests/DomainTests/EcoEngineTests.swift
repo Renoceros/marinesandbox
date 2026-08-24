@@ -46,6 +46,14 @@ struct EcoEngineTests {
     /// Healthy growth accrued over one day = `86400 / maturationInterval`.
     var healthyGrowthPerDay: Double { oneDay / EcoEngine.maturationInterval }
 
+    @Test func speciesGrowthMultipliersMatchCatalog() {
+        #expect(EcoEngine.speciesGrowthRateMultiplier(species: "Acropora") == 1.0)
+        #expect(EcoEngine.speciesGrowthRateMultiplier(species: "BrainCoral") == 0.10)
+        #expect(EcoEngine.speciesGrowthRateMultiplier(species: "ElkhornCoral") == 0.70)
+        #expect(EcoEngine.speciesGrowthRateMultiplier(species: "TableCoral") == 0.80)
+        #expect(EcoEngine.speciesGrowthRateMultiplier(species: "SpongeCoral") == 0.50)
+    }
+
     // MARK: - Shannon Diversity Index
 
     @Test func shannonIndexEmptyReefIsZero() {

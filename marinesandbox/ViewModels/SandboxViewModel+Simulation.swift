@@ -60,6 +60,7 @@ extension SandboxViewModel {
         let simSpeedMultiplier = effectiveSimMultiplier * 4500.0
         let scaledElapsed = step * simSpeedMultiplier
         tick(elapsed: scaledElapsed)
+        emitAlgaeDangerWarnings()
         spawnPestsIfNeeded(elapsed: step)
         advanceCrawlingSnails(dt: step)
         checkTeenageSpawns()
@@ -81,6 +82,7 @@ extension SandboxViewModel {
             )
         }
         commit(outcome)
+        emitAlgaeDangerWarnings()
         lottiePlaybackTargets = Dictionary(uniqueKeysWithValues: outcome.corals.map { ($0.id, $0.growthProgress) })
         if let canvas {
             for frag in canvas.coralFrags where !frag.isDead && (frag.isBaby || frag.isTeenager) {
@@ -104,14 +106,12 @@ extension SandboxViewModel {
 
             let staghornCount = canvas.coralFrags.filter { !$0.isDead && ($0.species == "Acropora" || $0.species == "StaghornCoral") }.count
             let species: String
-            let theme: String
             if staghornCount >= 5 && Double.random(in: 0...1) < 0.45 {
                 species = "BrainCoral"
-                theme = CoralLifecycle.randomTheme()
             } else {
                 species = "Acropora"
-                theme = "default"
             }
+            let theme = CoralLifecycle.randomTheme()
 
             let spawnX = min(max(80.0, frag.xPos + Double.random(in: -140...140)), canvas.canvasWidth - 80.0)
             let floatingFrag = CoralFrag(

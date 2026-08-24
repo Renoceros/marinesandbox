@@ -64,6 +64,7 @@ extension SandboxViewModel {
         // Live spawn rate: ~1 spawn attempt every 20s per eligible vulnerable coral during live gameplay
         let chance = min(1.0, (1.0 / 20.0) * elapsed * threatMultiplier)
 
+        var spawnedWave = false
         for frag in canvas.coralFrags {
             // Protect unplanted floating frags and freshly dropped fragments (<0.20 growth) so corals can sprout before pests attack
             guard !frag.isDead, frag.isPlanted, frag.growthProgress >= 0.20, (frag.isBaby || frag.isTeenager) else { continue }
@@ -80,9 +81,13 @@ extension SandboxViewModel {
                 targetY: frag.yPos
             )
             crawlingSnails.append(snail)
+            spawnedWave = true
             if frag.activePredators.isEmpty && crawlingSnails.count == 1 {
                 showPestTooltip = true
             }
+        }
+        if spawnedWave {
+            AudioPlayerService.shared.playSFX("threat_warning")
         }
     }
 
@@ -110,11 +115,18 @@ extension SandboxViewModel {
         }
     }
 
-    /// Removes a crawling snail before it attaches to the coral (tap/flick).
+    /// Removes a crawling snail before it attaches to the coral.
     public func removeCrawlingSnail(id: UUID) {
         crawlingSnails.removeAll(where: { $0.id == id })
         AudioPlayerService.shared.playSFX("pest_smush")
         HapticService.shared.pestSmush()
+    }
+
+    public func flickCrawlingSnail(id: UUID, velocity: CGPoint) {
+        guard Physics.isFlick(velocity: velocity) else { return }
+        crawlingSnails.removeAll(where: { $0.id == id })
+        AudioPlayerService.shared.playSFX("pest_flick")
+        HapticService.shared.pestFlick()
     }
 
     public func dismissPestTooltip() {
@@ -156,6 +168,17 @@ extension SandboxViewModel {
         HapticService.shared.pestFlick()
         save()
         return true
+    }
+
+    public func emitAlgaeDangerWarnings() {
+        guard let canvas else { return }
+        for frag in canvas.coralFrags where !frag.isDead {
+            if frag.algaePercentage >= 0.75, algaeDangerWarningCoralIDs.insert(frag.id).inserted {
+                AudioPlayerService.shared.playSFX("threat_warning")
+            } else if frag.algaePercentage < 0.75 {
+                algaeDangerWarningCoralIDs.remove(frag.id)
+            }
+        }
     }
 
     /// Toggles an agricultural runoff shock for the session.

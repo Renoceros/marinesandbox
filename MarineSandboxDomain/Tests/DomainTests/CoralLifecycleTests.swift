@@ -3,15 +3,19 @@ import Testing
 
 @Suite("CoralLifecycle")
 struct CoralLifecycleTests {
-    @Test func mapsStageBoundariesToLottieFrames() {
-        #expect(CoralLifecycle.frame(for: 0) == 0)
-        #expect(CoralLifecycle.frame(for: 1) == 59)
+    @Test func mapsStaghornStageBoundariesToLottieFrames() {
+        #expect(CoralLifecycle.frame(for: 0, species: "Acropora") == 0)
+        #expect(CoralLifecycle.frame(for: 1, species: "Acropora") == 59)
     }
 
-    @Test func mapsProgressWithinEachPhase() {
-        #expect(abs(CoralLifecycle.frame(for: 0.25) - 14.75) < 0.0001)
-        #expect(abs(CoralLifecycle.frame(for: 0.5) - 29.5) < 0.0001)
-        #expect(abs(CoralLifecycle.frame(for: 0.75) - 44.25) < 0.0001)
+    @Test func mapsStaghornProgressWithinEachPhase() {
+        #expect(abs(CoralLifecycle.frame(for: 0.25, species: "Acropora") - 14.75) < 0.0001)
+        #expect(abs(CoralLifecycle.frame(for: 0.5, species: "Acropora") - 29.5) < 0.0001)
+        #expect(abs(CoralLifecycle.frame(for: 0.75, species: "Acropora") - 44.25) < 0.0001)
+    }
+
+    @Test func mapsBrainCoralMaturityToFinalFrame() {
+        #expect(CoralLifecycle.frame(for: 1, species: "BrainCoral") == 599)
     }
 
     @Test func findsTheNextLifecycleBoundary() {

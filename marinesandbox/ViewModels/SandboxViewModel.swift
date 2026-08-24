@@ -70,6 +70,8 @@ public final class SandboxViewModel {
     /// Set when the first pest ever spawns; the view shows the one-time tooltip (DEC-012).
     public var showPestTooltip = false
 
+    public var algaeDangerWarningCoralIDs: Set<UUID> = []
+
     /// Width of one seabed artwork block.
     public internal(set) var seabedBlockWidth: CGFloat = 0
 

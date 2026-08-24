@@ -99,6 +99,7 @@ struct CrawlingSnailView: View {
     let snail: CrawlingSnail
     let seabedY: Double
     let seabedOffset: Double
+    @State private var flickOffset = CGSize.zero
 
     var body: some View {
         let snailX = snail.currentX + seabedOffset
@@ -108,14 +109,30 @@ struct CrawlingSnailView: View {
             .resizable()
             .scaledToFit()
             .frame(width: 36, height: 36)
+            .scaleEffect(x: snail.isMovingLeft ? -1 : 1, y: 1)
             .frame(width: 52, height: 52)
             .contentShape(Rectangle())
             .position(x: snailX, y: snailY)
+            .offset(flickOffset)
             .shadow(color: .black.opacity(0.4), radius: 4)
             .highPriorityGesture(
                 TapGesture()
                     .onEnded {
                         viewModel.removeCrawlingSnail(id: snail.id)
+                    }
+            )
+            .highPriorityGesture(
+                DragGesture(minimumDistance: 4)
+                    .onEnded { value in
+                        let velocity = CGPoint(x: value.velocity.width, y: value.velocity.height)
+                        guard Physics.isFlick(velocity: velocity) else { return }
+                        let magnitude = max((velocity.x * velocity.x + velocity.y * velocity.y).squareRoot(), 1)
+                        withAnimation(.easeOut(duration: 0.35)) {
+                            flickOffset = CGSize(width: velocity.x / magnitude * 700, height: velocity.y / magnitude * 700)
+                        }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                            viewModel.flickCrawlingSnail(id: snail.id, velocity: velocity)
+                        }
                     }
             )
     }

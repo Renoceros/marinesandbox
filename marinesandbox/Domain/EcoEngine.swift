@@ -73,6 +73,12 @@ public enum EcoEngine {
         switch species {
         case "BrainCoral":
             return 0.10
+        case "ElkhornCoral":
+            return 0.70
+        case "TableCoral":
+            return 0.80
+        case "SpongeCoral":
+            return 0.50
         default:
             return 1.00
         }

@@ -17,6 +17,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The pro
 ## [Unreleased]
 
 ### Added
+- `GlassBubble.swift` design-system view modifier and standalone `PestTooltipView.swift` implementing translucent frosted glass styling (`.ultraThinMaterial`), white/cyan specular outlines, lowered vertical placement, and one-time auto-dismissing pest warning banner.
+- Extracted shared `Color(hex:)` extension into dedicated `DesignSystem/Color+Hex.swift` to prevent symbol collisions across canvas layers.
 - Dedicated `HapticService.swift` providing UIKit tactile feedback for snail smushing (`.medium`), snail flicking (`.rigid`), coral planting (`.success`), and tool selection (`.selectionChanged`).
 - Explicit `colorTheme: String` property on `CoralFrag` and `CoralState` data models, ensuring permanent, deterministic color themes (`default` Blue, `pink`, `purple`, `yellow`) and eliminating asynchronous runtime color-swapping during Lottie frame scrubbing.
 - Explicit `isPlanted: Bool` model state and `CoralGeometry.isCoralInSeabedHitbox` geometric checks, gating calcification and algae accrual exclusively to corals firmly rooted inside the seabed sand profile.

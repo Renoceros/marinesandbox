@@ -137,23 +137,3 @@ struct CrawlingSnailView: View {
             )
     }
 }
-
-/// One-time tooltip warning player about active pests.
-struct PestTooltipView: View {
-    @Bindable var viewModel: SandboxViewModel
-
-    var body: some View {
-        VStack {
-            Text("A snail is eating your coral! Tap it to smush it, or flick it away.")
-                .font(.callout)
-                .multilineTextAlignment(.center)
-                .padding()
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14))
-                .padding(.horizontal, 40)
-                .onTapGesture { viewModel.dismissPestTooltip() }
-            Spacer()
-        }
-        .padding(.top, 60)
-        .transition(.opacity)
-    }
-}

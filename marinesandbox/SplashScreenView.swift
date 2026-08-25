@@ -1,41 +1,13 @@
-import SwiftData
+//
+//  SplashScreenView.swift
+//  marinesandbox
+//
+//  Created by Samantha Joice Lugay on 25/08/26.
+//
+
 import SwiftUI
 
-/// **RootView: Launch Router (DEC-008, workflow §2.1)**
-///
-/// The entire router: a saved `ReefCanvas` exists → Coral Screen, otherwise →
-/// Onboarding Page. There is no Location Selection screen and never will be one —
-/// Bali/Living Seas is the implicit default (DEC-003).
-///
-struct RootView: View {
-
-    @Environment(\.modelContext) private var modelContext
-    @Query private var canvases: [ReefCanvas]
-
-    var body: some View {
-        if canvases.isEmpty {
-            OnboardingPageView(onBegin: createCanvas)
-        } else {
-            // Coral Screen placeholder until Phase 3 builds SandboxView (frontend lane).
-            ContentView()
-        }
-    }
-
-    /// The single onboarding tap: creates the dead-rubble canvas with one surviving
-    /// Staghorn frag (DEC-009) and lets the `@Query` re-route us to the Coral Screen.
-    private func createCanvas() {
-        SandboxViewModel(modelContext: modelContext).loadOrCreateCanvas()
-    }
-}
-
-/// **Onboarding Page placeholder (workflow §2.2)**
-///
-/// Routing and the single-tap interaction are final; the visuals are mid-fi
-/// placeholders pending Reno/Bobo's layout and Sam's dead-reef artwork.
-/// Constraints that must survive the visual pass: full-bleed dead ocean, one line
-/// of context, one tap, zero forms/tutorials (DEC-002, PRD §3.5–3.6).
-struct OnboardingPageView: View {
-    let onBegin: () -> Void
+struct SplashScreenView: View {
     // bg animation var
     @State var moveUp: Bool = false
     // butterfly vars
@@ -45,8 +17,17 @@ struct OnboardingPageView: View {
     @State var riseOffset: CGSize = .zero
     @State var riseOpacity: Double = 1
 
-    var body: some View {
+    // tip text
+    @State var tipText: String = ""
 
+    // tips DB
+    private let tips: [String] = [
+        "When a snail appears tap it to smush it, or flick it away before it destroys your coral!",
+        "Remember to keep an eye on the algae growth of your coral: it may get smothered to death!",
+        "Broken fragments will float by: plant them to grow your reef!",
+    ]
+    
+    var body: some View {
         ZStack {
             //bg
             Color(hex: "45B3EE").ignoresSafeArea()
@@ -55,7 +36,7 @@ struct OnboardingPageView: View {
                     .resizable()
                     .scaledToFill()
                     .frame(height: 70)
-                    .offset(y: moveUp ? -195 : -200)
+                    .offset(y: moveUp ? -192 : -200)
                     .animation(
                         .easeInOut(duration: 1.9)
                             .repeatForever(autoreverses: true),
@@ -85,6 +66,19 @@ struct OnboardingPageView: View {
                     )
 
             }
+
+            // sea butterfly animation
+            Image("SeaButterfly")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 60, height: 60)
+                .opacity(rise ? 0 : 1)
+                .offset(
+                    x: riseStartX + riseOffset.width,
+                    y: riseStartY + riseOffset.height
+                )
+                .opacity(riseOpacity)
+                .ignoresSafeArea()
 
             VStack(spacing: 16) {
                 // reefora logo
@@ -118,17 +112,17 @@ struct OnboardingPageView: View {
                 }
 
                 // tip text
-                Text("Your reef awaits restoration.")
+                Text(tipText)
                     .frame(width: 270)
                     .multilineTextAlignment(.center)
                     .font(.subheadline.bold())
                     .foregroundStyle(.white)
                     .padding(.horizontal, 20)
                     .padding(.vertical, 14)
-//
-//                    .glassBubble(
-//                        RoundedRectangle(cornerRadius: 22, style: .continuous)
-//                    )
+
+                    .glassBubble(
+                        RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    )
                     .padding(.horizontal, 40)
 
             }
@@ -138,23 +132,35 @@ struct OnboardingPageView: View {
         }
         .onAppear {
             moveUp = true
-//            tipText = tips.randomElement() ?? tips[0]
-            // delay and move on
-            Task {
-                try? await Task.sleep(for: .seconds(2))
-                onBegin()
-            }
+            startRisingLoop()
+            tipText = tips.randomElement() ?? tips[0]
+        }
+    }
+    
+    //MARK: - FUNC: rising loop randomiser
+    private func startRisingLoop() {
+        // random starting point near the bottom of the screen
+        riseStartX = CGFloat.random(in: -120...120)
+        riseStartY = CGFloat.random(in: 250...350)
+        riseOffset = .zero
+        riseOpacity = 1
+
+        withAnimation(.easeInOut(duration: Double.random(in: 3...7))) {
+            riseOffset = CGSize(
+                width: CGFloat.random(in: -60...60),
+                height: -600
+            )
+            riseOpacity = 0
+        }
+
+        // schedule next loop
+        Task {
+            try? await Task.sleep(for: .seconds(Double.random(in: 1...5)))
+            startRisingLoop()
         }
     }
 }
 
 #Preview {
-    RootView()
-        .modelContainer(
-            for: [
-                UserProfile.self, ReefCanvas.self, CoralFrag.self,
-                NGOConfig.self,
-            ],
-            inMemory: true
-        )
+    SplashScreenView()
 }

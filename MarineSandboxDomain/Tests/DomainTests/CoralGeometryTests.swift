@@ -28,10 +28,11 @@ struct CoralGeometryTests {
     }
 
     @Test func hitRectIsBottomCenterAnchored() {
-        let rect = CoralGeometry.hitRect(for: coral(growth: 0.9, x: 500), seabedY: seabedY)
+        let adult = coral(growth: 0.9, x: 500)
+        let rect = CoralGeometry.hitRect(for: adult, seabedY: seabedY)
         #expect(abs(rect.midX - 500) < 1e-10)
         #expect(abs(rect.maxY - seabedY) < 1e-10)
-        #expect(abs(rect.width - 96.61) < 1e-2)
+        #expect(abs(rect.width - CoralGeometry.footprint(for: adult).size.width) < 1e-10)
     }
 
     @Test func hitRectLiftsSpriteAboveSeabedByYPos() {
@@ -56,7 +57,8 @@ struct CoralGeometryTests {
 
     @Test func localPointNormalisesIntoGridSpace() {
         let c = coral(growth: 0.9, x: 500)
-        let center = CoralGeometry.localPoint(in: c, canvasPoint: CGPoint(x: 500, y: seabedY - 121.66 / 2), seabedY: seabedY)
+        let footprint = CoralGeometry.footprint(for: c)
+        let center = CoralGeometry.localPoint(in: c, canvasPoint: CGPoint(x: 500, y: seabedY - footprint.size.height / 2), seabedY: seabedY)
         #expect(center != nil)
         #expect(abs(center!.x - 0.5) < 1e-3)
         #expect(abs(center!.y - 0.5) < 1e-3)

@@ -47,6 +47,9 @@ struct RubblePileOverlayView: View {
 }
 
 /// Floating guided instruction banner for cold-open phases.
+///
+/// Sits low enough to clear the sponge bubble and speed HUD it is usually asking
+/// the player to reach for — see `CanvasOverlayMetrics.guidanceTopPadding`.
 struct ColdOpenInstructionView: View {
     let text: String
 
@@ -56,15 +59,10 @@ struct ColdOpenInstructionView: View {
                 .font(.subheadline.bold())
                 .foregroundStyle(.white)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(
-                    Capsule()
-                        .fill(Color.black.opacity(0.65))
-                        .overlay(Capsule().stroke(Color.white.opacity(0.3), lineWidth: 1))
-                )
-                .shadow(color: .black.opacity(0.4), radius: 6)
-                .padding(.top, 56)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 10)
+                .glassBubble(Capsule())
+                .padding(.top, CanvasOverlayMetrics.guidanceTopPadding)
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

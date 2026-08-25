@@ -33,6 +33,19 @@ struct SandboxToolOverlayView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onChange(of: viewModel.guidedPlantPhase) { _, phase in
+            // A reset drops the reef back to the cold open, which on an exhibition
+            // device usually means a new visitor is holding it. Re-arm the one-time
+            // snail hint so they get it too.
+            //
+            // This lives here rather than in `PestTooltipView` because the tooltip
+            // is only mounted while it is on screen — it cannot watch for a reset
+            // that happens minutes after it dismissed itself. This overlay is
+            // mounted for the whole session.
+            if phase == .awaitingRubbleClear {
+                UserDefaults.standard.set(false, forKey: PestTooltipView.hasSeenKey)
+            }
+        }
     }
 }
 

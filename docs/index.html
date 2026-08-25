@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reefora — Support & Privacy</title>
+  <style>
+    :root {
+      --bg: #0b1926;
+      --card-bg: #132738;
+      --accent: #2dd4bf;
+      --accent-glow: rgba(45, 212, 191, 0.2);
+      --text: #f0fdfa;
+      --muted: #94a3b8;
+      --border: #1e3a52;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 40px 20px;
+    }
+    .container {
+      max-width: 760px;
+      margin: 0 auto;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .logo-badge {
+      display: inline-block;
+      padding: 8px 18px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 16px;
+      box-shadow: 0 0 16px var(--accent-glow);
+    }
+    h1 {
+      font-size: 2.4rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+    p.subtitle {
+      color: var(--muted);
+      font-size: 1.1rem;
+    }
+    .nav-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .nav-tabs a {
+      text-decoration: none;
+      padding: 10px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+    .nav-tabs a.active {
+      background: var(--accent);
+      color: #0b1926;
+    }
+    .nav-tabs a:not(.active) {
+      background: var(--card-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    h2 {
+      color: var(--accent);
+      font-size: 1.4rem;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+    h3 {
+      font-size: 1.1rem;
+      margin: 20px 0 8px;
+      color: var(--text);
+    }
+    p, ul {
+      margin-bottom: 16px;
+      color: #cbd5e1;
+    }
+    ul {
+      padding-left: 24px;
+    }
+    li {
+      margin-bottom: 6px;
+    }
+    .btn {
+      display: inline-block;
+      background: var(--accent);
+      color: #0b1926;
+      font-weight: 600;
+      padding: 12px 28px;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+    .btn:hover {
+      opacity: 0.9;
+    }
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-top: 48px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo-badge">Reefora App</div>
+      <h1>Interactive Marine Sandbox</h1>
+      <p class="subtitle">Official Support & Privacy Policy</p>
+    </header>
+
+    <div class="nav-tabs">
+      <a href="support.html" class="active">Support & FAQ</a>
+      <a href="privacy.html">Privacy Policy</a>
+    </div>
+
+    <div class="card">
+      <h2>Welcome to Reefora Support</h2>
+      <p>Reefora is an interactive marine restoration sandbox designed to illustrate coral reef ecology, fragment propagation, and marine stewardship.</p>
+      <p>Need help with the app, found a bug, or have questions for our team?</p>
+      <div style="margin-top: 24px;">
+        <a href="mailto:mkristovan26@binb.idserve.net?subject=Reefora%20App%20Support" class="btn">Contact Support Email</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Frequently Asked Questions</h2>
+      
+      <h3>How do I plant and grow my coral fragment?</h3>
+      <p>Clear dead rubble from the survivor fragment on the seabed by flicking it away. Once uncovered, drag your living fragment down onto the sand to anchor it. Over time, your coral will calcify and grow through baby, toddler, and teenage stages.</p>
+
+      <h3>How do I clean algae or deal with snail pests?</h3>
+      <p>Pull the iridescent sponge tool from the top left corner to brush away algae smothered across coral branches. If coral-eating snails crawl in, simply tap them to smush them, or flick them away.</p>
+
+      <h3>Is my data saved?</h3>
+      <p>Yes, all your reef progress is saved automatically and locally on your iOS device via Apple SwiftData.</p>
+    </div>
+
+    <footer>
+      &copy; 2026 Reefora. All rights reserved.
+    </footer>
+  </div>
+</body>
+</html>

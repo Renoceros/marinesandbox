@@ -52,7 +52,7 @@ struct LottieCoralView: UIViewRepresentable {
         }
 
         let playerView: DotLottieAnimationView = dotLottie.view()
-        playerView.contentMode = .scaleAspectFit
+        playerView.contentMode = .bottom
         playerView.isAccessibilityElement = false
 
         context.coordinator.dotLottie = dotLottie

@@ -10,11 +10,14 @@ import SwiftUI
 struct SplashScreenView: View {
     // bg animation var
     @State private var moveUp: Bool = false
-    
+
     // loading corals
     @State private var loadingAnimation: Bool = false
-    let corals: [String] = ["StaghornCoralPink", "BrainCoralGreen", "ElkhornCoralYellow", "TableCoralBlue"]
-    
+    let corals: [String] = [
+        "StaghornCoralPink", "BrainCoralGreen", "ElkhornCoralYellow",
+        "TableCoralBlue",
+    ]
+
     // butterfly vars
     @State var rise: Bool = false
     @State var riseStartX: CGFloat = 0
@@ -88,13 +91,13 @@ struct SplashScreenView: View {
 
             VStack(spacing: 20) {
                 // reefora logo
-                                Image("ReeforaLogo")
-                                    .renderingMode(.template)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(height: 50)
-                                    .foregroundStyle(Color(hex: "030094"))
-                                    .opacity(0.7)
+//                Image("ReeforaLogo")
+//                    .renderingMode(.template)
+//                    .resizable()
+//                    .scaledToFit()
+//                    .frame(height: 50)
+//                    .foregroundStyle(Color(hex: "030094"))
+//                    .opacity(0.7)
 
                 Spacer()
 
@@ -125,7 +128,6 @@ struct SplashScreenView: View {
                     .glassBubble(
                         RoundedRectangle(cornerRadius: 22)
                     )
-                    
 
             }
             .frame(maxWidth: 370)
@@ -133,7 +135,7 @@ struct SplashScreenView: View {
             .padding(20)
             .foregroundStyle(.white)
         }
-        
+
         .onAppear {
             moveUp = true
             startRisingLoop()

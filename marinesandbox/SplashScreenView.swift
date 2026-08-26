@@ -22,9 +22,10 @@ struct SplashScreenView: View {
 
     // tips DB
     private let tips: [String] = [
-        "When a snail appears tap it to smush it, or flick it away before it destroys your coral!",
+        "Snails eat coral, make sure to smush it, or flick it away before it destroys your coral!",
         "Remember to keep an eye on the algae growth of your coral: it may get smothered to death!",
-        "Broken fragments will float by: plant them to grow your reef!",
+        "Broken coral fragments can be replanted!",
+        "Coral can be replanted!"
     ]
     
     var body: some View {

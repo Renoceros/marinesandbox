@@ -7,7 +7,8 @@ public struct FlyingPest: Equatable, Sendable {
     public let start: CGPoint
     public let velocity: CGPoint
 
-    public init(fragID: UUID, pestIndex: Int, start: CGPoint, velocity: CGPoint) {
+    public init(fragID: UUID, pestIndex: Int, start: CGPoint, velocity: CGPoint)
+    {
         self.fragID = fragID
         self.pestIndex = pestIndex
         self.start = start
@@ -18,6 +19,7 @@ public struct FlyingPest: Equatable, Sendable {
 /// Pest view using Snail vector asset with tap-to-smush squash and drag-to-flick (DEC-012, DEC-034).
 struct PestOverlayView: View {
     @Bindable var viewModel: SandboxViewModel
+    @State private var isPulsing: Bool = false
     let frag: CoralFrag
     let index: Int
     let footprint: CoralGeometry.Footprint
@@ -27,7 +29,8 @@ struct PestOverlayView: View {
 
     var body: some View {
         let local = CGPoint(x: 0.35 + 0.3 * Double(index), y: 0.4)
-        let isFlying = flyingPest?.fragID == frag.id && flyingPest?.pestIndex == index
+        let isFlying =
+            flyingPest?.fragID == frag.id && flyingPest?.pestIndex == index
         let pestKey = "\(frag.id)-\(index)"
         let isSmushed = smushedPestIDs.contains(pestKey)
 
@@ -35,11 +38,22 @@ struct PestOverlayView: View {
             .resizable()
             .scaledToFit()
             .frame(width: 36, height: 36)
-            .scaleEffect(x: isSmushed ? 1.4 : 1.0, y: isSmushed ? 0.2 : 1.0, anchor: .bottom)
+            .scaleEffect(
+                x: isSmushed ? 1.4 : 1.0,
+                y: isSmushed ? 0.2 : 1.0,
+                anchor: .bottom
+            )
+            .shadow(
+                color: .red.opacity(isPulsing ? 0.3 : 0.8),
+                radius: isPulsing ? 20 : 0
+            )
             .opacity(isSmushed ? 0.0 : (isFlying ? 0.9 : 1.0))
             .frame(width: 52, height: 52)
             .contentShape(Rectangle())
-            .position(x: local.x * footprint.size.width, y: local.y * footprint.size.height)
+            .position(
+                x: local.x * footprint.size.width,
+                y: local.y * footprint.size.height
+            )
             .offset(isFlying ? flyOffset(for: flyingPest) : .zero)
             .highPriorityGesture(
                 TapGesture()
@@ -50,27 +64,56 @@ struct PestOverlayView: View {
             .highPriorityGesture(
                 DragGesture(minimumDistance: 4)
                     .onEnded { value in
-                        let velocity = CGPoint(x: value.velocity.width, y: value.velocity.height)
+                        let velocity = CGPoint(
+                            x: value.velocity.width,
+                            y: value.velocity.height
+                        )
                         guard Physics.isFlick(velocity: velocity) else {
                             handlePestTap(fragID: frag.id, index: index)
                             return
                         }
-                        flyingPest = FlyingPest(fragID: frag.id, pestIndex: index, start: .zero, velocity: velocity)
-                        let flight = Physics.despawnTime(
-                            from: .zero,
-                            velocity: velocity,
-                            viewport: CGRect(origin: .zero, size: CGSize(width: 2000, height: 1000))
-                        ) ?? 0.6
+                        flyingPest = FlyingPest(
+                            fragID: frag.id,
+                            pestIndex: index,
+                            start: .zero,
+                            velocity: velocity
+                        )
+                        let flight =
+                            Physics.despawnTime(
+                                from: .zero,
+                                velocity: velocity,
+                                viewport: CGRect(
+                                    origin: .zero,
+                                    size: CGSize(width: 2000, height: 1000)
+                                )
+                            ) ?? 0.6
                         withAnimation(.easeIn(duration: min(flight, 0.8))) {
-                            flyingPest = FlyingPest(fragID: frag.id, pestIndex: index, start: .zero, velocity: velocity)
+                            flyingPest = FlyingPest(
+                                fragID: frag.id,
+                                pestIndex: index,
+                                start: .zero,
+                                velocity: velocity
+                            )
                         }
-                        DispatchQueue.main.asyncAfter(deadline: .now() + min(flight, 0.8)) {
-                            _ = viewModel.flickPest("DrupellaSnail", velocity: velocity, on: frag.id)
+                        DispatchQueue.main.asyncAfter(
+                            deadline: .now() + min(flight, 0.8)
+                        ) {
+                            _ = viewModel.flickPest(
+                                "DrupellaSnail",
+                                velocity: velocity,
+                                on: frag.id
+                            )
                             flyingPest = nil
                             viewModel.dismissPestTooltip()
                         }
                     }
             )
+            .onAppear {
+                withAnimation(.easeOut(duration: 1.0).repeatForever(autoreverses: false)) {
+                    isPulsing = true
+                }
+
+            }
     }
 
     private func handlePestTap(fragID: UUID, index: Int) {
@@ -88,14 +131,22 @@ struct PestOverlayView: View {
 
     private func flyOffset(for pest: FlyingPest?) -> CGSize {
         guard let pest else { return .zero }
-        let magnitude = max((pest.velocity.x * pest.velocity.x + pest.velocity.y * pest.velocity.y).squareRoot(), 1)
-        return CGSize(width: pest.velocity.x / magnitude * 900, height: pest.velocity.y / magnitude * 900)
+        let magnitude = max(
+            (pest.velocity.x * pest.velocity.x + pest.velocity.y
+                * pest.velocity.y).squareRoot(),
+            1
+        )
+        return CGSize(
+            width: pest.velocity.x / magnitude * 900,
+            height: pest.velocity.y / magnitude * 900
+        )
     }
 }
 
 /// Off-screen spawned snail crawling along the seabed toward its target coral (DEC-034).
 struct CrawlingSnailView: View {
     @Bindable var viewModel: SandboxViewModel
+    @State private var isPulsing: Bool = false
     let snail: CrawlingSnail
     let seabedY: Double
     let seabedOffset: Double
@@ -114,7 +165,10 @@ struct CrawlingSnailView: View {
             .contentShape(Rectangle())
             .position(x: snailX, y: snailY)
             .offset(flickOffset)
-            .shadow(color: .black.opacity(0.4), radius: 4)
+            .shadow(
+                color: .red.opacity(isPulsing ? 0.3 : 0.8),
+                radius: isPulsing ? 20 : 0
+            )
             .highPriorityGesture(
                 TapGesture()
                     .onEnded {
@@ -124,16 +178,38 @@ struct CrawlingSnailView: View {
             .highPriorityGesture(
                 DragGesture(minimumDistance: 4)
                     .onEnded { value in
-                        let velocity = CGPoint(x: value.velocity.width, y: value.velocity.height)
-                        guard Physics.isFlick(velocity: velocity) else { return }
-                        let magnitude = max((velocity.x * velocity.x + velocity.y * velocity.y).squareRoot(), 1)
+                        let velocity = CGPoint(
+                            x: value.velocity.width,
+                            y: value.velocity.height
+                        )
+                        guard Physics.isFlick(velocity: velocity) else {
+                            return
+                        }
+                        let magnitude = max(
+                            (velocity.x * velocity.x + velocity.y * velocity.y)
+                                .squareRoot(),
+                            1
+                        )
                         withAnimation(.easeOut(duration: 0.35)) {
-                            flickOffset = CGSize(width: velocity.x / magnitude * 700, height: velocity.y / magnitude * 700)
+                            flickOffset = CGSize(
+                                width: velocity.x / magnitude * 700,
+                                height: velocity.y / magnitude * 700
+                            )
                         }
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-                            viewModel.flickCrawlingSnail(id: snail.id, velocity: velocity)
+                            viewModel.flickCrawlingSnail(
+                                id: snail.id,
+                                velocity: velocity
+                            )
                         }
                     }
             )
+            .onAppear {
+                withAnimation(.easeOut(duration: 1.0).repeatForever(autoreverses: false)) {
+                    isPulsing = true
+                }
+
+            }
+
     }
 }

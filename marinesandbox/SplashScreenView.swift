@@ -9,7 +9,12 @@ import SwiftUI
 
 struct SplashScreenView: View {
     // bg animation var
-    @State var moveUp: Bool = false
+    @State private var moveUp: Bool = false
+    
+    // loading corals
+    @State private var loadingAnimation: Bool = false
+    let corals: [String] = ["StaghornCoralPink", "BrainCoralGreen", "ElkhornCoralYellow", "TableCoralBlue"]
+    
     // butterfly vars
     @State var rise: Bool = false
     @State var riseStartX: CGFloat = 0
@@ -25,9 +30,9 @@ struct SplashScreenView: View {
         "Snails eat coral, make sure to smush it, or flick it away before it destroys your coral!",
         "Remember to keep an eye on the algae growth of your coral: it may get smothered to death!",
         "Broken coral fragments can be replanted!",
-        "Coral can be replanted!"
+        "Coral can be replanted!",
     ]
-    
+
     var body: some View {
         ZStack {
             //bg
@@ -81,63 +86,62 @@ struct SplashScreenView: View {
                 .opacity(riseOpacity)
                 .ignoresSafeArea()
 
-            VStack(spacing: 16) {
+            VStack(spacing: 20) {
                 // reefora logo
-//                Image("ReeforaLogo")
-//                    .renderingMode(.template)
-//                    .resizable()
-//                    .scaledToFit()
-//                    .frame(height: 50)
-//                    .foregroundStyle(Color(hex: "030094"))
-//                    .opacity(0.8)
+                                Image("ReeforaLogo")
+                                    .renderingMode(.template)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(height: 50)
+                                    .foregroundStyle(Color(hex: "030094"))
+                                    .opacity(0.7)
 
                 Spacer()
 
-                HStack {
-                    Image("StaghornCoralPink")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 40, height: 40)
-                    Image("BrainCoralGreen")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 40, height: 40)
-                    Image("ElkhornCoralYellow")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 40, height: 40)
-                    Image("TableCoralBlue")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 40, height: 40)
+                //corals
+                HStack(spacing: 20) {
+                    ForEach(0..<4) { index in
+                        Image(corals[index])
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 40, height: 40)
+                            .scaleEffect(loadingAnimation ? 0.6 : 1)
+                            .animation(
+                                Animation.easeOut(duration: 1.0)
+                                    .repeatForever()
+                                    .delay(Double(index) * 0.4),
+                                value: loadingAnimation
+                            )
+                    }
                 }
 
                 // tip text
                 Text(tipText)
-                    .frame(width: 270)
                     .multilineTextAlignment(.center)
                     .font(.subheadline.bold())
                     .foregroundStyle(.white)
                     .padding(.horizontal, 20)
                     .padding(.vertical, 14)
-
                     .glassBubble(
-                        RoundedRectangle(cornerRadius: 22, style: .continuous)
+                        RoundedRectangle(cornerRadius: 22)
                     )
-                    .padding(.horizontal, 40)
+                    
 
             }
+            .frame(maxWidth: 370)
             .padding(.top, 40)
             .padding(20)
             .foregroundStyle(.white)
         }
+        
         .onAppear {
             moveUp = true
             startRisingLoop()
+            loadingAnimation = true
             tipText = tips.randomElement() ?? tips[0]
         }
     }
-    
+
     //MARK: - FUNC: rising loop randomiser
     private func startRisingLoop() {
         // random starting point near the bottom of the screen
